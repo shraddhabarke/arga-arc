@@ -701,10 +701,7 @@ class ARCGraph:
 
     def apply_nofilter(self, transformation, transformation_params):
         """
-        perform a full operation on the abstracted graph
-        1. apply filters to get a list of nodes to transform
-        2. apply param binding to the filtered nodes to retrieve parameters for the transformation
-        3. apply transformation to the nodes
+        perform a full transformation on the entire abstracted graph before applying any filters
         """
         all_nodes = {}
         for node in self.graph.nodes():
