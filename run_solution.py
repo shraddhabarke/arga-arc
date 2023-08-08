@@ -130,7 +130,7 @@ def generate_filters(rows_covered):
             # check if the filter is valid for all training examples
             satisfy = True
             for iter in range(len(training_in)):
-                satisfy and all([training_in[iter].apply_filters(node, candidate_filter["filters"],
+                satisfy = satisfy and all([training_in[iter].apply_filters(node, candidate_filter["filters"],
                                                                  candidate_filter["filter_params"])
                                  for node in rows_covered[iter]])
             if satisfy:

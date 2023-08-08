@@ -257,10 +257,12 @@ class Task:
         abstracted_graph = getattr(
             test_input, Image.abstraction_ops[abstraction])()
         for call in apply_call:
-            abstracted_graph.apply(**call)
+            #abstracted_graph.apply(**call)
+            [abstracted_graph.apply(
+                **call) for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
         reconstructed = test_input.undo_abstraction(abstracted_graph)
         if save_images:
             test_input.arc_graph.plot(save_fig=True)
             reconstructed.plot(save_fig=True)
             self.test_output[0].arc_graph.plot(save_fig=True)
-        return reconstructed
+        return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
