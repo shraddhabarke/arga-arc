@@ -1,5 +1,5 @@
 import json
-import os 
+import os
 from inspect import signature
 from itertools import product
 
@@ -150,10 +150,7 @@ class Task:
 
     def parameters_generation(self, transform_sig):
         """
-        given filter nodes and a transformation, generate parameters to be passed to the transformation
-        example: given filters for red nodes and move_nodes_max,
-            return [up, down, left, right, get_relative_pos(red nodes, blue neighbors of red nodes), ...]
-        :param apply_filters_call: the specific apply filter call to get the nodes to apply transformations to
+        given a transformation, generate parameters to be passed to the transformation
         :param all_calls: all apply filter calls, this is used to generate the dynamic parameters
         :param transform_sig: signature for a transformation
         :return: parameters to be passed to the transformation
