@@ -30,17 +30,21 @@ def setCoverage(programDict, totalPixels):
     """
     rulesSoFar = []
     chosenNodes = [[] for x in range(len(list(programDict.values())[0]))]
+    transformToNodeMapping = {}  # New data structure to store mapping
+
     while len([item for sublist in chosenNodes for item in sublist]) != totalPixels:
         # TODO: algorithm is not complete since it assumes that all the transformation rules required are in the GPT4 output
         smallestSum = 0
         bestRule = 0
         for rule in programDict.keys():
-            currentSum = 0
+            currentSum, tempNodes = 0, [[] for x in range(len(list(programDict.values())[0]))]
             if rule not in rulesSoFar:
                 for datapoint in range(len(programDict[rule])):
                     for x in range(len(programDict[rule][datapoint])):
                         if programDict[rule][datapoint][x] not in chosenNodes[datapoint]:
                             currentSum += 1
+                            tempNodes[datapoint].append(programDict[rule][datapoint][x])
+
                 # greedily increase total number of nodes covered
                 if currentSum > smallestSum and currentSum != 0:
                     smallestSum = currentSum
@@ -139,38 +143,39 @@ def generate_filters(rows_covered):
             # TODO: generate more specific filters for multiple rules
             # TODO: add support for a combination of filters
 
+def build_node_representation(node_data):
+    return tuple(set(node_data['nodes'])), {
+        'color': node_data['color'],
+        'size': node_data['size']
+    }
 
 def main():
-    trainIn = [getattr(input, Image.abstraction_ops[task.abstraction])() for
-               input in task.train_input]
 
-    trainOut = [getattr(output, Image.abstraction_ops[task.abstraction])() for
-                output in task.train_output]
+    trainIn = [getattr(input, Image.abstraction_ops[task.abstraction])() for input in task.train_input]
+    trainOut = [getattr(output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
+
+    assert len(trainIn) == len(trainOut), "The number of input and output training examples should be the same!"
+
+    inputNodeList = [{build_node_representation(node_data)[0]: build_node_representation(node_data)[1]
+                 for _, node_data in train.graph.nodes(data=True)} for train in trainIn]
 
     totalPixels = 0
-    inDict, outDict = [], []
-    assert len(trainIn) == len(
-        trainOut), "The number of input and output training examples should be the same!"
-    for iter in range(len(trainIn)):
-        inp = {}
-        for train_in in trainIn[iter].graph.nodes(data=True):
-            inp[tuple(set(train_in[1]['nodes']))] = {
-                'color': train_in[1]['color'], 'size': train_in[1]['size']}
-        inDict.append(inp)
-
-    for iter in range(len(trainOut)):
+    outputNodeList = []
+    for idx, train in enumerate(trainOut):
         out = {}
-        for train_out in trainOut[iter].graph.nodes(data=True):
-            # Disregard nodes that do not change in the transformation
-            if tuple(set(train_out[1]['nodes'])) not in inDict[iter].keys() or inDict[iter][tuple(set(train_out[1]['nodes']))] != train_out[1]:
+        for _, node_data in train.graph.nodes(data=True):
+            node_rep, node_attrs = build_node_representation(node_data)
+
+            if inputNodeList[idx].get(node_rep) != node_attrs:
                 totalPixels += 1
-                out[tuple(set(train_out[1]['nodes']))] = {
-                    'color': train_out[1]['color'], 'size': train_out[1]['size']}
-        outDict.append(out)
-    programDict = computeCorrectPixels(outDict)
-    print("ProgramDict:", programDict)
+                out[node_rep] = node_attrs
+
+        outputNodeList.append(out)
+
+    programDict = computeCorrectPixels(outputNodeList)
     # TODO: prune transformation params based on filters or vice versa!
     chosenNodes = setCoverage(programDict, totalPixels)
+    print("Chosen Nodes:", chosenNodes)
     generate_filters(chosenNodes)
 
 
