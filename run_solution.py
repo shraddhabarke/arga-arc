@@ -2,7 +2,9 @@ from task import *
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter
-
+import copy
+from inspect import signature
+from itertools import product, combinations
 # GPT4 output: TODO need to tie it together with the call to the model's API
 gpt_programs = [[{'filters': ['filter_by_color'], 'filter_params': [{'color': 1, 'exclude': False}],
                 'transformation': ['move_node_max'], 'transformation_params': [{'direction': 'RIGHT'}]}],
@@ -49,6 +51,8 @@ def setCoverage(programDict, totalPixels):
                 if currentSum > smallestSum and currentSum != 0:
                     smallestSum = currentSum
                     bestRule = rule
+                    transformToNodeMapping[rule] = tempNodes  # Update mapping for current best rule
+
         if bestRule != 0:
             rulesSoFar.append(bestRule)
             for datapoint in range(len(programDict[bestRule])):
@@ -58,8 +62,9 @@ def setCoverage(programDict, totalPixels):
                             programDict[bestRule][datapoint][x])
         else:
             raise ValueError("Best rule should not be zero!")
+    print("Transformation;", transformToNodeMapping)
     print("Transformation Rules Found:", rulesSoFar)
-    return chosenNodes
+    return transformToNodeMapping
 
 
 def computeCorrectPixels(outDict):
@@ -88,60 +93,121 @@ def computeCorrectPixels(outDict):
 
         programDict[(program['transformation'][0],
                      program['transformation_params'][0].values())] = correctPixels
+        print("Program Dict", programDict)
     return programDict
 
 
 def generate_filters(rows_covered):
+    counter = 0  # introduce a counter for training_in indexing
+    satisfied_transformations = []
+    ret_apply_filter_calls = []
     training_in = [getattr(input, Image.abstraction_ops[task.abstraction])() for
                    input in task.train_input]
     # start enumerating filters:
-    satisfy = False
-    for filter_op in ARCGraph.filter_ops:
-        if satisfy:
-            break
-        # first, we generate all possible values for each parameter
-        sig = signature(getattr(ARCGraph, filter_op))
-        generated_params = []
-        for param in sig.parameters:
-            param_name = sig.parameters[param].name
-            param_type = sig.parameters[param].annotation
-            param_default = sig.parameters[param].default
-            if param_name == "self" or param_name == "node":
-                continue
-            if param_name == "color":
-                generated_params.append(
-                    [c for c in range(10)] + ["most", "least"])
-            elif param_name == "size":
-                generated_params.append(
-                    [w for w in task.object_sizes[task.abstraction]] + ["min", "max", "odd"])
-            elif param_name == "degree":
-                generated_params.append(
-                    [d for d in task.object_degrees[task.abstraction]] + ["min", "max", "odd"])
-            elif param_type == bool:
-                generated_params.append([True, False])
-            elif issubclass(param_type, Enum):
-                generated_params.append([value for value in param_type])
-
-        # then, we combine all generated values to get all possible combinations of parameters
-        for item in product(*generated_params):
-            # generate dictionary, keys are the parameter names, values are the corresponding values
-            param_vals = {}
-            # skip "self", "node"
-            for i, param in enumerate(list(sig.parameters)[2:]):
-                param_vals[sig.parameters[param].name] = item[i]
-            candidate_filter = {"filters": [
-                filter_op], "filter_params": [param_vals]}
-            # check if the filter is valid for all training examples
-            satisfy = True
-            for iter in range(len(training_in)):
-                satisfy = satisfy and all([training_in[iter].apply_filters(node, candidate_filter["filters"],
-                                                                 candidate_filter["filter_params"])
-                                 for node in rows_covered[iter]])
-            if satisfy:
-                print("Filter Found:", candidate_filter)
+    for current_transformation, transVal in rows_covered.items():
+        filter_found = False
+        for filter_op in ARCGraph.filter_ops:
+            if filter_found:
                 break
-            # TODO: generate more specific filters for multiple rules
-            # TODO: add support for a combination of filters
+        # first, we generate all possible values for each parameter
+            sig = signature(getattr(ARCGraph, filter_op))
+            generated_params = []
+            for param in sig.parameters:
+                if filter_found:
+                    break
+                param_name = sig.parameters[param].name
+                param_type = sig.parameters[param].annotation
+                param_default = sig.parameters[param].default
+                if param_name == "self" or param_name == "node":
+                    continue
+                if param_name == "color":
+                    generated_params.append(
+                        [c for c in range(10)] + ["most", "least"])
+                elif param_name == "size":
+                    generated_params.append(
+                        [w for w in task.object_sizes[task.abstraction]] + ["min", "max", "odd"])
+                elif param_name == "degree":
+                    generated_params.append(
+                        [d for d in task.object_degrees[task.abstraction]] + ["min", "max", "odd"])
+                elif param_type == bool:
+                    generated_params.append([True, False])
+                elif issubclass(param_type, Enum):
+                    generated_params.append([value for value in param_type])
+
+            # then, we combine all generated values to get all possible combinations of parameters
+            for item in product(*generated_params):
+                if filter_found:
+                    break
+                # generate dictionary, keys are the parameter names, values are the corresponding values
+                param_vals = {}
+                # skip "self", "node"
+                for i, param in enumerate(list(sig.parameters)[2:]):
+                    param_vals[sig.parameters[param].name] = item[i]
+                candidate_filter = {"filters": [filter_op], "filter_params": [param_vals]}
+                ret_apply_filter_calls.append(candidate_filter)
+                print("Current Transform:", rows_covered[current_transformation])
+                satisfy_current, satisfy_previous = False, False
+                # Modify this part:
+                results, failures_for_all_transformations = [], []
+                for iter in range(len(training_in)):
+                    results.append(all([training_in[iter].apply_filters(node, candidate_filter["filters"],
+                                                                 candidate_filter["filter_params"])
+                                 for node in rows_covered[current_transformation][iter]]))
+                satisfy_current = all(results)
+                # Check if doesn't satisfy any of the previous transformations
+                for iter in range(len(training_in)):
+                    for prev_transformation in satisfied_transformations:
+                        fails_current_transformation = not all([
+                        training_in[iter].apply_filters(node, candidate_filter["filters"], candidate_filter["filter_params"])
+                        for node in rows_covered[prev_transformation][iter]])
+                        failures_for_all_transformations.append(fails_current_transformation)
+
+                    if all(failures_for_all_transformations):
+                        satisfy_previous = True
+                satisfy_previous = all(failures_for_all_transformations)
+                if satisfy_current and satisfy_previous:
+                    print("Filter Found for", current_transformation, ":", candidate_filter)
+                    satisfied_transformations.append(current_transformation)
+                    filter_found = True
+                    break
+
+            if not filter_found:
+                print("No filter found for", current_transformation)
+
+    for current_transformation, transVal in rows_covered.items():
+        if current_transformation not in satisfied_transformations:
+            single_filter_calls = [d.copy() for d in ret_apply_filter_calls]
+            for filter_i, (first_filter_call, second_filter_call) in enumerate(combinations(single_filter_calls, 2)):
+                candidate_filter = copy.deepcopy(first_filter_call)
+                candidate_filter["filters"].extend(second_filter_call["filters"])
+                candidate_filter["filter_params"].extend(second_filter_call["filter_params"])
+                satisfy_current, satisfy_previous = False, False
+                # Modify this part:
+                results, failures_for_all_transformations = [], []
+                for iter in range(len(training_in)):
+                    results.append(all([training_in[iter].apply_filters(node, candidate_filter["filters"],
+                                                                 candidate_filter["filter_params"])
+                                 for node in rows_covered[current_transformation][iter]]))
+
+                satisfy_current = all(results)
+                # Check if doesn't satisfy any of the previous transformations
+                for iter in range(len(training_in)):
+                    for prev_transformation in satisfied_transformations:
+                        fails_current_transformation = not all([
+                        training_in[iter].apply_filters(node, candidate_filter["filters"], candidate_filter["filter_params"])
+                        for node in rows_covered[prev_transformation][iter]])
+                        failures_for_all_transformations.append(fails_current_transformation)
+
+                    if all(failures_for_all_transformations):
+                        satisfy_previous = True
+
+                satisfy_previous = all(failures_for_all_transformations)
+                if satisfy_current and satisfy_previous:
+                    print("Filter Found for", current_transformation, ":", candidate_filter)
+                    satisfied_transformations.append(current_transformation)
+                    filter_found = True
+                    break
+
 
 def build_node_representation(node_data):
     return tuple(set(node_data['nodes'])), {
@@ -173,6 +239,7 @@ def main():
         outputNodeList.append(out)
 
     programDict = computeCorrectPixels(outputNodeList)
+    print("Final:", programDict)
     # TODO: prune transformation params based on filters or vice versa!
     chosenNodes = setCoverage(programDict, totalPixels)
     print("Chosen Nodes:", chosenNodes)
@@ -185,4 +252,7 @@ if __name__ == "__main__":
     taskNumber = "08ed6ac7"
     task = Task("dataset/" + taskNumber + ".json")
     task.abstraction = "nbccg"
+    task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
+                                                               input in task.train_input]
+    task.get_static_object_attributes(task.abstraction)
     main()
