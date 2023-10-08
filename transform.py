@@ -20,6 +20,7 @@ class ASTNode:
         self.code: str = self.__class__.__name__
         self.size: int = 1
         self.children: List[ASTNode] = []
+        self.childTypes: List[Types] = []
 
 class Color(ASTNode, Enum):
     C0 =  "0"
@@ -38,6 +39,8 @@ class Color(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.COLOR)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class Direction(ASTNode, Enum):
     UP = "UP"
@@ -52,6 +55,8 @@ class Direction(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.DIRECTION)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class Overlap(ASTNode, Enum):
     TRUE = "TRUE"
@@ -60,6 +65,8 @@ class Overlap(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.OVERLAP)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class Rotation_Direction(ASTNode, Enum):
     CW = "CW"
@@ -69,6 +76,8 @@ class Rotation_Direction(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.ROTATION_DIRECTION)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class FillColor(ASTNode, Enum):
     C0 =  "0"
@@ -84,6 +93,8 @@ class FillColor(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.FILLCOLOR)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class Mirror_Direction(ASTNode, Enum):
     VERTICAL = "VERTICAL"
@@ -94,6 +105,8 @@ class Mirror_Direction(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.MIRROR_DIRECTION)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class Mirror_Axis(ASTNode, Enum):
     X_AXIS = "X_AXIS"
@@ -102,6 +115,8 @@ class Mirror_Axis(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.MIRROR_AXIS)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class RelativePosition(ASTNode, Enum):
     SOURCE = "SOURCE"
@@ -111,6 +126,8 @@ class RelativePosition(ASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.RELATIVE_POS)
         self.code = value
+        self.size = 1
+        self.arity = 0
 
 class Transform(ASTNode):
     def __init__(self):
@@ -124,6 +141,7 @@ class Transforms(ASTNode):
         self.children = transform_list
         self.size = sum(t.size for t in transform_list)  # 1 for Transforms node + total of all child nodes
         self.code = "[" + ", ".join(t.code for t in transform_list) + "]"
+        self.arty = len(self.children)
 
 class UpdateColor(Transform):
     def __init__(self, color: Color):
@@ -132,6 +150,8 @@ class UpdateColor(Transform):
         self.children = [color]
         self.size = 1 + color.size
         self.code = f"updateColor({color.code})"
+        self.arity = 1
+        self.childTypes = [Types.COLOR]
 
 class MoveNode(Transform):
     def __init__(self, direction: Direction):
@@ -140,6 +160,8 @@ class MoveNode(Transform):
         self.children = [direction]
         self.size = 1 + direction.size
         self.code = f"moveNode({direction.code})"
+        self.arity = 1
+        self.childTypes = [Types.DIRECTION]
 
 class ExtendNode(Transform):
     def __init__(self, direction: Direction, overlap: Overlap):
@@ -148,6 +170,8 @@ class ExtendNode(Transform):
         self.children = [direction, overlap]
         self.size = 1 + direction.size + overlap.size
         self.code = f"extendNode({direction.code}, {overlap.code})"
+        self.arity = 2
+        self.childTypes = [Types.DIRECTION, Types.OVERLAP]
 
 class MoveNodeMax(Transform):
     def __init__(self, direction: Direction):
@@ -156,6 +180,8 @@ class MoveNodeMax(Transform):
         self.children = [direction]
         self.size = 1 + direction.size
         self.code = f"moveNodeMax({direction.code})"
+        self.arity = 1
+        self.childTypes = [Types.DIRECTION]
 
 class RotateNode(Transform):
     def __init__(self, rotation_direction: Rotation_Direction):
@@ -164,6 +190,8 @@ class RotateNode(Transform):
         self.children = [rotation_direction]
         self.size = 1 + rotation_direction.size
         self.code = f"rotateNode({rotation_direction.code})"
+        self.arity = 1
+        self.childTypes = [Types.ROTATION_DIRECTION]
 
 class AddBorder(Transform):
     def __init__(self, fill_color: FillColor):
@@ -172,6 +200,8 @@ class AddBorder(Transform):
         self.children = [fill_color]
         self.size = 1 + fill_color.size
         self.code = f"addBorder({fill_color.code})"
+        self.arity = 1
+        self.childTypes = [Types.FILLCOLOR]
 
 class FillRectangle(Transform):
     def __init__(self, fill_color: FillColor, overlap: Overlap):
@@ -180,6 +210,8 @@ class FillRectangle(Transform):
         self.children = [fill_color, overlap]
         self.size = 1 + fill_color.size + overlap.size
         self.code = f"fillRectangle({fill_color.code}, {overlap.code})"
+        self.arity = 2
+        self.childTypes = [Types.FILLCOLOR, Types.OVERLAP]
 
 class HollowRectangle(Transform):
     def __init__(self, fill_color: FillColor):
@@ -188,6 +220,8 @@ class HollowRectangle(Transform):
         self.children = [fill_color]
         self.size = 1 + fill_color.size
         self.code = f"hollowRectangle({fill_color.code})"
+        self.arity = 1
+        self.childTypes = [Types.FILLCOLOR]
 
 class Insert(Transform):
     def __init__(self, relative_pos: RelativePosition):
@@ -196,6 +230,8 @@ class Insert(Transform):
         self.children = [relative_pos]
         self.size = 1 + relative_pos.size
         self.code = f"Insert({relative_pos.code})"
+        self.arity = 1
+        self.childTypes = [Types.RELATIVE_POS]
 
 class Mirror(Transform):
     def __init__(self, mirror_axis: Mirror_Axis):
@@ -204,6 +240,8 @@ class Mirror(Transform):
         self.children = [mirror_axis]
         self.size = 1 + mirror_axis.size
         self.code = f"mirror({mirror_axis.code})"
+        self.arity = 1
+        self.childTypes = [Types.MIRROR_AXIS]
 
 class Flip(Transform):
     def __init__(self, mirror_direction: Mirror_Direction):
@@ -212,6 +250,8 @@ class Flip(Transform):
         self.children = [mirror_direction]
         self.terms = 1 + mirror_direction.size
         self.code = f"flip({mirror_direction.code})"
+        self.arity = 1
+        self.childTypes = [Types.MIRROR_DIRECTION]
 
 # Tests below
 import unittest
