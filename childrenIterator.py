@@ -15,11 +15,20 @@ class ChildrenIterator:
         self.candidates: List[LookaheadIterator[TransformASTNode]] = []
         self.allExceptLast: List[TransformASTNode] = []
 
+        while not self.candidates:
+            if not self.costsIterator.has_next():  # Exit if no valid costs are left
+                break
+            newCost = next(self.costsIterator)
+            self.resetIterators(newCost)
+
     def resetIterators(self, cost: List[int]):
-        self.childrenLists = [
+        childrenListsTemp = [
             [node for node in self.bank[c] if node.nodeType == t]
             for t, c in zip(self.childTypes, cost)
         ]
+        if any(not lst for lst in childrenListsTemp):
+            return
+        self.childrenLists = childrenListsTemp
         self.candidates = [
             LookaheadIterator(child_list) if child_list else LookaheadIterator([])
             for child_list in self.childrenLists
@@ -27,26 +36,48 @@ class ChildrenIterator:
         if self.candidates and (self.candidates[0]).has_next():
             self.allExceptLast = [next(candidate) for candidate in self.candidates[:-1]]
 
+    def getNextChild(self):
+        if self.candidates is not None:
+            while True:
+                if self.candidates[-1].has_next():
+                    children = self.allExceptLast + [next(self.candidates[-1])]
+                    return children
+                else:
+                    next_candidates = [(idx, candidate) for idx, candidate in enumerate(self.candidates) if candidate.has_next()]
+                    if not next_candidates:  # If no candidates are left with elements
+                        return None
+                    idx, iterator = next_candidates[-1]  # Get the last available candidate
+                    self.allExceptLast[idx] = next(iterator)
+                    # Reset following iterators
+                    for i in range(idx + 1, len(self.candidates) - 1):
+                        self.candidates[i] = LookaheadIterator(self.childrenLists[i])
+                        self.allExceptLast[i] = next(self.candidates[i])
+                
+                    # Reset the last candidate
+                    self.candidates[-1] = LookaheadIterator(self.childrenLists[-1])
+        else:
+            return None
+            
     def getChild(self):
-        self.next_child = None
-        while not self.next_child:
-            self.next_child = self.getNextChild()
-            if not self.next_child:
-                if not self.costsIterator.hasNext():
+        self.nextChild = None
+        while not self.nextChild:
+            self.nextChild = self.getNextChild()
+            if not self.nextChild:
+                if not self.costsIterator.has_next():
                     return
                 newCost = next(self.costsIterator)
                 self.resetIterators(newCost)
 
     def hasNext(self) -> bool:
-        if not self.next_child:
+        if self.nextChild is None:
             self.getChild()
-        return next_child is not None
+        return self.nextChild is not None
 
     def next(self) -> List[TransformASTNode]:
-        if not self.next_child:
+        if self.nextChild is None:
             self.getChild()
-        res = self.next_child
-        self.next_child = None
+        res = self.nextChild
+        self.nextChild = None
         return res
 
 from itertools import combinations, permutations
@@ -117,6 +148,81 @@ class TestResetIterators(unittest.TestCase):
             self.assertEqual(len(self.obj.childrenLists), len(childTypes))
             self.assertEqual(len(self.obj.candidates), len(childTypes))
             self.assertEqual(self.obj.allExceptLast, expected_all_except_last)
+
+import unittest
+
+class TestChildrenIterator(unittest.TestCase):
+
+    def setUp(self):
+        self.bank = {
+            1: [Color.C1, Color.C2, Direction.LEFT],
+            2: [Direction.UP, Color.C3],
+            3: [Rotation_Direction.CW]
+        }
+
+    def test_basic(self):
+        childTypes = [Types.COLOR, Types.DIRECTION, Types.ROTATION_DIRECTION]
+        costs = [1, 2, 3]
+        iterator = ChildrenIterator(childTypes, 6, self.bank)
+        iterator.resetIterators(costs)
+        self.assertEqual(len(iterator.childrenLists), 3)
+        self.assertEqual(len(iterator.candidates), 3)
+        self.assertEqual(iterator.allExceptLast, [Color.C1, Direction.UP])
+
+    def test_hasNext_and_next_methods(self):
+        childTypes = [Types.COLOR, Types.DIRECTION]
+        iterator = ChildrenIterator(childTypes, 3, self.bank)
+        self.assertTrue(iterator.hasNext())
+        result = iterator.next()
+        expected = [Color.C1, Direction.UP]
+        self.assertListEqual(result, expected)
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.UP])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C3, Direction.LEFT])
+    
+    def test_complex_combinations(self):
+        childTypes = [Types.COLOR, Types.DIRECTION, Types.ROTATION_DIRECTION, Types.OVERLAP]
+        self.bank = {
+            1: [Color.C1, Color.C2],
+            2: [Direction.UP, Direction.LEFT],
+            3: [Rotation_Direction.CW, Rotation_Direction.CCW],
+            4: [Overlap.TRUE, Overlap.FALSE]
+        }
+        iterator = ChildrenIterator(childTypes, 10, self.bank)
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.UP, Rotation_Direction.CW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.UP, Rotation_Direction.CW, Overlap.FALSE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.UP, Rotation_Direction.CCW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.UP, Rotation_Direction.CCW, Overlap.FALSE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.LEFT, Rotation_Direction.CW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.LEFT, Rotation_Direction.CW, Overlap.FALSE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.LEFT, Rotation_Direction.CCW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C1, Direction.LEFT, Rotation_Direction.CCW, Overlap.FALSE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.UP, Rotation_Direction.CW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.UP, Rotation_Direction.CW, Overlap.FALSE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.UP, Rotation_Direction.CCW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.UP, Rotation_Direction.CCW, Overlap.FALSE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.LEFT, Rotation_Direction.CW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.LEFT, Rotation_Direction.CW, Overlap.FALSE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.LEFT, Rotation_Direction.CCW, Overlap.TRUE])
+        self.assertTrue(iterator.hasNext())
+        self.assertListEqual(iterator.next(), [Color.C2, Direction.LEFT, Rotation_Direction.CCW, Overlap.FALSE])
+        self.assertFalse(iterator.hasNext())
 
 if __name__ == "__main__":
     unittest.main()
