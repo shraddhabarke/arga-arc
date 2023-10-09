@@ -14,11 +14,13 @@ class ChildrenIterator:
         self.childrenLists: List[List[TransformASTNode]] = []
         self.candidates: List[LookaheadIterator[TransformASTNode]] = []
         self.allExceptLast: List[TransformASTNode] = []
-
+        self.exhausted = False
+        if not self.costs:
+            self.exhausted = True
         while not self.candidates:
-            if not self.costsIterator.has_next():  # Exit if no valid costs are left
+            if not self.costsIterator.hasNext():  # Exit if no valid costs are left
                 break
-            newCost = next(self.costsIterator)
+            newCost = self.costsIterator.next()
             self.resetIterators(newCost)
 
     def resetIterators(self, cost: List[int]):
@@ -27,31 +29,34 @@ class ChildrenIterator:
             for t, c in zip(self.childTypes, cost)
         ]
         if any(not lst for lst in childrenListsTemp):
+            self.exhausted = True
             return
         self.childrenLists = childrenListsTemp
         self.candidates = [
             LookaheadIterator(child_list) if child_list else LookaheadIterator([])
             for child_list in self.childrenLists
         ]
-        if self.candidates and (self.candidates[0]).has_next():
-            self.allExceptLast = [next(candidate) for candidate in self.candidates[:-1]]
+        if self.candidates and (self.candidates[0]).hasNext():
+            self.allExceptLast = [candidate.next() for candidate in self.candidates[:-1]]
 
     def getNextChild(self):
-        if self.candidates is not None:
+        if self.exhausted:  # If iterator is marked as exhausted, return None
+            return None
+        elif self.candidates is not None:
             while True:
-                if self.candidates[-1].has_next():
-                    children = self.allExceptLast + [next(self.candidates[-1])]
+                if self.candidates[-1].hasNext():
+                    children = self.allExceptLast + [self.candidates[-1].next()]
                     return children
                 else:
-                    next_candidates = [(idx, candidate) for idx, candidate in enumerate(self.candidates) if candidate.has_next()]
+                    next_candidates = [(idx, candidate) for idx, candidate in enumerate(self.candidates) if candidate.hasNext()]
                     if not next_candidates:  # If no candidates are left with elements
                         return None
                     idx, iterator = next_candidates[-1]  # Get the last available candidate
-                    self.allExceptLast[idx] = next(iterator)
+                    self.allExceptLast[idx] = iterator.next()
                     # Reset following iterators
                     for i in range(idx + 1, len(self.candidates) - 1):
                         self.candidates[i] = LookaheadIterator(self.childrenLists[i])
-                        self.allExceptLast[i] = next(self.candidates[i])
+                        self.allExceptLast[i] = self.candidates[i].next()
                 
                     # Reset the last candidate
                     self.candidates[-1] = LookaheadIterator(self.childrenLists[-1])
@@ -63,13 +68,15 @@ class ChildrenIterator:
         while not self.nextChild:
             self.nextChild = self.getNextChild()
             if not self.nextChild:
-                if not self.costsIterator.has_next():
+                if not self.costsIterator.hasNext():
                     return
-                newCost = next(self.costsIterator)
+                newCost = self.costsIterator.next()
                 self.resetIterators(newCost)
 
     def hasNext(self) -> bool:
-        if self.nextChild is None:
+        if self.exhausted:  # If iterator is marked as exhausted, return False
+            return False
+        elif not self.exhausted and self.nextChild is None:
             self.getChild()
         return self.nextChild is not None
 
@@ -222,6 +229,8 @@ class TestChildrenIterator(unittest.TestCase):
         self.assertListEqual(iterator.next(), [Color.C2, Direction.LEFT, Rotation_Direction.CCW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
         self.assertListEqual(iterator.next(), [Color.C2, Direction.LEFT, Rotation_Direction.CCW, Overlap.FALSE])
+        self.assertFalse(iterator.hasNext())
+        iterator = ChildrenIterator(childTypes, 200, self.bank)
         self.assertFalse(iterator.hasNext())
 
 if __name__ == "__main__":
