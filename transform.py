@@ -12,6 +12,7 @@ class Types(Enum):
     MIRROR_AXIS = "Mirror_Axis"
     MIRROR_DIRECTION = "Mirror_Direction"
     RELATIVE_POS = "Relative_Pos"
+    IMAGEPOINTS = "ImagePoints"
 
 class TransformASTNode:
     def __init__(self, children = None):
@@ -19,18 +20,19 @@ class TransformASTNode:
         self.size: int = 1
         self.children: List[TransformASTNode] = children if children else []
         self.childTypes: List[Types] = []
-    
+        self.nodeType: Types
+
 class Color(TransformASTNode, Enum):
-    C0 =  "0"
-    C1 =  "1"
-    C2 =  "2"
-    C3 =  "3"
-    C4 =  "4"
-    C5 =  "5"
-    C6 =  "6"
-    C7 =  "7"
-    C8 =  "8"
-    C9 =  "9"
+    C0 =  0
+    C1 =  1
+    C2 =  2
+    C3 =  3
+    C4 =  4
+    C5 =  5
+    C6 =  6
+    C7 =  7
+    C8 =  8
+    C9 =  9
     LEAST = "least"
     MOST =  "most"
 
@@ -82,8 +84,8 @@ class Direction(TransformASTNode, Enum):
         return list(cls.__members__.values())
 
 class Overlap(TransformASTNode, Enum):
-    TRUE = "TRUE"
-    FALSE = "FALSE"
+    TRUE = True
+    FALSE = False
     def __init__(self, value):
         super().__init__(Types.OVERLAP)
         self.nodeType = Types.OVERLAP
@@ -127,16 +129,16 @@ class Rotation_Direction(TransformASTNode, Enum):
         return list(cls.__members__.values())
 
 class FillColor(TransformASTNode, Enum):
-    C0 =  "0"
-    C1 =  "1"
-    C2 =  "2"
-    C3 =  "3"
-    C4 =  "4"
-    C5 =  "5"
-    C6 =  "6"
-    C7 =  "7"
-    C8 =  "8"
-    C9 =  "9"
+    C0 =  0
+    C1 =  1
+    C2 =  2
+    C3 =  3
+    C4 =  4
+    C5 =  5
+    C6 =  6
+    C7 =  7
+    C8 =  8
+    C9 =  9
     def __init__(self, value):
         super().__init__(Types.FILLCOLOR)
         self.nodeType = Types.FILLCOLOR
@@ -198,6 +200,35 @@ class Mirror_Axis(TransformASTNode, Enum):
     def apply(self, children=None):
         return self
     
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
+
+class ImagePoints(TransformASTNode, Enum):
+    TOP = "TOP"
+    BOTTOM = "BOTTOM"
+    LEFT = "LEFT"
+    RIGHT = "RIGHT"
+    TOP_LEFT = "TOP_LEFT"
+    TOP_RIGHT = "TOP_RIGHT"
+    BOTTOM_LEFT = "BOTTOM_LEFT"
+    BOTTOM_RIGHT = "BOTTOM_RIGHT"
+
+    def __init__(self, value):
+        super().__init__(Types.IMAGEPOINTS)
+        self.nodeType = Types.IMAGEPOINTS
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    def apply(self, children=None):
+        return self
+
     @classmethod
     def get_all_values(cls):
         return list(cls.__members__.values())
@@ -364,19 +395,19 @@ class HollowRectangle(TransformOps):
         return cls(children[0])
 
 class Insert(TransformOps):
-    arity = 1
+    arity = 2
     nodeType = Types.TRANSFORM_OPS
-    def __init__(self, relative_pos: RelativePosition):
+    def __init__(self, point: ImagePoints, relative_pos: RelativePosition):
         super().__init__()
         self.nodeType = Types.TRANSFORM_OPS
-        self.children = [relative_pos]
-        self.size = 1 + relative_pos.size
-        self.code = f"Insert({relative_pos.code})"
-        self.childTypes = [Types.RELATIVE_POS]
+        self.children = [point, relative_pos]
+        self.size = 1 + point.size + relative_pos.size
+        self.code = f"Insert({point.code, relative_pos.code})"
+        self.childTypes = [Types.IMAGEPOINTS, Types.RELATIVE_POS]
     
     @classmethod
     def apply(cls, children):
-        return cls(children[0])
+        return cls(children[0], children[1])
 
 class Mirror(TransformOps):
     arity = 1
@@ -430,7 +461,6 @@ class TestGrammarRepresentation(unittest.TestCase):
     def test_transforms(self):
         transforms_instance = Transforms([UpdateColor(Color.C1), UpdateColor(Color.C2)])
         self.assertEqual(transforms_instance.nodeType, Types.TRANSFORMS)
-
         self.assertEqual(transforms_instance.code, "[updateColor(Color.C1), updateColor(Color.C2)]")
         self.assertEqual(transforms_instance.size, 4)  # 1 for transforms + 2 for each updateColor
         self.assertEqual(len(transforms_instance.children), 2)
@@ -472,7 +502,6 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(len(sequence.children), 2)
 
     def test_complex_transform_sequence(self):
-        # Testing a more complex sequence of transformations
         transforms_list = [
         UpdateColor(Color.C1),
         MoveNode(Direction.UP),

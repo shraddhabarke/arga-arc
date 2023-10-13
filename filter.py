@@ -11,11 +11,12 @@ class FilterTypes(Enum):
     DEGREE = "Degree"
 
 class FilterASTNode:
-    def __init__(self, node_type: FilterTypes, task=None):
-        self.nodeType: FilterTypes = node_type
+    def __init__(self, children = None):
+        self.nodeType: FilterTypes
         self.code: str = self.__class__.__name__
         self.size: int = 1
-        self.children: List[FilterASTNode] = []
+        self.children: List[FilterASTNode] = children if children else []
+        self.childTypes: List[FilterTypes] = []
 
 class SizeValue:
     def __init__(self, value):
@@ -28,6 +29,25 @@ class Size:
     def __new__(cls, enum_value):
         instance = SizeValue(enum_value.value)
         return instance
+    
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.SIZE)
+        self.nodeType = FilterTypes.SIZE
+        self.code = f"SIZE.{self.enum_value}"
+        self.size = 1
+        self.children = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    def apply(self, children=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
 
 class DegreeValue:
     def __init__(self, value):
@@ -40,64 +60,98 @@ class Degree:
     def __new__(cls, enum_value):
         instance = DegreeValue(enum_value.value)
         return instance
+    
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.DEGREE)
+        self.nodeType = FilterTypes.DEGREE
+        self.code = f"{self.__class__.__name__}.{self.enum_value}"
+        self.size = 1
+        self.children = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    def apply(self, children=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
 
 def setup_size_and_degree_based_on_task(task):
     task_sizes = [w for w in task.object_sizes[task.abstraction]]
-    _size_additional = {f'S{item}': str(item) for item in task_sizes}
+    _size_additional = {f'S{item}': int(item) for item in task_sizes}
     SizeEnum = Enum("SizeEnum", {'MIN': "min", 'MAX': "max", 'ODD': "odd", **_size_additional})
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
-    _degree_additional = {f'D{item}': str(item) for item in task_degrees}
+    _degree_additional = {f'D{item}': int(item) for item in task_degrees}
     DegreeEnum = Enum("DegreeEnum", {'MIN': "min", 'MAX': "max", 'ODD': "odd", **_degree_additional})
 
-    # Set attributes for Size and Degree:
     for name, member in SizeEnum.__members__.items():
         setattr(Size, name, Size(member))
     for name, member in DegreeEnum.__members__.items():
         setattr(Degree, name, Degree(member))
 
-class FilterTypes(Enum):
-    FILTERS = "Filters"
-    FILTER_OPS = "Filter_Ops"
-    COLOR = "Color"
-    SIZE = "Size"
-    EXCLUDE = "Exclude"
-    DEGREE = "Degree"
-
-class FilterASTNode:
-    def __init__(self, node_type: FilterTypes):
-        self.nodeType: FilterTypes = node_type
-        self.code: str = self.__class__.__name__
-        self.size: int = 1
-        self.children: List[FilterASTNode] = []
-
 class Color(FilterASTNode, Enum):
-    C0 = "0"
-    C1 = "1"
-    C2 = "2"
-    C3 = "3"
-    C4 = "4"
-    C5 = "5"
-    C6 = "6"
-    C7 = "7"
-    C8 = "8"
-    C9 = "9"
+    C0 = 0
+    C1 = 1
+    C2 = 2
+    C3 = 3
+    C4 = 4
+    C5 = 5
+    C6 = 6
+    C7 = 7
+    C8 = 8
+    C9 = 9
     LEAST = "least"
     MOST = "most"
 
-    def __init__(self, value):
+    def __init__(self, value=None):
         super().__init__(FilterTypes.COLOR)
-        self.code = value
+        self.nodeType = FilterTypes.COLOR
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    def apply(self, children=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
 
 class Exclude(FilterASTNode, Enum):
-    TRUE = "True"
-    FALSE = "False"
+    TRUE = True
+    FALSE = False
 
-    def __init__(self, value):
+    def __init__(self, value=None):
         super().__init__(FilterTypes.EXCLUDE)
-        self.code = value
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.nodeType = FilterTypes.EXCLUDE
+        self.size = 1
+        self.children = [] 
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+    
+    def apply(self, children=None):
+        return self
+    
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
 
 class Filters(FilterASTNode):
+    nodeType = FilterTypes.FILTERS
     def __init__(self, filters: Union["FilterOps", "And", "Or"]):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filters]
@@ -109,6 +163,7 @@ class FilterOps(FilterASTNode):
         super().__init__(FilterTypes.FILTER_OPS)
 
 class And(FilterASTNode):
+    nodeType = FilterTypes.FILTERS
     def __init__(self, filter1: Filters, filter2: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter1, filter2]
@@ -116,6 +171,7 @@ class And(FilterASTNode):
         self.size = 1 + filter1.size + filter2.size
 
 class Or(FilterASTNode):
+    nodeType = FilterTypes.FILTERS
     def __init__(self, filter1: Filters, filter2: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter1, filter2]
@@ -154,6 +210,10 @@ class FilterByDegree(FilterOps):
         self.size = 1 + degree.size + exclude.size
         self.children = [degree, exclude]
 
+    @classmethod
+    def apply(cls, children):
+        return cls(children[0], children[1])
+
 class FilterByNeighborSize(FilterOps):
     def __init__(self, size: Size, exclude: Exclude):
         super().__init__()
@@ -161,6 +221,10 @@ class FilterByNeighborSize(FilterOps):
         self.code = f"FilterByNeighborSize({size.code}, {exclude.code})"
         self.size = 1 + size.size + exclude.size
         self.children = [size, exclude]
+    
+    @classmethod
+    def apply(cls, children):
+        return cls(children[0], children[1])
 
 class FilterByNeighborColor(FilterOps):
     def __init__(self, color: Color, exclude: Exclude):
@@ -169,6 +233,10 @@ class FilterByNeighborColor(FilterOps):
         self.code = f"FilterByNeighborColor({color.code}, {exclude.code})"
         self.size = 1 + color.size + exclude.size
         self.children = [color, exclude]
+    
+    @classmethod
+    def apply(cls, children):
+        return cls(children[0], children[1])
 
 class FilterByNeighborDegree(FilterOps):
     def __init__(self, degree: Degree, exclude: Exclude):
@@ -177,3 +245,7 @@ class FilterByNeighborDegree(FilterOps):
         self.code = f"FilterByNeighborDegree({degree.code}, {exclude.code})"
         self.size = 1 + degree.size + exclude.size
         self.children = [degree, exclude]
+
+    @classmethod
+    def apply(cls, children):
+        return cls(children[0], children[1])

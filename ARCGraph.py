@@ -3,30 +3,11 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from itertools import combinations
 from utils import *
+from transform import *
+from filter import *
+from task import *
 
 class ARCGraph:
-    colors = ["#000000", "#0074D9", "#FF4136", "#2ECC40", "#FFDC00", "#AAAAAA",
-              "#F012BE", "#FF851B", "#7FDBFF", "#870C25"]
-    img_dir = "images"
-    insertion_transformation_ops = ["insert"]
-    filter_ops = ["filter_by_color", "filter_by_size", "filter_by_degree", "filter_by_neighbor_size",
-                  "filter_by_neighbor_color"]
-    param_binding_ops = ["param_bind_neighbor_by_size", "param_bind_neighbor_by_color", "param_bind_node_by_shape",
-                         "param_bind_node_by_size"]
-    transformation_ops = {
-        "nbccg": ["update_color", "move_node", "extend_node", "move_node_max", "fill_rectangle", "hollow_rectangle",
-                  "add_border", "insert", "mirror", "flip", "rotate_node", "remove_node"],
-        "nbvcg": ["update_color", "move_node", "extend_node", "move_node_max", "remove_node"],
-        "nbhcg": ["update_color", "move_node", "extend_node", "move_node_max", "remove_node"],
-        "ccgbr": ["update_color", "remove_node"],
-        "ccgbr2": ["update_color", "remove_node"],
-        "ccg": ["update_color", "remove_node"],
-        "mcccg": ["move_node", "move_node_max", "rotate_node", "fill_rectangle", "add_border", "insert", "mirror",
-                  "flip", "remove_node"],
-        "na": ["flip", "rotate_node"],
-        "lrg": ["update_color", "move_node", "extend_node", "move_node_max"]}
-    
-    dynamic_parameters = {"color", "direction", "point", "mirror_point", "mirror_direction", "mirror_axis"}
 
     def __init__(self, graph, name, image, abstraction=None):
 
@@ -51,174 +32,10 @@ class ARCGraph:
         self.width = max([node[1] for node in self.image.graph.nodes()]) + 1
         self.height = max([node[0] for node in self.image.graph.nodes()]) + 1
         self.task_id = name.split("_")[0]
-        self.save_dir = self.img_dir + "/" + self.task_id
-
-    # ------------------------------------- filters ------------------------------------------
-    #  filters take the form of filter(node, params), return true if node satisfies filter
-    def filter_by_color(self, node, color: int, exclude: bool = False):
-        """
-        return true if node has given color.
-        if exclude, return true if node does not have given color.
-        """
-        if color == "most":
-            color = self.most_common_color
-        elif color == "least":
-            color = self.least_common_color
-
-        if self.is_multicolor:
-            if not exclude:
-                return color in self.graph.nodes[node]["color"]
-            else:
-                return color not in self.graph.nodes[node]["color"] != color
-        else:
-            if not exclude:
-                return self.graph.nodes[node]["color"] == color
-            else:
-                return self.graph.nodes[node]["color"] != color
-
-    def filter_by_size(self, node, size, exclude: bool = False):
-        """
-        return true if node has size equal to given size.
-        if exclude, return true if node does not have size equal to given size.
-        """
-        if size == "max":
-            size = self.get_attribute_max("size")
-        elif size == "min":
-            size = self.get_attribute_min("size")
-
-        if size == "odd" and not exclude:
-            return self.graph.nodes[node]["size"] % 2 != 0
-        elif size == "odd" and exclude:
-            return self.graph.nodes[node]["size"] % 2 == 0
-        elif not exclude:
-            return self.graph.nodes[node]["size"] == size
-        elif exclude:
-            return self.graph.nodes[node]["size"] != size
-
-    def filter_by_degree(self, node, degree, exclude: bool = False):
-        """
-        return true if node has degree equal to given degree.
-        if exclude, return true if node does not have degree equal to given degree.
-        """
-        if not exclude:
-            return self.graph.degree[node] == degree
-        else:
-            return self.graph.degree[node] != degree
-
-    def filter_by_neighbor_size(self, node, size, exclude: bool = False):
-        """
-        return true if node has a neighbor of a given size.
-        if exclude, return true if node does not have a neighbor of a given size.
-        """
-        if size == "max":
-            size = self.get_attribute_max("size")
-        elif size == "min":
-            size = self.get_attribute_min("size")
-
-        for neighbor in self.graph.neighbors(node):
-            if size == "odd" and not exclude:
-                if self.graph.nodes[neighbor]["size"] % 2 != 0:
-                    return True
-            elif size == "odd" and exclude:
-                if self.graph.nodes[neighbor]["size"] % 2 == 0:
-                    return True
-            elif not exclude:
-                if self.graph.nodes[neighbor]["size"] == size:
-                    return True
-            elif exclude:
-                if self.graph.nodes[neighbor]["size"] != size:
-                    return True
-        return False
-
-    def filter_by_neighbor_color(self, node, color, exclude: bool = False):
-        """
-        return true if node has a neighbor of a given color.
-        if exclude, return true if node does not have a neighbor of a given color.
-        """
-        if color == "same":
-            color = self.graph.nodes[node]["color"]
-        elif color == "most":
-            color = self.most_common_color
-        elif color == "least":
-            color = self.least_common_color
-
-        for neighbor in self.graph.neighbors(node):
-            if not exclude:
-                if self.graph.nodes[neighbor]["color"] == color:
-                    return True
-            elif exclude:
-                if self.graph.nodes[neighbor]["color"] != color:
-                    return True
-        return False
-
-    def filter_by_neighbor_degree(self, node, degree, exclude: bool = False):
-        """
-        return true if node has a neighbor of a given degree.
-        if exclude, return true if node does not have a neighbor of a given degree.
-        """
-        for neighbor in self.graph.neighbors(node):
-            if not exclude:
-                if self.graph.degree[neighbor] == degree:
-                    return True
-            else:
-                if self.graph.degree[neighbor] != degree:
-                    return True
-        return False
-
-    # --------------------------------- parameter binding functions ------------------------------------------
-    # parameter binding takes the form of param_binding(node, params),
-    # return node2 if rel(node, node2) and filter(node2, params). ex. neighbor of node with color blue
-
-    def param_bind_neighbor_by_color(self, node, color, exclude: bool = False):
-        """
-        return the neighbor of node satisfying given color filter
-        """
-        for neighbor in self.graph.neighbors(node):
-            if self.filter_by_color(neighbor, color, exclude):
-                return neighbor
-        return None
-
-    def param_bind_neighbor_by_size(self, node, size, exclude: bool = False):
-        """
-        return the neighbor of node satisfying given size filter
-        """
-        for neighbor in self.graph.neighbors(node):
-            if self.filter_by_size(neighbor, size, exclude):
-                return neighbor
-        return None
-
-    def param_bind_node_by_size(self, node, size, exclude: bool = False):
-        """
-        return any node in graph satisfying given size filter
-        """
-        for n in self.graph.nodes():
-            if self.filter_by_size(n, size, exclude):
-                return n
-        return None
-
-    def param_bind_neighbor_by_degree(self, node, degree, exclude: bool = False):
-        """
-        return the neighbor of node satisfying given degree filter
-        """
-        for neighbor in self.graph.neighbors(node):
-            if self.filter_by_degree(neighbor, degree, exclude):
-                return neighbor
-        return None
-
-    def param_bind_node_by_shape(self, node):
-        """
-        return any other node in the graph with the same shape as node
-        """
-        target_shape = self.get_shape(node)
-        for param_bind_node in self.graph.nodes:
-            if param_bind_node != node:
-                candidate_shape = self.get_shape(param_bind_node)
-                if candidate_shape == target_shape:
-                    return param_bind_node
-        return None
+        #self.save_dir = self.img_dir + "/" + self.task_id
 
     # ------------------------------------------ transformations ------------------------------------------
-    def update_color(self, node, color):
+    def UpdateColor(self, node, color: Color):
         """
         update node color to given color
         """
@@ -229,7 +46,7 @@ class ARCGraph:
         self.graph.nodes[node]["color"] = color
         return self
 
-    def move_node(self, node, direction: Direction):
+    def MoveNode(self, node, direction: Direction):
         """
         move node by 1 pixel in a given direction
         """
@@ -238,13 +55,13 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == Direction.UP or direction == Direction.UP_LEFT or direction == Direction.UP_RIGHT:
+        if direction == "UP" or direction == "UP_LEFT" or direction == "UP_RIGHT":
             delta_y = -1
-        elif direction == Direction.DOWN or direction == Direction.DOWN_LEFT or direction == Direction.DOWN_RIGHT:
+        elif direction == "DOWN" or direction == "DOWN_LEFT" or direction == "DOWN_RIGHT":
             delta_y = 1
-        if direction == Direction.LEFT or direction == Direction.UP_LEFT or direction == Direction.DOWN_LEFT:
+        if direction == "LEFT" or direction == "UP_LEFT" or direction == "DOWN_LEFT":
             delta_x = -1
-        elif direction == Direction.RIGHT or direction == Direction.UP_RIGHT or direction == Direction.DOWN_RIGHT:
+        elif direction == "RIGHT" or direction == "UP_RIGHT" or direction == "DOWN_RIGHT":
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
             updated_sub_nodes.append((sub_node[0] + delta_y, sub_node[1] + delta_x))
@@ -252,7 +69,7 @@ class ARCGraph:
 
         return self
 
-    def extend_node(self, node, direction: Direction, overlap: bool = False):
+    def ExtendNode(self, node, direction: Direction, overlap: Overlap = False):
         """
         extend node in a given direction,
         if overlap is true, extend node even if it overlaps with another node
@@ -263,13 +80,13 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == Direction.UP or direction == Direction.UP_LEFT or direction == Direction.UP_RIGHT:
+        if direction == "UP" or direction == "UP_LEFT" or direction == "UP_RIGHT":
             delta_y = -1
-        elif direction == Direction.DOWN or direction == Direction.DOWN_LEFT or direction == Direction.DOWN_RIGHT:
+        elif direction == "DOWN" or direction == "DOWN_LEFT" or direction == "DOWN_RIGHT":
             delta_y = 1
-        if direction == Direction.LEFT or direction == Direction.UP_LEFT or direction == Direction.DOWN_LEFT:
+        if direction == "LEFT" or direction == "UP_LEFT" or direction == "DOWN_LEFT":
             delta_x = -1
-        elif direction == Direction.RIGHT or direction == Direction.UP_RIGHT or direction == Direction.DOWN_RIGHT:
+        elif direction == "RIGHT" or direction == "UP_RIGHT" or direction == "DOWN_RIGHT":
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
             sub_node_y = sub_node[0]
@@ -291,7 +108,7 @@ class ARCGraph:
 
         return self
 
-    def move_node_max(self, node, direction: Direction):
+    def MoveNodeMax(self, node, direction: Direction):
         """
         move node in a given direction until it hits another node or the edge of the image
         """
@@ -299,13 +116,13 @@ class ARCGraph:
 
         delta_x = 0
         delta_y = 0
-        if direction == Direction.UP or direction == Direction.UP_LEFT or direction == Direction.UP_RIGHT:
+        if direction == "UP" or direction == "UP_LEFT" or direction == "UP_RIGHT":
             delta_y = -1
-        elif direction == Direction.DOWN or direction == Direction.DOWN_LEFT or direction == Direction.DOWN_RIGHT:
+        elif direction == "DOWN" or direction == "DOWN_LEFT" or direction == "DOWN_RIGHT":
             delta_y = 1
-        if direction == Direction.LEFT or direction == Direction.UP_LEFT or direction == Direction.DOWN_LEFT:
+        if direction == "LEFT" or direction == "UP_LEFT" or direction == "DOWN_LEFT":
             delta_x = -1
-        elif direction == Direction.RIGHT or direction == Direction.UP_RIGHT or direction == Direction.DOWN_RIGHT:
+        elif direction == "RIGHT" or direction == "UP_RIGHT" or direction == "DOWN_RIGHT":
             delta_x = 1
         max_allowed = 1000
         for foo in range(max_allowed):
@@ -318,16 +135,16 @@ class ARCGraph:
 
         return self
 
-    def rotate_node(self, node, rotation_dir: Rotation):
+    def RotateNode(self, node, rotation_dir: Rotation_Direction):
         """
         rotates node around its center point in a given rotational direction
         """
         rotate_times = 1
-        if rotation_dir == Rotation.CW:
+        if rotation_dir == "CW":
             mul = -1
-        elif rotation_dir == Rotation.CCW:
+        elif rotation_dir == "CCW":
             mul = 1
-        elif rotation_dir == Rotation.CW2:
+        elif rotation_dir == "CW2":
             rotate_times = 2
             mul = -1
 
@@ -343,7 +160,7 @@ class ARCGraph:
             self.graph.nodes[node]["nodes"] = new_nodes
         return self
 
-    def add_border(self, node, border_color):
+    def AddBorder(self, node, border_color: FillColor):
         """
         add a border with thickness 1 and border_color around the given node
         """
@@ -363,7 +180,7 @@ class ARCGraph:
             self.graph.add_node(new_node_id, nodes=list(border_pixels), color=border_color, size=len(border_pixels))
         return self
 
-    def fill_rectangle(self, node, fill_color, overlap: bool):
+    def FillRectangle(self, node, fill_color: FillColor, overlap: Overlap):
         """
         fill the rectangle containing the given node with the given color.
         if overlap is True, fill the rectangle even if it overlaps with other nodes.
@@ -394,7 +211,7 @@ class ARCGraph:
                                     size=len(unfilled_pixels))
         return self
 
-    def hollow_rectangle(self, node, fill_color):
+    def HollowRectangle(self, node, fill_color: FillColor):
         """
         hollowing the rectangle containing the given node with the given color.
         """
@@ -417,13 +234,13 @@ class ARCGraph:
                                 size=len(non_border_pixels))
         return self
 
-    def mirror(self, node, mirror_axis):
+    def Mirror(self, node, mirror_axis: Mirror_Axis):
         """
         mirroring a node with respect to the given axis.
         mirror_axis takes the form of (y, x) where one of y, x equals None to
         indicate the other being the axis of mirroring
         """
-        if mirror_axis[1] is None and mirror_axis[0] is not None:
+        if mirror_axis == "X_AXIS": #mirror_axis[1] is None and mirror_axis[0] is not None:
             axis = mirror_axis[0]
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
@@ -432,7 +249,7 @@ class ARCGraph:
                 new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_axis[0] is None and mirror_axis[1] is not None:
+        elif mirror_axis == "Y_AXIS": #mirror_axis[0] is None and mirror_axis[1] is not None:
             axis = mirror_axis[1]
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
@@ -443,11 +260,11 @@ class ARCGraph:
                 self.graph.nodes[node]["nodes"] = new_subnodes
         return self
 
-    def flip(self, node, mirror_direction: Mirror):
+    def Flip(self, node, mirror_direction: Mirror_Direction):
         """
         flips the given node given direction horizontal, vertical, diagonal left/right
         """
-        if mirror_direction == Mirror.VERTICAL:
+        if mirror_direction == "VERTICAL":
             max_y = max([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
@@ -457,7 +274,7 @@ class ARCGraph:
                 new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_direction == Mirror.HORIZONTAL:
+        elif mirror_direction == "HORIZONTAL":
             max_x = max([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
             min_x = min([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
@@ -467,7 +284,7 @@ class ARCGraph:
                 new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_direction == Mirror.DIAGONAL_LEFT:  # \
+        elif mirror_direction == "DIAGONAL_LEFT":  # \
             min_x = min([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
@@ -478,7 +295,7 @@ class ARCGraph:
                 new_subnodes.append(new_subnode)
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_direction == Mirror.DIAGONAL_RIGHT:  # /
+        elif mirror_direction == "DIAGONAL_RIGHT":  # /
             max_x = max([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
@@ -491,7 +308,7 @@ class ARCGraph:
                 self.graph.nodes[node]["nodes"] = new_subnodes
         return self
 
-    def insert(self, node, object_id, point, relative_pos: RelativePosition):
+    def Insert(self, node, object_id, point: ImagePoints, relative_pos: RelativePosition):
         """
         insert some pattern identified by object_id at some location,
         the location is defined as, the relative position between the given node and point.
@@ -501,21 +318,21 @@ class ARCGraph:
         """
         node_centroid = self.get_centroid(node)
         if not isinstance(point, tuple):
-            if point == ImagePoints.TOP:
+            if point == "TOP":
                 point = (0, node_centroid[1])
-            elif point == ImagePoints.BOTTOM:
+            elif point == "BOTTOM":
                 point = (self.image.height - 1, node_centroid[1])
-            elif point == ImagePoints.LEFT:
+            elif point == "LEFT":
                 point = (node_centroid[0], 0)
-            elif point == ImagePoints.RIGHT:
+            elif point == "RIGHT":
                 point = (node_centroid[0], self.image.width - 1)
-            elif point == ImagePoints.TOP_LEFT:
+            elif point == "TOP_LEFT":
                 point = (0, 0)
-            elif point == ImagePoints.TOP_RIGHT:
+            elif point == "TOP_RIGHT":
                 point = (0, self.image.width - 1)
-            elif point == ImagePoints.BOTTOM_LEFT:
+            elif point == "BOTTOM_LEFT":
                 point = (self.image.height - 1, 0)
-            elif point == ImagePoints.BOTTOM_RIGHT:
+            elif point == "BOTTOM_RIGHT":
                 point = (self.image.height - 1, self.image.width - 1)
         if object_id == -1:
             # special id for dynamic objects, which uses the given nodes as objects
@@ -539,6 +356,118 @@ class ARCGraph:
         remove a node from the graph
         """
         self.graph.remove_node(node)
+
+    # ------------------------------------- filters ------------------------------------------
+    #  filters take the form of filter(node, params), return true if node satisfies filter
+    def FilterByColor(self, node, color: Color, exclude: Exclude = False):
+        """
+        return true if node has given color.
+        if exclude, return true if node does not have given color.
+        """
+        if color == "most":
+            color = self.most_common_color
+        elif color == "least":
+            color = self.least_common_color
+
+        if self.is_multicolor:
+            if not exclude:
+                return color in self.graph.nodes[node]["color"]
+            else:
+                return color not in self.graph.nodes[node]["color"] != color
+        else:
+            if not exclude:
+                return self.graph.nodes[node]["color"] == color
+            else:
+                return self.graph.nodes[node]["color"] != color
+
+    def FilterBySize(self, node, size: Size, exclude: Exclude = False):
+        """
+        return true if node has size equal to given size.
+        if exclude, return true if node does not have size equal to given size.
+        """
+        if size == "max":
+            size = self.get_attribute_max("size")
+        elif size == "min":
+            size = self.get_attribute_min("size")
+
+        if size == "odd" and not exclude:
+            return self.graph.nodes[node]["size"] % 2 != 0
+        elif size == "odd" and exclude:
+            return self.graph.nodes[node]["size"] % 2 == 0
+        elif not exclude:
+            return self.graph.nodes[node]["size"] == size
+        elif exclude:
+            return self.graph.nodes[node]["size"] != size
+
+    def FilterByDegree(self, node, degree: Degree, exclude: Exclude = False):
+        """
+        return true if node has degree equal to given degree.
+        if exclude, return true if node does not have degree equal to given degree.
+        """
+        if not exclude:
+            return self.graph.degree[node] == degree
+        else:
+            return self.graph.degree[node] != degree
+
+    def FilterByNeighborSize(self, node, size: Size, exclude: Exclude = False):
+        """
+        return true if node has a neighbor of a given size.
+        if exclude, return true if node does not have a neighbor of a given size.
+        """
+        if size == "max":
+            size = self.get_attribute_max("size")
+        elif size == "min":
+            size = self.get_attribute_min("size")
+
+        for neighbor in self.graph.neighbors(node):
+            if size == "odd" and not exclude:
+                if self.graph.nodes[neighbor]["size"] % 2 != 0:
+                    return True
+            elif size == "odd" and exclude:
+                if self.graph.nodes[neighbor]["size"] % 2 == 0:
+                    return True
+            elif not exclude:
+                if self.graph.nodes[neighbor]["size"] == size:
+                    return True
+            elif exclude:
+                if self.graph.nodes[neighbor]["size"] != size:
+                    return True
+        return False
+
+    def FilterByNeighborColor(self, node, color: Color, exclude: Exclude = False):
+        """
+        return true if node has a neighbor of a given color.
+        if exclude, return true if node does not have a neighbor of a given color.
+        """
+        if color == "same":
+            color = self.graph.nodes[node]["color"]
+        elif color == "most":
+            color = self.most_common_color
+        elif color == "least":
+            color = self.least_common_color
+
+        for neighbor in self.graph.neighbors(node):
+            if not exclude:
+                if self.graph.nodes[neighbor]["color"] == color:
+                    return True
+            elif exclude:
+                if self.graph.nodes[neighbor]["color"] != color:
+                    return True
+        return False
+
+    def FilterByNeighborDegree(self, node, degree: Degree, exclude: Exclude = False):
+        """
+        return true if node has a neighbor of a given degree.
+        if exclude, return true if node does not have a neighbor of a given degree.
+        """
+        for neighbor in self.graph.neighbors(node):
+            if not exclude:
+                if self.graph.degree[neighbor] == degree:
+                    return True
+            else:
+                if self.graph.degree[neighbor] != degree:
+                    return True
+        return False
 
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
@@ -677,135 +606,54 @@ class ARCGraph:
             x = (filtered_point[1] + relative_point[1]) // 2
             return (y, x)
 
-    # ------------------------------------------ apply -----------------------------------
-    def apply(self, filters, filter_params, transformation, transformation_params):
+    # ------------------------------------------ apply functions -----------------------------------
+    def apply_all(self, filter: FilterASTNode, transformation: TransformASTNode):
         """
         perform a full operation on the abstracted graph
         1. apply filters to get a list of nodes to transform
         2. apply param binding to the filtered nodes to retrieve parameters for the transformation
         3. apply transformation to the nodes
         """
-        transformed_nodes = {}
-        all_nodes = {}
+        transformed_nodes, all_nodes = {}, {}
         for node in self.graph.nodes():
-            if self.apply_filters(node, filters, filter_params):
-                params = self.apply_param_binding(node, transformation_params)
-                transformed_nodes[node] = params
-            param = self.apply_param_binding(node, transformation_params)
-            all_nodes[node] = param
+            if self.apply_filters(node, filter):
+                transformed_nodes[node] = [child.value for child in transformation.children]
+            all_nodes[node] = [child.value for child in transformation.children]
         for node, params in transformed_nodes.items():
-            self.apply_transformation(node, transformation, params)
+            self.apply_transform_inner(node, transformation, params)
 
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
 
-    def apply_nofilter(self, transformation, transformation_params):
+    def apply_filters(self, node, filter: FilterASTNode):
+        """
+        given filters and a node, return True if node satisfies all filters
+        """
+        filter_name = filter.__class__.__name__
+        args = [child.value for child in filter.children]
+        return getattr(self, filter_name)(node, *args)
+        
+    def apply_transform_inner(self, node, transformation: TransformASTNode, args: List[TransformASTNode]):
+        """
+        apply transformation to a node
+        """
+        function_name = transformation.__class__.__name__
+        getattr(self, function_name)(node, *args)  # apply transformation
+
+    def apply_transform(self, transformation: TransformASTNode):
         """
         perform a full transformation on the entire abstracted graph before applying any filters
         """
         all_nodes = {}
+        args = [child.value for child in transformation.children]
         for node in self.graph.nodes():
-            all_nodes[node] = transformation_params
-        for node, params in all_nodes.items():
-            self.apply_transformation(node, transformation, params)
+            all_nodes[node] = args
+
+        for node, args in all_nodes.items():
+            self.apply_transform_inner(node, transformation, args)
 
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(all_nodes.keys()))
-
-    def apply_filters(self, node, filters, filter_params):
-        """
-        given filters and a node, return True if node satisfies all filters
-        """
-        satisfy = True
-        for filter, filter_param in zip(filters, filter_params):
-            satisfy = satisfy and getattr(self, filter)(node, **filter_param)
-        return satisfy
-
-    def apply_param_binding(self, node, transformation_params):
-        """
-        handle dynamic parameters: if a dictionary is passed as a parameter value, this means the parameter
-        value needs to be retrieved from the parameter-binded nodes during the search
-
-        example: set param "color" to the color of the neighbor with size 1
-        """
-        transformation_params_retrieved = copy.deepcopy(transformation_params[0])
-        for param_key, param_value in transformation_params[0].items():
-            if isinstance(param_value, dict):
-                param_bind_function = param_value["filters"][0]
-                param_bind_function_params = param_value["filter_params"][0]
-                target_node = getattr(self, param_bind_function)(node, **param_bind_function_params)
-
-                #  retrieve value, ex. color of the neighbor with size 1
-                if param_key == "color":
-                    target_color = self.get_color(target_node)
-                    transformation_params_retrieved[param_key] = target_color
-                elif param_key == "direction":
-                    target_direction = self.get_relative_pos(node, target_node)
-                    transformation_params_retrieved[param_key] = target_direction
-                elif param_key == "mirror_point" or param_key == "point":
-                    target_point = self.get_centroid(target_node)
-                    transformation_params_retrieved[param_key] = target_point
-                elif param_key == "mirror_axis":
-                    target_axis = self.get_mirror_axis(node, target_node)
-                    transformation_params_retrieved[param_key] = target_axis
-                elif param_key == "mirror_direction":
-                    target_mirror_dir = self.get_mirror_direction(node, target_node)
-                    transformation_params_retrieved[param_key] = target_mirror_dir
-                else:
-                    raise ValueError("unsupported dynamic parameter")
-        return transformation_params_retrieved
-
-    def apply_transformation(self, node, transformation, transformation_params):
-        """
-        apply transformation to a node
-        """
-        getattr(self, transformation[0])(node, **transformation_params)  # currently only allow one transformation
-    # ------------------------------------------ meta utils -----------------------------------
-    def copy(self):
-        """
-        return a copy of this ARCGraph object
-        """
-        return ARCGraph(self.graph.copy(), self.name, self.image, self.abstraction)
-
-    def generate_node_id(self, color):
-        """
-        find the next available id for a given color,
-        ex: if color=1 and there are already (1,0) and (1,1), return (1,2)
-        """
-        if isinstance(color, list):  # multi-color cases
-            color = color[0]
-        max_id = 0
-        for node in self.graph.nodes():
-            if node[0] == color:
-                max_id = max(max_id, node[1])
-        return (color, max_id + 1)
-
-    def undo_abstraction(self):
-        """
-        undo the abstraction to get the corresponding 2D grid
-        return it as an ARCGraph object
-        """
-
-        width, height = self.image.image_size
-        reconstructed_graph = nx.grid_2d_graph(height, width)
-        nx.set_node_attributes(reconstructed_graph, self.image.background_color, "color")
-
-        if self.abstraction in self.image.multicolor_abstractions:
-            for component, data in self.graph.nodes(data=True):
-                for i, node in enumerate(data["nodes"]):
-                    try:
-                        reconstructed_graph.nodes[node]["color"] = data["color"][i]
-                    except KeyError:  # ignore pixels outside of frame
-                        pass
-        else:
-            for component, data in self.graph.nodes(data=True):
-                for node in data["nodes"]:
-                    try:
-                        reconstructed_graph.nodes[node]["color"] = data["color"]
-                    except KeyError:  # ignore pixels outside of frame
-                        pass
-
-        return ARCGraph(reconstructed_graph, self.name + "_reconstructed", self.image, None)
 
     def update_abstracted_graph(self, affected_nodes):
         """
@@ -863,6 +711,46 @@ class ARCGraph:
                     else:
                         continue
                     break
+
+    def generate_node_id(self, color):
+        """
+        find the next available id for a given color,
+        ex: if color=1 and there are already (1,0) and (1,1), return (1,2)
+        """
+        if isinstance(color, list):  # multi-color cases
+            color = color[0]
+        max_id = 0
+        for node in self.graph.nodes():
+            if node[0] == color:
+                max_id = max(max_id, node[1])
+        return (color, max_id + 1)
+
+    def undo_abstraction(self):
+        """
+        undo the abstraction to get the corresponding 2D grid
+        return it as an ARCGraph object
+        """
+
+        width, height = self.image.image_size
+        reconstructed_graph = nx.grid_2d_graph(height, width)
+        nx.set_node_attributes(reconstructed_graph, self.image.background_color, "color")
+
+        if self.abstraction in self.image.multicolor_abstractions:
+            for component, data in self.graph.nodes(data=True):
+                for i, node in enumerate(data["nodes"]):
+                    try:
+                        reconstructed_graph.nodes[node]["color"] = data["color"][i]
+                    except KeyError:  # ignore pixels outside of frame
+                        pass
+        else:
+            for component, data in self.graph.nodes(data=True):
+                for node in data["nodes"]:
+                    try:
+                        reconstructed_graph.nodes[node]["color"] = data["color"]
+                    except KeyError:  # ignore pixels outside of frame
+                        pass
+
+        return ARCGraph(reconstructed_graph, self.name + "_reconstructed", self.image, None)
 
     def plot(self, ax=None, save_fig=False, file_name=None):
         """

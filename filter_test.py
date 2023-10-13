@@ -10,7 +10,7 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
     def test_color_enum(self):
         color_instance = Color.C0
         self.assertEqual(color_instance.nodeType, FilterTypes.COLOR)
-        self.assertEqual(color_instance.code, "0")
+        self.assertEqual(color_instance.code, "Color.C0")
         self.assertEqual(color_instance.size, 1)
         self.assertEqual(color_instance.children, [])
 
@@ -24,49 +24,49 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
     def test_size_enum_dyn(self):
         size_instance = Size.S15
         self.assertEqual(size_instance.nodeType, FilterTypes.SIZE)
-        self.assertEqual(size_instance.code, "15")
+        self.assertEqual(size_instance.code, 15)
         self.assertEqual(size_instance.size, 1)
         self.assertEqual(size_instance.children, [])
 
     def test_degree_enum(self):
         degree_instance = Degree.D1
         self.assertEqual(degree_instance.nodeType, FilterTypes.DEGREE)
-        self.assertEqual(degree_instance.code, "1")
+        self.assertEqual(degree_instance.code, 1)
         self.assertEqual(degree_instance.size, 1)
         self.assertEqual(degree_instance.children, [])
 
     def test_exclude_enum(self):
         exclude_instance = Exclude.TRUE
         self.assertEqual(exclude_instance.nodeType, FilterTypes.EXCLUDE)
-        self.assertEqual(exclude_instance.code, "True")
+        self.assertEqual(exclude_instance.code, "Exclude.TRUE")
         self.assertEqual(exclude_instance.size, 1)
         self.assertEqual(exclude_instance.children, [])
 
     def test_filter_by_color(self):
         filter_instance = FilterByColor(Color.C1, Exclude.TRUE)
         self.assertEqual(filter_instance.nodeType, FilterTypes.FILTER_OPS)
-        self.assertEqual(filter_instance.code, "FilterByColor(1, True)")
+        self.assertEqual(filter_instance.code, "FilterByColor(Color.C1, Exclude.TRUE)")
         self.assertEqual(filter_instance.size, 3)
         self.assertEqual(len(filter_instance.children), 2)
 
     def test_filter_by_size(self):
         filter_instance = FilterBySize(Size.MIN, Exclude.FALSE)
         self.assertEqual(filter_instance.nodeType, FilterTypes.FILTER_OPS)
-        self.assertEqual(filter_instance.code, "FilterBySize(min, False)")
+        self.assertEqual(filter_instance.code, "FilterBySize(min, Exclude.FALSE)")
         self.assertEqual(filter_instance.size, 3)
         self.assertEqual(len(filter_instance.children), 2)
 
     def test_filter_by_size_enum(self):
         filter_instance = FilterBySize(Size.S25, Exclude.FALSE)
         self.assertEqual(filter_instance.nodeType, FilterTypes.FILTER_OPS)
-        self.assertEqual(filter_instance.code, "FilterBySize(25, False)")
+        self.assertEqual(filter_instance.code, "FilterBySize(25, Exclude.FALSE)")
         self.assertEqual(filter_instance.size, 3)
         self.assertEqual(len(filter_instance.children), 2)
 
     def test_filter_by_degree(self):
         filter_instance = FilterByDegree(Degree.MAX, Exclude.TRUE)
         self.assertEqual(filter_instance.nodeType, FilterTypes.FILTER_OPS)
-        self.assertEqual(filter_instance.code, "FilterByDegree(max, True)")
+        self.assertEqual(filter_instance.code, "FilterByDegree(max, Exclude.TRUE)")
         self.assertEqual(filter_instance.size, 3)
         self.assertEqual(len(filter_instance.children), 2)
 
@@ -75,7 +75,7 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
         filter2 = FilterByDegree(Degree.MAX, Exclude.TRUE)
         and_instance = And(Filters(filter1), Filters(filter2))
         self.assertEqual(and_instance.nodeType, FilterTypes.FILTERS)
-        self.assertEqual(and_instance.code, "And(FilterByColor(1, True), FilterByDegree(max, True))")
+        self.assertEqual(and_instance.code, "And(FilterByColor(Color.C1, Exclude.TRUE), FilterByDegree(max, Exclude.TRUE))")
         self.assertEqual(and_instance.size, 7)
         self.assertEqual(len(and_instance.children), 2)
 
@@ -84,28 +84,28 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
         filter2 = FilterBySize(Size.MIN, Exclude.FALSE)
         or_instance = Or(Filters(filter1), Filters(filter2))
         self.assertEqual(or_instance.nodeType, FilterTypes.FILTERS)
-        self.assertEqual(or_instance.code, "Or(FilterByColor(1, True), FilterBySize(min, False))")
+        self.assertEqual(or_instance.code, "Or(FilterByColor(Color.C1, Exclude.TRUE), FilterBySize(min, Exclude.FALSE))")
         self.assertEqual(or_instance.size, 7)
         self.assertEqual(len(or_instance.children), 2)
 
     def test_filter_by_neighbor_color(self):
         filter_instance = FilterByNeighborColor(Color.C3, Exclude.FALSE)
         self.assertEqual(filter_instance.nodeType, FilterTypes.FILTER_OPS)
-        self.assertEqual(filter_instance.code, "FilterByNeighborColor(3, False)")
+        self.assertEqual(filter_instance.code, "FilterByNeighborColor(Color.C3, Exclude.FALSE)")
         self.assertEqual(filter_instance.size, 3)
         self.assertEqual(len(filter_instance.children), 2)
 
     def test_filter_by_neighbor_size(self):
         filter_instance = FilterByNeighborSize(Size.ODD, Exclude.TRUE)
         self.assertEqual(filter_instance.nodeType, FilterTypes.FILTER_OPS)
-        self.assertEqual(filter_instance.code, "FilterByNeighborSize(odd, True)")
+        self.assertEqual(filter_instance.code, "FilterByNeighborSize(odd, Exclude.TRUE)")
         self.assertEqual(filter_instance.size, 3)
         self.assertEqual(len(filter_instance.children), 2)
 
     def test_filter_by_neighbor_degree(self):
         filter_instance = FilterByNeighborDegree(Degree.MIN, Exclude.FALSE)
         self.assertEqual(filter_instance.nodeType, FilterTypes.FILTER_OPS)
-        self.assertEqual(filter_instance.code, "FilterByNeighborDegree(min, False)")
+        self.assertEqual(filter_instance.code, "FilterByNeighborDegree(min, Exclude.FALSE)")
         self.assertEqual(filter_instance.size, 3)
         self.assertEqual(len(filter_instance.children), 2)
 
@@ -113,7 +113,7 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
         filter_instance = FilterByColor(Color.C5, Exclude.TRUE)
         filters_instance = Filters(filter_instance)
         self.assertEqual(filters_instance.nodeType, FilterTypes.FILTERS)
-        self.assertEqual(filters_instance.code, "FilterByColor(5, True)")
+        self.assertEqual(filters_instance.code, "FilterByColor(Color.C5, Exclude.TRUE)")
         self.assertEqual(filters_instance.size, 3)
         self.assertEqual(len(filters_instance.children), 1)
 
@@ -123,7 +123,7 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
         filter3 = FilterByColor(Color.C1, Exclude.TRUE)
         and_instance = And(Filters(filter1), And(Filters(filter2), Filters(filter3)))
         self.assertEqual(and_instance.nodeType, FilterTypes.FILTERS)
-        self.assertEqual(and_instance.code, "And(FilterByNeighborSize(odd, True), And(FilterByNeighborDegree(min, False), FilterByColor(1, True)))")
+        self.assertEqual(and_instance.code, "And(FilterByNeighborSize(odd, Exclude.TRUE), And(FilterByNeighborDegree(min, Exclude.FALSE), FilterByColor(Color.C1, Exclude.TRUE)))")
         self.assertEqual(and_instance.size, 11)
         self.assertEqual(len(and_instance.children), 2)
 
@@ -133,7 +133,7 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
         filter3 = FilterByNeighborColor(Color.C7, Exclude.FALSE)
         or_instance = Or(Filters(filter1), Or(Filters(filter2), Filters(filter3)))
         self.assertEqual(or_instance.nodeType, FilterTypes.FILTERS)
-        self.assertEqual(or_instance.code, "Or(FilterBySize(min, False), Or(FilterByDegree(max, True), FilterByNeighborColor(7, False)))")
+        self.assertEqual(or_instance.code, "Or(FilterBySize(min, Exclude.FALSE), Or(FilterByDegree(max, Exclude.TRUE), FilterByNeighborColor(Color.C7, Exclude.FALSE)))")
         self.assertEqual(or_instance.size, 11)
         self.assertEqual(len(or_instance.children), 2)
 

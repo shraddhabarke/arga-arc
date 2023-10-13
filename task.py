@@ -6,11 +6,11 @@ from itertools import product
 from utils import *
 from image import Image
 from ARCGraph import ARCGraph
-
+from transform import *
 
 class Task:
-    all_possible_abstractions = Image.abstractions
-    all_possible_transformations = ARCGraph.transformation_ops
+    #all_possible_abstractions = Image.abstractions
+    #all_possible_transformations = ARCGraph.transformation_ops
 
     def __init__(self, filepath):
         """
@@ -43,9 +43,9 @@ class Task:
         self.transformation_ops = dict()
 
         self.load_task_from_file(filepath)
-        self.img_dir = "images/" + self.task_id
-        if not os.path.exists(self.img_dir):
-            os.makedirs(self.img_dir)
+        #self.img_dir = "images/" + self.task_id
+        #if not os.path.exists(self.img_dir):
+            #os.makedirs(self.img_dir)
 
     def load_task_from_file(self, filepath):
         """
@@ -229,7 +229,7 @@ class Task:
             for node, degree in abs_graph.graph.degree():
                 self.object_degrees[abstraction].add(degree)
 
-    def apply_solution_nofilter(self, transform, transform_params, abstraction):
+    def apply_transformation(self, transform: TransformASTNode, abstraction):
         """
         apply transformation rule to training images without filtering
         """
@@ -239,11 +239,13 @@ class Task:
         self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
                                                                output in self.train_output]
         self.get_static_inserted_objects()
-        [abstracted_graph.apply_nofilter(transform, transform_params)
+        self.get_static_object_attributes(self.abstraction)
+        [abstracted_graph.apply_transform(transform)
          for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
-        return self.input_abstracted_graphs_original[abstraction]
+        
+        return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
 
-    def apply_solution(self, apply_call, abstraction, save_images=False):
+    def apply_rule(self, filter, transformation, abstraction, save_images=False):
         """
         apply solution abstraction and apply_call to test image
         """
@@ -256,10 +258,9 @@ class Task:
         test_input = self.test_input[0]
         abstracted_graph = getattr(
             test_input, Image.abstraction_ops[abstraction])()
-        for call in apply_call:
-            #abstracted_graph.apply(**call)
-            [abstracted_graph.apply(
-                **call) for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
+        #for call in apply_call:
+        [abstracted_graph.apply_all(filter, transformation) 
+         for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
         reconstructed = test_input.undo_abstraction(abstracted_graph)
         if save_images:
             test_input.arc_graph.plot(save_fig=True)
