@@ -6,6 +6,7 @@ from utils import *
 from transform import *
 from filter import *
 from task import *
+import itertools
 
 class ARCGraph:
 
@@ -655,6 +656,12 @@ class ARCGraph:
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(all_nodes.keys()))
 
+    def compute_subsets(self):
+        """
+        computes all possible subset of nodes of a given abstracted graph
+        """
+        pass
+
     def update_abstracted_graph(self, affected_nodes):
         """
         update the abstracted graphs so that they remain consistent after transformation
@@ -724,6 +731,28 @@ class ARCGraph:
             if node[0] == color:
                 max_id = max(max_id, node[1])
         return (color, max_id + 1)
+
+    import itertools
+
+    def get_all_subsets(input_abstracted_graphs_original):
+        """
+        Compute all possible subsets of graph nodes along with their data.
+        :param input_abstracted_graphs_original: List of abstracted graph nodes.
+        :return: List of subsets, where each subset is represented as a dictionary.
+        """
+        all_subsets = []
+        nodes_with_data = {}
+
+        # Iterate over the nodes and their data to fill the dictionary
+        for graph in input_abstracted_graphs_original.graph.nodes(data=True):
+            node, data = graph[0], graph[1]
+            nodes_with_data[node] = data
+
+        for size in range(1, len(nodes_with_data) + 1):
+            for subset in itertools.combinations(nodes_with_data.items(), size):
+                subset_dict = dict(subset)
+                all_subsets.append(subset_dict)
+        return all_subsets
 
     def undo_abstraction(self):
         """
