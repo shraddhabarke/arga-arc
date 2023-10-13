@@ -7,13 +7,13 @@ class LookaheadIterator:
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def next(self):
         if self.buffer:
             return self.buffer.pop()
         else:
             return next(self.iterator)
 
-    def has_next(self):
+    def hasNext(self):
         if self.buffer:
             return True
 
@@ -24,4 +24,4 @@ class LookaheadIterator:
         else:
             return True
 
-x  = LookaheadIterator(range(3))
+x = LookaheadIterator(range(3))
