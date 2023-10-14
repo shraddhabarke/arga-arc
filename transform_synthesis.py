@@ -41,7 +41,7 @@ class TSizeEnumerator:
             return False
         self.rootMaker = self.currIter.next()
         if self.rootMaker.nodeType == Types.TRANSFORMS and self.rootMaker.arity == 2:
-            self.rootMaker.childTypes = [Types.TRANSFORM_OPS, Types.TRANSFORMS]
+            self.rootMaker.childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
             childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
         elif self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
@@ -72,7 +72,7 @@ class TSizeEnumerator:
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
                 all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):                    
                     prog = self.rootMaker.apply(children)
-                    # evaluate here!
+                    # evaluate here! # TODO: during OE, only consider the Transforms programs
                     print("Res:", prog.code)
                     res = prog
             elif self.currIter.hasNext():
@@ -145,8 +145,22 @@ class TestSizeEnumerator(unittest.TestCase):
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("updateColor(Color.MOST)", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C0)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C1)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C2)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C3)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C4)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C5)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C6)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C7)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C8)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.C9)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.LEAST)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, updateColor(Color.MOST)]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, [NoOp, NoOp]]")
         self.assertTrue(self.enumerator.hasNext())
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), NoOp]")
         self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), NoOp]")
         self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C2), NoOp]")
         self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C3), NoOp]")
@@ -158,21 +172,12 @@ class TestSizeEnumerator(unittest.TestCase):
         self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C9), NoOp]")
         self.assertEqual(self.enumerator.next().code, "[updateColor(Color.LEAST), NoOp]")
         self.assertEqual(self.enumerator.next().code, "[updateColor(Color.MOST), NoOp]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C0), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C1), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C2), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C3), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C4), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C5), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C6), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C7), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C8), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C9), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.LEAST), NoOp]]")
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.MOST), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[[NoOp, NoOp], NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[NoOp, [NoOp, updateColor(Color.C0)]]")
         for i in range(150):
             self.enumerator.next()
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C1), [updateColor(Color.C6), NoOp]]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C9), updateColor(Color.C8)]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C9), updateColor(Color.C9)]")
 
 if __name__ == "__main__":
     unittest.main()

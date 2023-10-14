@@ -3,7 +3,7 @@ from typing import Union, List, Dict, Iterator, Any
 
 class Types(Enum):
     TRANSFORMS = "Transforms"
-    TRANSFORM_OPS = "TransformOps"
+    #TRANSFORM_OPS = "TransformOps"
     COLOR = "Color"
     DIRECTION = "Direction"
     OVERLAP = "Overlap"
@@ -258,26 +258,18 @@ class RelativePosition(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
-class TransformOps(TransformASTNode):
-    def __init__(self):
-        super().__init__(Types.TRANSFORM_OPS)
-        self.nodeType = Types.TRANSFORM_OPS
-
 class Transforms(TransformASTNode):
     nodeType = Types.TRANSFORMS
     arity = 2
-    def __init__(self, transform1: TransformOps, transform2: 'Transforms'):
+    childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
+    def __init__(self, transform1:'Transforms' = None, transform2: 'Transforms' = None):
         super().__init__()
-        if not isinstance(transform1, TransformOps):
-            raise TypeError(f"Expected TransformOps for transform1, got {type(transform1).__name__}")
-        if not isinstance(transform2, Transforms):
-            raise TypeError(f"Expected Transforms for transform2, got {type(transform2).__name__}")
-
-        self.children = [transform1, transform2]
-        self.size = sum(t.size for t in self.children)
-        self.code = "[" + ", ".join(t.code for t in self.children) + "]"
+        self.children = [transform1, transform2] if transform1 and transform2 else []
+        self.size = sum(t.size for t in self.children) if transform1 and transform2 else 0
+        self.code = "[" + ", ".join(t.code for t in self.children) + "]" if transform1 and transform2 else ''
         self.nodeType = Types.TRANSFORMS
-    
+        self.childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
+
     @classmethod
     def apply(cls, children):
         return cls(children[0], children[1])
@@ -307,27 +299,28 @@ class NoOp(Transforms):
     def get_all_values(cls):
         return [cls._instance or cls()]
 
-class UpdateColor(TransformOps):
+class UpdateColor(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
     childTypes = [Types.COLOR]
     def __init__(self, color: Color):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
         self.children = [color]
         self.size = 1 + color.size
         self.code = f"updateColor({color.code})"
+        self.childTypes = [Types.COLOR]
 
     @classmethod
     def apply(cls, children):
         return cls(children[0])
 
-class MoveNode(TransformOps):
+class MoveNode(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.DIRECTION]
     def __init__(self, direction: Direction):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [direction]
         self.size = 1 + direction.size
         self.code = f"moveNode({direction.code})"
@@ -337,12 +330,13 @@ class MoveNode(TransformOps):
     def apply(cls, children):
         return cls(children[0])
 
-class ExtendNode(TransformOps):
+class ExtendNode(Transforms):
     arity = 2
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.DIRECTION, Types.OVERLAP]
     def __init__(self, direction: Direction, overlap: Overlap):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [direction, overlap]
         self.size = 1 + direction.size + overlap.size
         self.code = f"extendNode({direction.code}, {overlap.code})"
@@ -352,12 +346,13 @@ class ExtendNode(TransformOps):
     def apply(cls, children):
         return cls(children[0], children[1])
 
-class MoveNodeMax(TransformOps):
+class MoveNodeMax(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.DIRECTION]
     def __init__(self, direction: Direction):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [direction]
         self.size = 1 + direction.size
         self.code = f"moveNodeMax({direction.code})"
@@ -367,12 +362,13 @@ class MoveNodeMax(TransformOps):
     def apply(cls, children):
         return cls(children[0])
 
-class RotateNode(TransformOps):
+class RotateNode(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.ROTATION_DIRECTION]
     def __init__(self, rotation_direction: Rotation_Direction):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [rotation_direction]
         self.size = 1 + rotation_direction.size
         self.code = f"rotateNode({rotation_direction.code})"
@@ -382,12 +378,13 @@ class RotateNode(TransformOps):
     def apply(cls, children):
         return cls(children[0])
 
-class AddBorder(TransformOps):
+class AddBorder(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.FILLCOLOR]
     def __init__(self, fill_color: FillColor):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [fill_color]
         self.size = 1 + fill_color.size
         self.code = f"addBorder({fill_color.code})"
@@ -397,12 +394,13 @@ class AddBorder(TransformOps):
     def apply(cls, children):
         return cls(children[0])
 
-class FillRectangle(TransformOps):
+class FillRectangle(Transforms):
     arity = 2
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.FILLCOLOR, Types.OVERLAP]
     def __init__(self, fill_color: FillColor, overlap: Overlap):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [fill_color, overlap]
         self.size = 1 + fill_color.size + overlap.size
         self.code = f"fillRectangle({fill_color.code}, {overlap.code})"
@@ -412,12 +410,13 @@ class FillRectangle(TransformOps):
     def apply(cls, children):
         return cls(children[0], children[1])
 
-class HollowRectangle(TransformOps):
+class HollowRectangle(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.FILLCOLOR]
     def __init__(self, fill_color: FillColor):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [fill_color]
         self.size = 1 + fill_color.size
         self.code = f"hollowRectangle({fill_color.code})"
@@ -427,12 +426,13 @@ class HollowRectangle(TransformOps):
     def apply(cls, children):
         return cls(children[0])
 
-class Insert(TransformOps):
+class Insert(Transforms):
     arity = 2
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.IMAGEPOINTS, Types.RELATIVE_POS]
     def __init__(self, point: ImagePoints, relative_pos: RelativePosition):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [point, relative_pos]
         self.size = 1 + point.size + relative_pos.size
         self.code = f"Insert({point.code, relative_pos.code})"
@@ -442,12 +442,13 @@ class Insert(TransformOps):
     def apply(cls, children):
         return cls(children[0], children[1])
 
-class Mirror(TransformOps):
+class Mirror(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.MIRROR_AXIS]
     def __init__(self, mirror_axis: Mirror_Axis):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [mirror_axis]
         self.size = 1 + mirror_axis.size
         self.code = f"mirror({mirror_axis.code})"
@@ -457,12 +458,13 @@ class Mirror(TransformOps):
     def apply(cls, children):
         return cls(children[0])
 
-class Flip(TransformOps):
+class Flip(Transforms):
     arity = 1
-    nodeType = Types.TRANSFORM_OPS
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.MIRROR_DIRECTION]
     def __init__(self, mirror_direction: Mirror_Direction):
         super().__init__()
-        self.nodeType = Types.TRANSFORM_OPS
+        self.nodeType = Types.TRANSFORMS
         self.children = [mirror_direction]
         self.size = 1 + mirror_direction.size
         self.code = f"flip({mirror_direction.code})"
@@ -500,21 +502,21 @@ class TestGrammarRepresentation(unittest.TestCase):
         
     def test_extend_node(self):
         extend_node_instance = ExtendNode(Direction.LEFT, Overlap.TRUE)
-        self.assertEqual(extend_node_instance.nodeType, Types.TRANSFORM_OPS)
+        self.assertEqual(extend_node_instance.nodeType, Types.TRANSFORMS)
         self.assertEqual(extend_node_instance.code, "extendNode(Direction.LEFT, Overlap.TRUE)")
         self.assertEqual(extend_node_instance.size, 3)
         self.assertEqual(extend_node_instance.children, [Direction.LEFT, Overlap.TRUE])
         
     def test_add_border(self):
         add_border_instance = AddBorder(FillColor.C3)
-        self.assertEqual(add_border_instance.nodeType, Types.TRANSFORM_OPS)
+        self.assertEqual(add_border_instance.nodeType, Types.TRANSFORMS)
         self.assertEqual(add_border_instance.code, "addBorder(FillColor.C3)")
         self.assertEqual(add_border_instance.size, 2)
         self.assertEqual(add_border_instance.children, [FillColor.C3])
         
     def test_mirror(self):
         mirror_instance = Mirror(Mirror_Axis.X_AXIS)
-        self.assertEqual(mirror_instance.nodeType, Types.TRANSFORM_OPS)
+        self.assertEqual(mirror_instance.nodeType, Types.TRANSFORMS)
         self.assertEqual(mirror_instance.code, "mirror(Mirror_Axis.X_AXIS)")
         self.assertEqual(mirror_instance.size, 2)
         self.assertEqual(mirror_instance.children, [Mirror_Axis.X_AXIS])
@@ -536,10 +538,10 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(NoOp.arity, 0)
 
     def test_transforms(self):
-        move_node_instance = Transforms(MoveNode(Direction.DOWN), Transforms(MoveNode(Direction.UP), NoOp()))
+        move_node_instance = Transforms(MoveNode(Direction.DOWN), MoveNode(Direction.UP))
         self.assertEqual(move_node_instance.nodeType, Types.TRANSFORMS)
-        self.assertEqual(move_node_instance.code, "[moveNode(Direction.DOWN), [moveNode(Direction.UP), NoOp]]")
-        self.assertEqual(move_node_instance.size, 5)  # 1 for transforms + 2 for each updateColor
+        self.assertEqual(move_node_instance.code, "[moveNode(Direction.DOWN), moveNode(Direction.UP)]")
+        self.assertEqual(move_node_instance.size, 4)  # 1 for transforms + 2 for each updateColor
         self.assertEqual(len(move_node_instance.children), 2)
 
     def test_sequence_of_multiple_transforms(self):
