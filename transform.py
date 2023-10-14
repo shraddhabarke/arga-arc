@@ -262,7 +262,7 @@ class Transforms(TransformASTNode):
     nodeType = Types.TRANSFORMS
     arity = 2
     childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
-    def __init__(self, transform1:'Transforms' = None, transform2: 'Transforms' = None):
+    def __init__(self, transform1: 'Transforms' = None, transform2: 'Transforms' = None):
         super().__init__()
         self.children = [transform1, transform2] if transform1 and transform2 else []
         self.size = sum(t.size for t in self.children) if transform1 and transform2 else 0

@@ -68,9 +68,9 @@ if __name__ == "__main__":
         for a, e in zip(actual.graph.nodes(data=True), expected.graph.nodes(data=True)):
             print("actual:", a[0], a[1])
             print("expected:", e[0], e[1])
-
+    matches = task.output_matches(filterinstance, hollow_rect_instance, task.abstraction)
+    print("Match:", matches)
     # Testing a sequence of transforms and filters
-
     transforms_list = [UpdateColor(Color.C3), MoveNode(Direction.UP)]
     trans_sequence = Transforms(transforms_list)
     print(trans_sequence.code)

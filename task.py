@@ -7,6 +7,7 @@ from utils import *
 from image import Image
 from ARCGraph import ARCGraph
 from transform import *
+from filters import *
 
 class Task:
     #all_possible_abstractions = Image.abstractions
@@ -129,25 +130,6 @@ class Task:
 
         return ret_apply_filter_calls
 
-    def get_candidate_transformations(self, transforms):
-        """
-        generate candidate transformations given a list of transform operations, returns list of transformations with all possible parameters
-        """
-        new_transformations = []
-        for transform in transforms:
-            sig = signature(getattr(ARCGraph, transform[0]))
-            generated_params = self.parameters_generation(sig)
-            for item in product(*generated_params):
-                param_vals = {}
-                # skip "self", "node"
-                for i, param in enumerate(list(sig.parameters)[2:]):
-                    param_vals[sig.parameters[param].name] = item[i]
-                    ret_apply_call = {}
-                    ret_apply_call["transformation"] = transform
-                    ret_apply_call["transformation_params"] = [param_vals]
-                    new_transformations.append(ret_apply_call)
-        return new_transformations
-
     def parameters_generation(self, transform_sig):
         """
         given a transformation, generate parameters to be passed to the transformation
@@ -245,7 +227,7 @@ class Task:
         
         return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
 
-    def apply_rule(self, filter, transformation, abstraction, save_images=False):
+    def apply_rule(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction, save_images=False):
         """
         apply solution abstraction and apply_call to test image
         """
@@ -255,15 +237,28 @@ class Task:
         self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
                                                                output in self.train_output]
         self.get_static_inserted_objects()
-        test_input = self.test_input[0]
-        abstracted_graph = getattr(
-            test_input, Image.abstraction_ops[abstraction])()
-        #for call in apply_call:
-        [abstracted_graph.apply_all(filter, transformation) 
+        [abstracted_graph.apply_all(filter, transformation)
          for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
-        reconstructed = test_input.undo_abstraction(abstracted_graph)
-        if save_images:
-            test_input.arc_graph.plot(save_fig=True)
-            reconstructed.plot(save_fig=True)
-            self.test_output[0].arc_graph.plot(save_fig=True)
         return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
+
+    def output_matches(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction):
+        self.abstraction = abstraction
+        self.input_abstracted_graphs_original[abstraction] = [getattr(input, Image.abstraction_ops[abstraction])() for
+                                                              input in self.train_input]
+        self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
+                                                               output in self.train_output]
+        self.get_static_inserted_objects()
+        test_input = self.test_input[0]
+        test_abstracted_graph = getattr(
+            test_input, Image.abstraction_ops[abstraction])()
+        test_abstracted_graph.apply_all(filter, transformation)
+        reconstructed = test_input.undo_abstraction(test_abstracted_graph)
+        # check if the solution found the correct test output
+        error = 0
+        for node, data in self.test_output[0].graph.nodes(data=True):
+            if data["color"] != reconstructed.graph.nodes[node]["color"]:
+                error += 1
+        if error == 0:
+            return True
+        print("The solution found predicted {} out of {} pixels incorrectly".format(error, len(self.test_output[0].graph.nodes())))
+        return False
