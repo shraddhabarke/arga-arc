@@ -15,8 +15,6 @@ class ChildrenIterator:
         self.candidates: List[LookaheadIterator[TransformASTNode]] = []
         self.allExceptLast: List[TransformASTNode] = []
         self.exhausted = False
-        if not self.costs:
-            self.exhausted = True
         while not self.candidates:
             if not self.costsIterator.hasNext():  # Exit if no valid costs are left
                 break
@@ -29,7 +27,7 @@ class ChildrenIterator:
             for t, c in zip(self.childTypes, cost)
         ]
         if any(not lst for lst in childrenListsTemp):
-            self.exhausted = True
+            #self.exhausted = True
             return
         self.childrenLists = childrenListsTemp
         self.candidates = [
@@ -40,7 +38,7 @@ class ChildrenIterator:
             self.allExceptLast = [candidate.next() for candidate in self.candidates[:-1]]
 
     def getNextChild(self):
-        if self.exhausted:  # If iterator is marked as exhausted, return None
+        if self.childrenLists == [] or any(not lst for lst in self.childrenLists):  # If iterator is marked as exhausted, return None
             return None
         elif self.candidates is not None:
             while True:
@@ -74,9 +72,9 @@ class ChildrenIterator:
                 self.resetIterators(newCost)
 
     def hasNext(self) -> bool:
-        if self.exhausted:  # If iterator is marked as exhausted, return False
+        if not self.costs or any(not lst for lst in self.childrenLists): # If iterator is marked as exhausted, return False
             return False
-        elif not self.exhausted and self.nextChild is None:
+        elif self.costs and self.nextChild is None:
             self.getChild()
         return self.nextChild is not None
 

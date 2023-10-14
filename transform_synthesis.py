@@ -8,7 +8,7 @@ from VocabMaker import VocabFactory
 from lookaheadIterator import LookaheadIterator
 from childrenIterator import ChildrenIterator
 
-class SizeEnumerator:
+class TSizeEnumerator:
     def __init__(self, taskName: str, vocab: VocabFactory, oeManager, contexts):
         self.taskName = taskName
         self.vocab = vocab
@@ -40,18 +40,13 @@ class SizeEnumerator:
         if not self.currIter.hasNext():
             return False
         self.rootMaker = self.currIter.next()
-        if self.rootMaker.nodeType == Types.TRANSFORMS:
-            if (self.costLevel - 1) % 2 == 0: 
-                self.rootMaker.arity = (self.costLevel - 1) / 2
-                self.rootMaker.childTypes = [Types.TRANSFORM_OPS] * int(self.rootMaker.arity)
-            else:
-                return False
-        if self.rootMaker.arity == 1 and self.rootMaker.nodeType == Types.TRANSFORMS:
-            return False
-        if self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
+        if self.rootMaker.nodeType == Types.TRANSFORMS and self.rootMaker.arity == 2:
+            self.rootMaker.childTypes = [Types.TRANSFORM_OPS, Types.TRANSFORMS]
+            childrenCost = self.costLevel - 1
+            self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
+        elif self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
             self.childrenIterator = LookaheadIterator(iter([None]))
         elif 1 < self.costLevel: # TODO: update this later for the cost-based enumeration
-            print(self.rootMaker.childTypes)
             childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
         else:
@@ -60,7 +55,7 @@ class SizeEnumerator:
 
     def changeLevel(self) -> bool:
         self.costLevel += 1
-        if self.costLevel > 2:
+        if self.costLevel > 3:
             self.currIter = LookaheadIterator(iter([Transforms]))
         else:
             self.currIter = LookaheadIterator(iter(self.vocab.nonLeaves()))
@@ -77,7 +72,8 @@ class SizeEnumerator:
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
                 all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):                    
                     prog = self.rootMaker.apply(children)
-                    print("Res:", prog)
+                    # evaluate here!
+                    print("Res:", prog.code)
                     res = prog
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
@@ -101,12 +97,12 @@ class TestSizeEnumerator(unittest.TestCase):
         class MockOeManager:
             def isRepresentative(self, prog):
                 return True
-        vocabMakers = [Color, UpdateColor]
+        vocabMakers = [Color, UpdateColor, Transforms, NoOp]
         vocab = VocabFactory.create(vocabMakers)
-        self.enumerator = SizeEnumerator("TestTask", vocab, MockOeManager(), [])
+        self.enumerator = TSizeEnumerator("TestTask", vocab, MockOeManager(), [])
 
     def test_next_program(self):
-        self.assertEqual(list(self.enumerator.vocab.leaves()), [Color.C0, Color.C1, Color.C2, Color.C3, Color.C4, Color.C5, Color.C6, Color.C7, Color.C8, Color.C9, Color.LEAST, Color.MOST])
+        self.assertEqual(list(self.enumerator.vocab.leaves()), [Color.C0, Color.C1, Color.C2, Color.C3, Color.C4, Color.C5, Color.C6, Color.C7, Color.C8, Color.C9, Color.LEAST, Color.MOST, NoOp()])
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("Color.C0", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
@@ -124,6 +120,7 @@ class TestSizeEnumerator(unittest.TestCase):
         self.assertEqual("Color.LEAST", self.enumerator.next().code)
         self.assertEqual("Color.MOST", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
+        self.assertEqual("NoOp", self.enumerator.next().code)
         self.assertEqual("updateColor(Color.C0)", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("updateColor(Color.C1)", self.enumerator.next().code)
@@ -148,9 +145,34 @@ class TestSizeEnumerator(unittest.TestCase):
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("updateColor(Color.MOST)", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), updateColor(Color.C0)]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), NoOp]")
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), updateColor(Color.C1)]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C2), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C3), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C4), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C5), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C6), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C7), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C8), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C9), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.LEAST), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.MOST), NoOp]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C0), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C1), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C2), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C3), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C4), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C5), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C6), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C7), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C8), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C9), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.LEAST), NoOp]]")
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.MOST), NoOp]]")
+        for i in range(150):
+            self.enumerator.next()
+        self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), [updateColor(Color.C1), [updateColor(Color.C6), NoOp]]]")
 
 if __name__ == "__main__":
     unittest.main()

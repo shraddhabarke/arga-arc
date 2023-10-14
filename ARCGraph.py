@@ -656,12 +656,6 @@ class ARCGraph:
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(all_nodes.keys()))
 
-    def compute_subsets(self):
-        """
-        computes all possible subset of nodes of a given abstracted graph
-        """
-        pass
-
     def update_abstracted_graph(self, affected_nodes):
         """
         update the abstracted graphs so that they remain consistent after transformation

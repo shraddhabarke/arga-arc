@@ -7,7 +7,6 @@ from collections import Counter
 import operator
 import numpy as np
 import ast
-
 openai.api_key = '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'
 
 def differing_rows(matrix1, matrix2):
@@ -167,11 +166,15 @@ def test_prompt(task_id):
     prompt = f"""{task_preamble}\n{arga_prompt}\n{formatted_grid}\n{test_format_prompt2}"""
     return prompt, gold_sol
 
-test = ['4258a5f9', 'bb43febb', 'ae3edfdc', '7f4411dc', '08ed6ac7', '00d62c1b', 'ddf7fa4f', 'd43fd935', 'd2abd087', '3906de3d']
+test = ['4258a5f9', 'bb43febb', 'ae3edfdc', '7f4411dc', '08ed6ac7',
+        '00d62c1b', 'ddf7fa4f', 'd43fd935', 'd2abd087', '3906de3d']
 
 for test_id in test:
-    response = get_completion(test_prompt(test_id)[0])
-    print(response)
+    print(test_id)
+    print(test_prompt(test_id)[0])
+    print(test_prompt(test_id)[1])
+    #response = get_completion(test_prompt(test_id)[0])
+    #print(response)
 
 # "nbvcg - get_non_background_vertical_connected_components_graph" +\
 # "nbccg - get_non_black_components_graph" +\ 

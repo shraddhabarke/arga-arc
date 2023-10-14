@@ -38,10 +38,10 @@ class Color(TransformASTNode, Enum):
 
     def __init__(self, value=None):
         super().__init__(Types.COLOR)
-        self.nodeType = Types.COLOR
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = []  # Explicitly set children to an empty list
+        self.nodeType = Types.COLOR
 
     @classmethod
     @property
@@ -64,12 +64,13 @@ class Direction(TransformASTNode, Enum):
     UP_RIGHT = "UP_RIGHT"
     DOWN_LEFT = "DOWN_LEFT"
     DOWN_RIGHT = "DOWN_RIGHT"
+    nodeType = Types.DIRECTION
     def __init__(self, value):
         super().__init__(Types.DIRECTION)
-        self.nodeType = Types.DIRECTION
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
-        self.children = [] 
+        self.children = []
+        self.nodeType = Types.DIRECTION
 
     @classmethod
     @property
@@ -86,12 +87,13 @@ class Direction(TransformASTNode, Enum):
 class Overlap(TransformASTNode, Enum):
     TRUE = True
     FALSE = False
+    nodeType = Types.OVERLAP
     def __init__(self, value):
         super().__init__(Types.OVERLAP)
-        self.nodeType = Types.OVERLAP
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
-        self.children = [] 
+        self.children = []
+        self.nodeType = Types.OVERLAP
 
     @classmethod
     @property
@@ -109,12 +111,13 @@ class Rotation_Direction(TransformASTNode, Enum):
     CW = "CW"
     CCW = "CCW"
     CW2 = "CW2"
+    nodeType = Types.ROTATION_DIRECTION
     def __init__(self, value):
         super().__init__(Types.ROTATION_DIRECTION)
-        self.nodeType = Types.ROTATION_DIRECTION
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
-        self.children = [] 
+        self.children = []
+        self.nodeType = Types.ROTATION_DIRECTION
 
     @classmethod
     @property
@@ -139,9 +142,9 @@ class FillColor(TransformASTNode, Enum):
     C7 =  7
     C8 =  8
     C9 =  9
+    nodeType = Types.FILLCOLOR
     def __init__(self, value):
         super().__init__(Types.FILLCOLOR)
-        self.nodeType = Types.FILLCOLOR
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = [] 
@@ -163,9 +166,9 @@ class Mirror_Direction(TransformASTNode, Enum):
     HORIZONTAL = "HORIZONTAL"
     DIAGONAL_LEFT = "DIAGONAL_LEFT"
     DIAGONAL_RIGHT = "DIAGONAL_RIGHT"
+    nodeType = Types.MIRROR_DIRECTION
     def __init__(self, value):
         super().__init__(Types.MIRROR_DIRECTION)
-        self.nodeType = Types.MIRROR_DIRECTION
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = [] 
@@ -185,9 +188,9 @@ class Mirror_Direction(TransformASTNode, Enum):
 class Mirror_Axis(TransformASTNode, Enum):
     X_AXIS = "X_AXIS"
     Y_AXIS = "Y_AXIS"
+    nodeType = Types.MIRROR_AXIS
     def __init__(self, value):
         super().__init__(Types.MIRROR_AXIS)
-        self.nodeType = Types.MIRROR_AXIS
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = [] 
@@ -213,10 +216,9 @@ class ImagePoints(TransformASTNode, Enum):
     TOP_RIGHT = "TOP_RIGHT"
     BOTTOM_LEFT = "BOTTOM_LEFT"
     BOTTOM_RIGHT = "BOTTOM_RIGHT"
-
+    nodeType = Types.IMAGEPOINTS
     def __init__(self, value):
         super().__init__(Types.IMAGEPOINTS)
-        self.nodeType = Types.IMAGEPOINTS
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = []
@@ -237,9 +239,9 @@ class RelativePosition(TransformASTNode, Enum):
     SOURCE = "SOURCE"
     TARGET = "TARGET"
     MIDDLE = "MIDDLE"
+    nodeType = Types.RELATIVE_POS
     def __init__(self, value):
         super().__init__(Types.RELATIVE_POS)
-        self.nodeType = Types.RELATIVE_POS
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = [] 
@@ -259,20 +261,51 @@ class RelativePosition(TransformASTNode, Enum):
 class TransformOps(TransformASTNode):
     def __init__(self):
         super().__init__(Types.TRANSFORM_OPS)
+        self.nodeType = Types.TRANSFORM_OPS
 
 class Transforms(TransformASTNode):
     nodeType = Types.TRANSFORMS
-    def __init__(self, transform_list: List[TransformASTNode]):
+    arity = 2
+    def __init__(self, transform1: TransformOps, transform2: 'Transforms'):
         super().__init__()
+        if not isinstance(transform1, TransformOps):
+            raise TypeError(f"Expected TransformOps for transform1, got {type(transform1).__name__}")
+        if not isinstance(transform2, Transforms):
+            raise TypeError(f"Expected Transforms for transform2, got {type(transform2).__name__}")
+
+        self.children = [transform1, transform2]
+        self.size = sum(t.size for t in self.children)
+        self.code = "[" + ", ".join(t.code for t in self.children) + "]"
         self.nodeType = Types.TRANSFORMS
-        self.children = transform_list
-        self.size = sum(t.size for t in transform_list)  # 0 for Transforms node + total of all child nodes
-        self.code = "[" + ", ".join(t.code for t in transform_list) + "]"
     
     @classmethod
     def apply(cls, children):
-        #super().apply(children)
-        return cls(children)
+        return cls(children[0], children[1])
+
+class NoOp(Transforms):
+    _instance = None  # Single instance storage
+    arity = 0
+    nodeType = Types.TRANSFORMS
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(NoOp, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, 'initialized') or not self.initialized:
+            super(Transforms, self).__init__()
+            self.code = "NoOp"
+            self.size = 1
+            self.children = []
+            self.initialized = True
+
+    def apply(self, children=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return [cls._instance or cls()]
 
 class UpdateColor(TransformOps):
     arity = 1
@@ -458,19 +491,12 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(direction_instance.size, 1)
         self.assertEqual(direction_instance.children, [])
         
-    def test_transforms(self):
-        transforms_instance = Transforms([UpdateColor(Color.C1), UpdateColor(Color.C2)])
-        self.assertEqual(transforms_instance.nodeType, Types.TRANSFORMS)
-        self.assertEqual(transforms_instance.code, "[updateColor(Color.C1), updateColor(Color.C2)]")
-        self.assertEqual(transforms_instance.size, 4)  # 1 for transforms + 2 for each updateColor
-        self.assertEqual(len(transforms_instance.children), 2)
-
     def test_move_node(self):
-        move_node_instance = MoveNode(Direction.DOWN)
-        self.assertEqual(move_node_instance.nodeType, Types.TRANSFORM_OPS)
-        self.assertEqual(move_node_instance.code, "moveNode(Direction.DOWN)")
-        self.assertEqual(move_node_instance.size, 2)
-        self.assertEqual(move_node_instance.children, [Direction.DOWN])
+        move_node_instance = Transforms(MoveNode(Direction.DOWN), NoOp())
+        self.assertEqual(move_node_instance.nodeType, Types.TRANSFORMS)
+        self.assertEqual(move_node_instance.code, "[moveNode(Direction.DOWN), NoOp]")
+        self.assertEqual(move_node_instance.size, 3)
+        self.assertEqual(len(move_node_instance.children), 2)
         
     def test_extend_node(self):
         extend_node_instance = ExtendNode(Direction.LEFT, Overlap.TRUE)
@@ -493,28 +519,6 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(mirror_instance.size, 2)
         self.assertEqual(mirror_instance.children, [Mirror_Axis.X_AXIS])
 
-    def test_sequence_of_multiple_transforms(self):
-        transforms_list = [UpdateColor(Color.C3), MoveNode(Direction.UP)]
-        sequence = Transforms(transforms_list)
-        self.assertEqual(sequence.nodeType, Types.TRANSFORMS)
-        self.assertEqual(sequence.code, "[updateColor(Color.C3), moveNode(Direction.UP)]")
-        self.assertEqual(sequence.size, 4)  # 2 for each transformation
-        self.assertEqual(len(sequence.children), 2)
-
-    def test_complex_transform_sequence(self):
-        transforms_list = [
-        UpdateColor(Color.C1),
-        MoveNode(Direction.UP),
-        RotateNode(Rotation_Direction.CCW),
-        Mirror(Mirror_Axis.Y_AXIS),
-        AddBorder(FillColor.C7)
-        ]
-        sequence = Transforms(transforms_list)
-        self.assertEqual(sequence.nodeType, Types.TRANSFORMS)
-        self.assertEqual(sequence.code, "[updateColor(Color.C1), moveNode(Direction.UP), rotateNode(Rotation_Direction.CCW), mirror(Mirror_Axis.Y_AXIS), addBorder(FillColor.C7)]")
-        self.assertEqual(sequence.size, 10)  # 2 for each transformation
-        self.assertEqual(len(sequence.children), 5)
-          
     def test_get_all_values(self):
         all_colors = Color.get_all_values()
         self.assertIsInstance(all_colors, list)
@@ -523,6 +527,42 @@ class TestGrammarRepresentation(unittest.TestCase):
             self.assertIsInstance(color, Color)
         self.assertIn(Color.C0, all_colors)
         self.assertIn(Color.MOST, all_colors)
+
+    def test_noop_properties(self):
+        noop = NoOp()
+        self.assertEqual(noop.code, "NoOp")
+        self.assertEqual(noop.size, 1)
+        self.assertEqual(noop.nodeType, Types.TRANSFORMS)
+        self.assertEqual(NoOp.arity, 0)
+
+    def test_transforms(self):
+        move_node_instance = Transforms(MoveNode(Direction.DOWN), Transforms(MoveNode(Direction.UP), NoOp()))
+        self.assertEqual(move_node_instance.nodeType, Types.TRANSFORMS)
+        self.assertEqual(move_node_instance.code, "[moveNode(Direction.DOWN), [moveNode(Direction.UP), NoOp]]")
+        self.assertEqual(move_node_instance.size, 5)  # 1 for transforms + 2 for each updateColor
+        self.assertEqual(len(move_node_instance.children), 2)
+
+    def test_sequence_of_multiple_transforms(self):
+        transforms_list = Transforms(UpdateColor(Color.C3), Transforms(MoveNode(Direction.UP), NoOp()))
+        self.assertEqual(transforms_list.nodeType, Types.TRANSFORMS)
+        self.assertEqual(transforms_list.code, "[updateColor(Color.C3), [moveNode(Direction.UP), NoOp]]")
+        self.assertEqual(transforms_list.size, 5)  # 2 for each transformation
+        self.assertEqual(len(transforms_list.children), 2)
+
+    def test_complex_transform_sequence(self):
+        transforms_list = Transforms(UpdateColor(Color.C1),
+                             Transforms(MoveNode(Direction.UP),
+                                        Transforms(RotateNode(Rotation_Direction.CCW),
+                                                   Transforms(Mirror(Mirror_Axis.Y_AXIS),
+                                                              Transforms(AddBorder(FillColor.C7), NoOp())
+                                                             )
+                                                  )
+                                       )
+                            )
+        self.assertEqual(transforms_list.nodeType, Types.TRANSFORMS)
+        self.assertEqual(transforms_list.code, "[updateColor(Color.C1), [moveNode(Direction.UP), [rotateNode(Rotation_Direction.CCW), [mirror(Mirror_Axis.Y_AXIS), [addBorder(FillColor.C7), NoOp]]]]]")
+        self.assertEqual(transforms_list.size, 11)  # 2 for each transformation
+        self.assertEqual(len(transforms_list.children), 2)
 
 if __name__ == "__main__":
     unittest.main()
