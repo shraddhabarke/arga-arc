@@ -1,6 +1,7 @@
 from typing import Union, List, Dict, Iterator
 from transform import *
 from lookaheadIterator import LookaheadIterator
+from filters import *
 
 class ChildrenIterator:
     def __init__(self, childTypes, childrenCost, bank):
@@ -11,9 +12,9 @@ class ChildrenIterator:
         self.costs = ProbCosts.getCosts(self.childrenCost, self.childrenCosts, len(self.childTypes))
         self.nextChild = None
         self.costsIterator = LookaheadIterator(self.costs)
-        self.childrenLists: List[List[TransformASTNode]] = []
-        self.candidates: List[LookaheadIterator[TransformASTNode]] = []
-        self.allExceptLast: List[TransformASTNode] = []
+        self.childrenLists: List[List[Union[TransformASTNode, FilterASTNode]]] = []
+        self.candidates: List[LookaheadIterator[Union[TransformASTNode, FilterASTNode]]] = []
+        self.allExceptLast: List[Union[TransformASTNode, FilterASTNode]] = []
         self.exhausted = False
         while not self.candidates:
             if not self.costsIterator.hasNext():  # Exit if no valid costs are left
@@ -78,7 +79,7 @@ class ChildrenIterator:
             self.getChild()
         return self.nextChild is not None
 
-    def next(self) -> List[TransformASTNode]:
+    def next(self) -> List[Union[TransformASTNode, FilterASTNode]]:
         if self.nextChild is None:
             self.getChild()
         res = self.nextChild

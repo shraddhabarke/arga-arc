@@ -1,20 +1,22 @@
 from transform import *
 import transform
 from typing import Union, List, Dict, Iterator, Any
+from filters import *
+from task import *
 
 class VocabFactory:
-    def __init__(self, leavesMakers: List[TransformASTNode], nodeMakers: List[TransformASTNode]):
+    def __init__(self, leavesMakers: List[Union[TransformASTNode, FilterASTNode]], nodeMakers: List[Union[TransformASTNode, FilterASTNode]]):
         self._leavesMakers = leavesMakers
         self._nodeMakers = nodeMakers
 
-    def leaves(self) -> Iterator[TransformASTNode]:
+    def leaves(self) -> Iterator[Union[TransformASTNode, FilterASTNode]]:
         return iter(self._leavesMakers)
 
-    def nonLeaves(self) -> Iterator[TransformASTNode]:
+    def nonLeaves(self) -> Iterator[Union[TransformASTNode, FilterASTNode]]:
         return iter(self._nodeMakers)
 
     @classmethod
-    def create(cls, vocabMakers: List[TransformASTNode]):
+    def create(cls, vocabMakers: List[Union[TransformASTNode, FilterASTNode]]):
         leavesMakers, nodeMakers = [], []
         for maker in vocabMakers:
             if maker.arity == 0:
@@ -35,5 +37,25 @@ class TestVocabFactory(unittest.TestCase):
         self.assertEqual(list(vocab_factory_from_create.leaves()), self.leaf_makers)
         self.assertEqual(list(vocab_factory_from_create.nonLeaves()), self.node_makers)
 
+class TestFilterVocabFactory(unittest.TestCase):
+    def setUp(self):
+        self.leaf_makers = [Color.C0, Color.C1,  Color.C2, Color.C3, Color.C4, Color.C5, Color.C6, Color.C7, Color.C8, Color.C9, Color.LEAST, Color.MOST]
+        self.node_makers = [And, Or, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborSize, FilterByNeighborColor, FilterByNeighborDegree]
+        
+        self.vocab_factory = VocabFactory(self.leaf_makers, self.node_makers)
+
+    def test_create(self):
+        all_filter_classes = [Color, And, Or, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborSize, FilterByNeighborColor, FilterByNeighborDegree]
+        vocab_factory_from_create = VocabFactory.create(all_filter_classes)
+        self.assertEqual(list(vocab_factory_from_create.leaves()), self.leaf_makers)
+        self.assertEqual(list(vocab_factory_from_create.nonLeaves()), self.node_makers)
+
 if __name__ == "__main__":
+    taskNumber = "bb43febb"
+    task = Task("dataset/" + taskNumber + ".json")
+    task.abstraction = "nbccg"
+    task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
+                                                               input in task.train_input]
+    task.get_static_object_attributes(task.abstraction)
+    setup_size_and_degree_based_on_task(task)
     unittest.main()
