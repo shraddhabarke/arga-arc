@@ -3,32 +3,37 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from inspect import signature
 from transform import *
-from filter import *
+from filters import *
 
 if __name__ == "__main__":
-    taskNumber = "bb43febb"
+    taskNumber = "bb43febb" # solution is filterinstance, hollow_rect_instance
     task = Task("dataset/" + taskNumber + ".json")
     task.abstraction = "nbccg"
-    move_node_instance = MoveNode(Direction.LEFT)    
-    update_color_instance = UpdateColor(Color.C2)
-    add_border_instance = AddBorder(FillColor.C1)
+    update_color_instance = UpdateColor(Color.C0) # 7f4411dc, lrg
+    hollow_rect_instance = HollowRectangle(FillColor.C2) # bb43febb, nbccg
+
     filterinstance = FilterByColor(Color.C5, Exclude.FALSE)
-    transformed_graph, output_graph = task.apply_transformation(update_color_instance, task.abstraction) # applying here
-    
+    move_node_inst = MoveNode(Direction.UP)
+    move_inst = MoveNodeMax(Direction.UP) # 3906de3d, nbvcg
+    add_border_inst = AddBorder(FillColor.C1)                 # 4258a5f9, nbccg # TODO: AddBorder semantics
+    transformed_graph, output_graph = task.apply_transformation(hollow_rect_instance, task.abstraction) # applying here
+    assert(len(transformed_graph) == len(output_graph))
     # testing transforms
+    print("Testing transforms")
     for iter in range(len(transformed_graph)):
         print("iter!", iter)
         actual = transformed_graph[iter]
         expected = output_graph[iter]
         for a, e in zip(actual.graph.nodes(data=True), expected.graph.nodes(data=True)):
-            print("actual:", a[0], a[1])
-            print("expected:", e[0], e[1])
+            print("transformed:", a[0], a[1])
+            print("true output:", e[0], e[1])
 
     for abstracted_graph in task.input_abstracted_graphs_original[task.abstraction]:
         for trans in abstracted_graph.graph.nodes(data=True):
             print("trans-after:", trans[0], trans[1])
 
     # testing filters
+    print("Testing filters")
     training_in = [getattr(input, Image.abstraction_ops[task.abstraction])() for
                    input in task.train_input]
     task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
@@ -55,7 +60,7 @@ if __name__ == "__main__":
     
     # testing full rule
     print("Testing full rule:")
-    transformed_graph, output_graph = task.apply_rule(filterinstance, add_border_instance, task.abstraction)
+    transformed_graph, output_graph = task.apply_rule(filterinstance, hollow_rect_instance, task.abstraction)
     for iter in range(len(transformed_graph)):
         print("iter!", iter)
         actual = transformed_graph[iter]

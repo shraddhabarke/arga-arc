@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from itertools import combinations
 from utils import *
 from transform import *
-from filter import *
+from filters import *
 from task import *
 import itertools
 
@@ -67,6 +67,7 @@ class ARCGraph:
         for sub_node in self.graph.nodes[node]["nodes"]:
             updated_sub_nodes.append((sub_node[0] + delta_y, sub_node[1] + delta_x))
         self.graph.nodes[node]["nodes"] = updated_sub_nodes
+        self.graph.nodes[node]["size"] = len(updated_sub_nodes)
 
         return self
 
@@ -167,12 +168,14 @@ class ARCGraph:
         """
         delta = [-1, 0, 1]
         border_pixels = []
+
         for sub_node in self.graph.nodes[node]["nodes"]:
             for x in delta:
                 for y in delta:
                     border_pixel = (sub_node[0] + y, sub_node[1] + x)
                     if border_pixel not in border_pixels and not self.check_pixel_occupied(border_pixel):
                         border_pixels.append(border_pixel)
+
         new_node_id = self.generate_node_id(border_color)
         if self.is_multicolor:
             self.graph.add_node(new_node_id, nodes=list(border_pixels), color=[border_color for j in border_pixels],
@@ -229,6 +232,8 @@ class ARCGraph:
             else:
                 non_border_pixels.append(subnode)
         self.graph.nodes[node]["nodes"] = new_subnodes
+        # Updated the size parameter here
+        self.graph.nodes[node]["size"] = len(new_subnodes)
         if fill_color != self.image.background_color:
             new_node_id = self.generate_node_id(fill_color)
             self.graph.add_node(new_node_id, nodes=list(non_border_pixels), color=fill_color,
@@ -649,7 +654,6 @@ class ARCGraph:
         args = [child.value for child in transformation.children]
         for node in self.graph.nodes():
             all_nodes[node] = args
-
         for node, args in all_nodes.items():
             self.apply_transform_inner(node, transformation, args)
 
