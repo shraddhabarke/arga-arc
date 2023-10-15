@@ -3,8 +3,8 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from itertools import combinations
 from utils import *
-from transform import *
 from filters import *
+from transform import *
 from task import *
 import itertools
 

@@ -8,6 +8,7 @@ from image import Image
 from ARCGraph import ARCGraph
 from transform import *
 from filters import *
+from transform import *
 
 class Task:
     #all_possible_abstractions = Image.abstractions
@@ -252,14 +253,13 @@ class Task:
         print("The solution found predicted {} out of {} pixels incorrectly".format(error, len(self.test_output[0].graph.nodes())))
         return False
 
-    def transform_values(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction):
+    def transform_values(self, filter: FilterASTNode, transformation: TransformASTNode):
         """
         Returns the values of the transformed grid
         """
-        self.abstraction = abstraction
         test_input = self.test_input[0]
         test_abstracted_graph = getattr(
-            test_input, Image.abstraction_ops[abstraction])()
+            test_input, Image.abstraction_ops[self.abstraction])()
         test_abstracted_graph.apply_all(filter, transformation)
         reconstructed = test_input.undo_abstraction(test_abstracted_graph)
         # check if the solution found the correct test output
@@ -267,7 +267,7 @@ class Task:
         for node, data in self.test_output[0].graph.nodes(data=True):
             if data["color"] != reconstructed.graph.nodes[node]["color"]:
                 error += 1
-        return reconstructed.graph.nodes(data=True)
+        return self.extract_color_matrix(reconstructed.graph.nodes(data=True))
 
     def filter_values(self, filter: FilterASTNode):
         filtered_nodes = []
@@ -278,3 +278,16 @@ class Task:
                     filtered_nodes_i.append(node)
             filtered_nodes.append(filtered_nodes_i)
         return filtered_nodes
+
+    def extract_color_matrix(self, data):
+        if len(data) != 100:
+            raise ValueError("Data does not represent a 10x10 matrix.")
+        expected_coords = {(i, j) for i in range(10) for j in range(10)}
+        provided_coords = {item[0] for item in data}
+        if expected_coords != provided_coords:
+            raise ValueError("Coordinates do not cover the complete 10x10 matrix.")
+        matrix = [[0] * 10 for _ in range(10)]
+        for coord, properties in data:
+            x, y = coord
+            matrix[x][y] = properties['color']
+        return matrix

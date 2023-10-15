@@ -3,6 +3,7 @@ import transform
 from typing import Union, List, Dict, Iterator, Any
 from filters import *
 from task import *
+import unittest
 
 class VocabFactory:
     def __init__(self, leavesMakers: List[Union[TransformASTNode, FilterASTNode]], nodeMakers: List[Union[TransformASTNode, FilterASTNode]]):
