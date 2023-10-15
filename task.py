@@ -19,13 +19,11 @@ class Task:
         """
         # get task id from filepath
         self.task_id = filepath.split("/")[-1].split(".")[0]
-
         # input output images given
         self.train_input = []
         self.train_output = []
         self.test_input = []
         self.test_output = []
-
         # abstracted graphs from input output images
         # a dictionary of ARCGraphs, where the keys are the abstraction name and
         self.input_abstracted_graphs = dict()
@@ -34,19 +32,12 @@ class Task:
         # a dictionary of ARCGraphs, where the keys are the abstraction name and
         self.input_abstracted_graphs_original = dict()
         self.output_abstracted_graphs_original = dict()
-
         self.abstraction = None  # which type of abstraction the search is currently working with
         # static objects used for the "insert" transformation
         self.static_objects_for_insertion = dict()
         self.object_sizes = dict()  # object sizes to use for filters
         self.object_degrees = dict()  # object degrees to use for filters
-        # a dictionary of transformation operations to be used in search
-        self.transformation_ops = dict()
-
         self.load_task_from_file(filepath)
-        #self.img_dir = "images/" + self.task_id
-        #if not os.path.exists(self.img_dir):
-            #os.makedirs(self.img_dir)
 
     def load_task_from_file(self, filepath):
         """
@@ -242,12 +233,10 @@ class Task:
         return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
 
     def output_matches(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction):
+        """
+        Returns whether the output of the filter, transform pair matches the expected output
+        """
         self.abstraction = abstraction
-        self.input_abstracted_graphs_original[abstraction] = [getattr(input, Image.abstraction_ops[abstraction])() for
-                                                              input in self.train_input]
-        self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
-                                                               output in self.train_output]
-        self.get_static_inserted_objects()
         test_input = self.test_input[0]
         test_abstracted_graph = getattr(
             test_input, Image.abstraction_ops[abstraction])()
@@ -262,3 +251,30 @@ class Task:
             return True
         print("The solution found predicted {} out of {} pixels incorrectly".format(error, len(self.test_output[0].graph.nodes())))
         return False
+
+    def transform_values(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction):
+        """
+        Returns the values of the transformed grid
+        """
+        self.abstraction = abstraction
+        test_input = self.test_input[0]
+        test_abstracted_graph = getattr(
+            test_input, Image.abstraction_ops[abstraction])()
+        test_abstracted_graph.apply_all(filter, transformation)
+        reconstructed = test_input.undo_abstraction(test_abstracted_graph)
+        # check if the solution found the correct test output
+        error = 0
+        for node, data in self.test_output[0].graph.nodes(data=True):
+            if data["color"] != reconstructed.graph.nodes[node]["color"]:
+                error += 1
+        return reconstructed.graph.nodes(data=True)
+
+    def filter_values(self, filter: FilterASTNode):
+        filtered_nodes = []
+        for input_abstracted_graph in self.input_abstracted_graphs_original[self.abstraction]:
+            filtered_nodes_i = []
+            for node in input_abstracted_graph.graph.nodes():
+                if input_abstracted_graph.apply_filters(node, filter):
+                    filtered_nodes_i.append(node)
+            filtered_nodes.append(filtered_nodes_i)
+        return filtered_nodes

@@ -638,7 +638,7 @@ class ARCGraph:
         filter_name = filter.__class__.__name__
         args = [child.value for child in filter.children]
         return getattr(self, filter_name)(node, *args)
-        
+
     def apply_transform_inner(self, node, transformation: TransformASTNode, args: List[TransformASTNode]):
         """
         apply transformation to a node

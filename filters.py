@@ -17,19 +17,25 @@ class FilterASTNode:
         self.size: int = 1
         self.children: List[FilterASTNode] = children if children else []
         self.childTypes: List[FilterTypes] = []
+        self.values = None
 
-class SizeValue:
+class SizeValue():
     def __init__(self, enum_value):
+        self.value = enum_value
         self.nodeType = FilterTypes.SIZE
         self.code = f"SIZE.{enum_value.name}"
         self.size = 1
         self.children = []
 
-class Size:
+    def apply(self, task, children=None):
+        self.values = []
+        return self
+
+class Size(FilterASTNode):
     _all_values = set()
 
-    def __new__(cls, enum_value):
-        instance = SizeValue(enum_value)
+    def __new__(cls, value):
+        instance = SizeValue(value)
         cls._all_values.add(instance)
         return instance
 
@@ -38,7 +44,8 @@ class Size:
     def arity(cls):
         return 0
 
-    def apply(self, children=None):
+    def apply(self, task, children=None):
+        self.values = []
         return self
 
     @classmethod
@@ -47,12 +54,17 @@ class Size:
 
 class DegreeValue:
     def __init__(self, enum_value):
+        self.value = enum_value
         self.nodeType = FilterTypes.DEGREE
         self.code = f"DEGREE.{enum_value.name}"
         self.size = 1
         self.children = []
 
-class Degree:
+    def apply(self, task, children=None):
+        self.values = []
+        return self
+
+class Degree(FilterASTNode):
     _all_values = set()
 
     def __new__(cls, enum_value):
@@ -65,7 +77,8 @@ class Degree:
     def arity(cls):
         return 0
 
-    def apply(self, children=None):
+    def apply(self, task, children=None):
+        self.values = []
         return self
 
     @classmethod
@@ -115,7 +128,8 @@ class Color(FilterASTNode, Enum):
     def arity(cls):
         return 0
 
-    def apply(self, children=None):
+    def apply(self, task, children=None):
+        self.values = []
         return self
 
     @classmethod
@@ -131,14 +145,15 @@ class Exclude(FilterASTNode, Enum):
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.nodeType = FilterTypes.EXCLUDE
         self.size = 1
-        self.children = [] 
+        self.children = []
 
     @classmethod
     @property
     def arity(cls):
         return 0
-    
-    def apply(self, children=None):
+
+    def apply(self, task, children=None):
+        self.values = []
         return self
     
     @classmethod
@@ -155,10 +170,6 @@ class Filters(FilterASTNode):
         self.code = filters.code if filters else ''
         self.size = filters.size if filters else 0
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
-    
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
 
 class And(FilterASTNode):
     arity = 2
@@ -171,9 +182,13 @@ class And(FilterASTNode):
         self.size = 1 + filter1.size + filter2.size
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values1 = children[0].values
+        values2 = children[1].values
+        intersected_values = [list(set(v1).intersection(set(v2))) if set(v1).intersection(set(v2)) else [] for v1, v2 in zip(values1, values2)]
+        new_instance = And(children[0], children[1])
+        new_instance.values = intersected_values
+        return new_instance
 
 class Or(FilterASTNode):
     arity = 2
@@ -186,9 +201,13 @@ class Or(FilterASTNode):
         self.size = 1 + filter1.size + filter2.size
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
     
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values1 = children[0].values
+        values2 = children[1].values
+        unioned_values = [list(set(v1).union(set(v2))) for v1, v2 in zip(values1, values2)]
+        new_instance = Or(children[0], children[1])
+        new_instance.values = unioned_values
+        return new_instance
 
 class FilterByColor(Filters):
     arity = 2
@@ -201,9 +220,11 @@ class FilterByColor(Filters):
         self.children = [color, exclude]
         self.childTypes = [FilterTypes.COLOR, FilterTypes.EXCLUDE]
 
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values = task.filter_values(self)
+        new_instance = FilterByColor(children[0], children[1])
+        new_instance.values = values
+        return new_instance
 
 class FilterBySize(Filters):
     arity = 2
@@ -216,9 +237,11 @@ class FilterBySize(Filters):
         self.children = [size, exclude]
         self.childTypes = [FilterTypes.SIZE, FilterTypes.EXCLUDE]
     
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values = task.filter_values(self)
+        new_instance = FilterBySize(children[0], children[1])
+        new_instance.values = values
+        return new_instance
 
 class FilterByDegree(Filters):
     arity = 2
@@ -231,9 +254,11 @@ class FilterByDegree(Filters):
         self.children = [degree, exclude]
         self.childTypes = [FilterTypes.DEGREE, FilterTypes.EXCLUDE]
 
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values = task.filter_values(self)
+        new_instance = FilterByDegree(children[0], children[1])
+        new_instance.values = values
+        return new_instance
 
 class FilterByNeighborSize(Filters):
     arity = 2
@@ -246,9 +271,11 @@ class FilterByNeighborSize(Filters):
         self.children = [size, exclude]
         self.childTypes = [FilterTypes.SIZE, FilterTypes.EXCLUDE]
     
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values = task.filter_values(self)
+        new_instance = FilterByNeighborSize(children[0], children[1])
+        new_instance.values = values
+        return new_instance
 
 class FilterByNeighborColor(Filters):
     arity = 2
@@ -261,9 +288,11 @@ class FilterByNeighborColor(Filters):
         self.children = [color, exclude]
         self.childTypes = [FilterTypes.COLOR, FilterTypes.EXCLUDE]
     
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values = task.filter_values(self)
+        new_instance = FilterByNeighborColor(children[0], children[1])
+        new_instance.values = values
+        return new_instance
 
 class FilterByNeighborDegree(Filters):
     arity = 2
@@ -276,6 +305,8 @@ class FilterByNeighborDegree(Filters):
         self.children = [degree, exclude]
         self.childTypes = [FilterTypes.DEGREE, FilterTypes.EXCLUDE]
 
-    @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
+    def apply(self, task, children):
+        values = task.filter_values(self)
+        new_instance = FilterByNeighborDegree(children[0], children[1])
+        new_instance.values = values
+        return new_instance
