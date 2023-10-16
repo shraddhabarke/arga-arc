@@ -9,7 +9,7 @@ from OEValuesManager import *
 from task import Task
 
 class FSizeEnumerator:
-    def __init__(self, task: Task, vocab: VocabFactory, oeManager: FilterValuesManager):
+    def __init__(self, task: Task, vocab: VocabFactory, oeManager: ValuesManager):
         self.vocab = vocab
         self.oeManager = oeManager
         self.nextProgram = None
@@ -64,6 +64,7 @@ class FSizeEnumerator:
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
                 all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
                     prog = self.rootMaker.execute(self.task, children)
+                    #print(prog.code, prog.values)
                     if self.oeManager.is_representative(prog) or children is None:
                         res = prog
             elif self.currIter.hasNext():

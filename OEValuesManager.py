@@ -11,11 +11,11 @@ class OEValuesManager:
     def clear(self) -> None:
         raise NotImplementedError
 
-class FilterValuesManager(OEValuesManager):
+class ValuesManager(OEValuesManager):
     def __init__(self):
         self.class_values = set()
 
-    def is_representative(self, program: FilterASTNode) -> bool:
+    def is_representative(self, program: Union[FilterASTNode, TransformASTNode]) -> bool:
         results = tuple(tuple(inner) for inner in program.values)
         if all(len(inner) == 0 for inner in results):
             return False

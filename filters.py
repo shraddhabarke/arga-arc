@@ -22,7 +22,7 @@ class FilterASTNode:
 class SizeValue:
     arity = 0
     def __init__(self, enum_value):
-        self.value = enum_value
+        self.value = enum_value.value
         self.nodeType = FilterTypes.SIZE
         self.code = f"SIZE.{enum_value.name}"
         self.size = 1
@@ -35,7 +35,7 @@ class SizeValue:
 class DegreeValue:
     arity = 0
     def __init__(self, enum_value):
-        self.value = enum_value
+        self.value = enum_value.value
         self.nodeType = FilterTypes.DEGREE
         self.code = f"DEGREE.{enum_value.name}"
         self.size = 1

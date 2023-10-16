@@ -23,7 +23,7 @@ class TestSizeEnumerator(unittest.TestCase):
         setup_size_and_degree_based_on_task(task)
         vocabMakers = [Degree, FColor, Exclude, FilterByColor, And]
         vocab = VocabFactory.create(vocabMakers)
-        self.enumerator = FSizeEnumerator(task, vocab, FilterValuesManager())
+        self.enumerator = FSizeEnumerator(task, vocab, ValuesManager())
 
     def test_next_program(self):
         self.assertTrue(self.enumerator.hasNext())
