@@ -7,7 +7,6 @@ class FilterTypes(Enum):
     #FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
     SIZE = "Size"
-    EXCLUDE = "Exclude"
     DEGREE = "Degree"
 
 class FilterASTNode:
@@ -124,30 +123,6 @@ class FColor(FilterASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
-class Exclude(FilterASTNode, Enum):
-    TRUE = True
-    FALSE = False
-
-    def __init__(self, value=None):
-        super().__init__(FilterTypes.EXCLUDE)
-        self.code = f"{self.__class__.__name__}.{self.name}"
-        self.nodeType = FilterTypes.EXCLUDE
-        self.size = 1
-        self.children = []
-        self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    def execute(cls, task, children):
-        return cls
-
-    @classmethod
-    def get_all_values(cls):
-        return list(cls.__members__.values())
-
 class Filters(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
@@ -202,108 +177,108 @@ class Or(FilterASTNode):
 
 class FilterByColor(Filters):
     arity = 2
-    childTypes = [FilterTypes.COLOR, FilterTypes.EXCLUDE]
-    def __init__(self, color: FColor, exclude: Exclude):
+    childTypes = [FilterTypes.COLOR]
+    def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByColor({color.code}, {exclude.code})"
-        self.size = 1 + color.size + exclude.size
-        self.children = [color, exclude]
-        self.childTypes = [FilterTypes.COLOR, FilterTypes.EXCLUDE]
+        self.code = f"FilterByColor({color.code})"
+        self.size = 1 + color.size
+        self.children = [color]
+        self.childTypes = [FilterTypes.COLOR]
 
     @classmethod
     def execute(cls, task, children):
-        instance = cls(children[0], children[1])
+        instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
         return instance
 
 class FilterBySize(Filters):
     arity = 2
-    childTypes = [FilterTypes.SIZE, FilterTypes.EXCLUDE]
-    def __init__(self, size: Size, exclude: Exclude):
+    childTypes = [FilterTypes.SIZE]
+    def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterBySize({size.code}, {exclude.code})"
-        self.size = 1 + size.size + exclude.size
-        self.children = [size, exclude]
-        self.childTypes = [FilterTypes.SIZE, FilterTypes.EXCLUDE]
+        self.code = f"FilterBySize({size.code})"
+        self.size = 1 + size.size
+        self.children = [size]
+        self.childTypes = [FilterTypes.SIZE]
 
     @classmethod
     def execute(cls, task, children):
-        instance = cls(children[0], children[1])
+        instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
         return instance
 
 class FilterByDegree(Filters):
     arity = 2
-    childTypes = [FilterTypes.DEGREE, FilterTypes.EXCLUDE]
-    def __init__(self, degree: Degree, exclude: Exclude):
+    childTypes = [FilterTypes.DEGREE]
+    def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByDegree({degree.code}, {exclude.code})"
-        self.size = 1 + degree.size + exclude.size
-        self.children = [degree, exclude]
-        self.childTypes = [FilterTypes.DEGREE, FilterTypes.EXCLUDE]
+        self.code = f"FilterByDegree({degree.code})"
+        self.size = 1 + degree.size
+        self.children = [degree]
+        self.childTypes = [FilterTypes.DEGREE]
 
     @classmethod
     def execute(cls, task, children):
-        instance = cls(children[0], children[1])
+        instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
         return instance
 
 class FilterByNeighborSize(Filters):
     arity = 2
-    childTypes = [FilterTypes.SIZE, FilterTypes.EXCLUDE]
-    def __init__(self, size: Size, exclude: Exclude):
+    childTypes = [FilterTypes.SIZE]
+    def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborSize({size.code}, {exclude.code})"
-        self.size = 1 + size.size + exclude.size
-        self.children = [size, exclude]
-        self.childTypes = [FilterTypes.SIZE, FilterTypes.EXCLUDE]
+        self.code = f"FilterByNeighborSize({size.code})"
+        self.size = 1 + size.size
+        self.children = [size]
+        self.childTypes = [FilterTypes.SIZE]
 
     @classmethod
     def execute(cls, task, children):
-        instance = cls(children[0], children[1])
+        instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
         return instance
 
 class FilterByNeighborColor(Filters):
     arity = 2
-    childTypes = [FilterTypes.COLOR, FilterTypes.EXCLUDE]
-    def __init__(self, color: FColor, exclude: Exclude):
+    childTypes = [FilterTypes.COLOR]
+    def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborColor({color.code}, {exclude.code})"
-        self.size = 1 + color.size + exclude.size
-        self.children = [color, exclude]
-        self.childTypes = [FilterTypes.COLOR, FilterTypes.EXCLUDE]
+        self.code = f"FilterByNeighborColor({color.code})"
+        self.size = 1 + color.size
+        self.children = [color]
+        self.childTypes = [FilterTypes.COLOR]
 
     @classmethod
     def execute(cls, task, children):
-        instance = cls(children[0], children[1])
+        instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
         return instance
 
 class FilterByNeighborDegree(Filters):
     arity = 2
-    childTypes = [FilterTypes.DEGREE, FilterTypes.EXCLUDE]
-    def __init__(self, degree: Degree, exclude: Exclude):
+    childTypes = [FilterTypes.DEGREE]
+    def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborDegree({degree.code}, {exclude.code})"
-        self.size = 1 + degree.size + exclude.size
-        self.children = [degree, exclude]
-        self.childTypes = [FilterTypes.DEGREE, FilterTypes.EXCLUDE]
+        self.code = f"FilterByNeighborDegree({degree.code})"
+        self.size = 1 + degree.size
+        self.children = [degree]
+        self.childTypes = [FilterTypes.DEGREE]
 
     @classmethod
     def execute(cls, task, children):
-        instance = cls(children[0], children[1])
+        instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
         return instance
