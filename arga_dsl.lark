@@ -1,0 +1,67 @@
+program: rule_list
+rule_list: "(" rule* ")"
+rule: "(" filter_op transforms ")"
+filter_op: "(" FILTER_COLOR COLOR ")"
+          | "(" FILTER_SIZE SIZE ")"
+          | "(" FILTER_DEGREE DEGREE ")"
+          | "(" FILTER_NEIGHBOR_COLOR COLOR ")"
+          | "(" FILTER_NEIGHBOR_SIZE SIZE ")"
+          | "(" FILTER_NEIGHBOR_DEGREE DEGREE ")"
+          | "(" OP_NOT filter_op ")"
+          | "(" OP_AND filter_op filter_op ")"
+          | "(" OP_OR filter_op filter_op ")"
+
+transforms: "(" transform* ")"
+transform: "(" UPDATE_COLOR COLOR ")"
+         | "(" MOVE_NODE DIRECTION ")"
+         | "(" EXTEND_NODE DIRECTION tr_extend_node_params* ")"
+         | "(" MOVE_NODE_MAX DIRECTION ")"
+         | "(" ADD_BORDER COLOR ")"
+         | "(" FILL_RECTANGLE COLOR BOOL ")"
+         | "(" HOLLOW_RECTANGLE COLOR ")"
+         | "(" FLIP SYMMETRY_AXIS")"
+         | "(" ROTATE_NODE ROTATION_ANGLE ")"
+         | "(" MIRROR "(" mirror_params ")" ")"
+
+OP_AND: "and"
+OP_OR: "or"
+OP_NOT: "not"
+
+FILTER_COLOR: "filter_by_color"
+FILTER_SIZE: "filter_by_size"
+FILTER_DEGREE: "filter_by_degree"
+FILTER_NEIGHBOR_SIZE: "filter_by_neighbor_size"
+FILTER_NEIGHBOR_COLOR: "filter_by_neighbor_color"
+FILTER_NEIGHBOR_DEGREE: "filter_by_neighbor_degree"
+
+UPDATE_COLOR: "update_color"
+MOVE_NODE: "move_node"
+EXTEND_NODE: "extend_node"
+MOVE_NODE_MAX: "move_node_max"
+ADD_BORDER: "add_border"
+FILL_RECTANGLE: "fill_rectangle"
+HOLLOW_RECTANGLE: "hollow_rectangle"
+FLIP: "flip"
+ROTATE_NODE: "rotate_node"
+MIRROR: "mirror"
+
+tr_extend_node_params: BOOL
+mirror_params: INT INT
+             | INT KW_NULL
+             | KW_NULL INT
+
+BOOL: "True" | "False"
+COLOR: /C[0-9]+/ | "LEAST" | "MOST"
+DIRECTION: "UP" | "DOWN" | "LEFT" | "RIGHT" | "UP_LEFT" | "UP_RIGHT" | "DOWN_LEFT" | "DOWN_RIGHT"
+SYMMETRY_AXIS: "VERTICAL" | "HORIZONTAL" | "DIAGONAL_LEFT" | "DIAGONAL_RIGHT"
+SIZE: "MIN" | "MAX" | "ODD" | /S[0-9]+/
+DEGREE: "MIN" | "MAX" | "ODD" | /D[0-9]+/
+ROTATION_ANGLE: "90" | "180" | "270"
+
+KW_NULL: "null"
+COMMENT: /\s*/ ";;" /[^\n]/*
+%import common.WS
+%import common.INT
+%import common.LCASE_LETTER
+%ignore WS
+%ignore COMMENT
