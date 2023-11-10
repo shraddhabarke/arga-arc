@@ -75,11 +75,11 @@ class TestGrammarRepresentation(unittest.TestCase):
                                                [0, 0, 0, 1, 1, 1, 1, 1, 1, 1]])
 
     def test_add_border(self):
-        add_border_instance = AddBorder(FillColor.C3)
+        add_border_instance = AddBorder(Color.C3)
         self.assertEqual(add_border_instance.nodeType, Types.TRANSFORMS)
-        self.assertEqual(add_border_instance.code, "addBorder(FillColor.C3)")
+        self.assertEqual(add_border_instance.code, "addBorder(Color.C3)")
         self.assertEqual(add_border_instance.size, 2)
-        self.assertEqual(add_border_instance.children, [FillColor.C3])
+        self.assertEqual(add_border_instance.children, [Color.C3])
         
     def test_mirror(self):
         mirror_instance = Mirror(Mirror_Axis.X_AXIS)
@@ -123,13 +123,13 @@ class TestGrammarRepresentation(unittest.TestCase):
                              Transforms(MoveNode(Direction.UP),
                                         Transforms(RotateNode(Rotation_Direction.CCW),
                                                    Transforms(Mirror(Mirror_Axis.Y_AXIS),
-                                                              Transforms(AddBorder(FillColor.C7), NoOp())
+                                                              Transforms(AddBorder(Color.C7), NoOp())
                                                              )
                                                   )
                                        )
                             )
         self.assertEqual(transforms_list.nodeType, Types.TRANSFORMS)
-        self.assertEqual(transforms_list.code, "[updateColor(Color.C1), [moveNode(Direction.UP), [rotateNode(Rotation_Direction.CCW), [mirror(Mirror_Axis.Y_AXIS), [addBorder(FillColor.C7), NoOp]]]]]")
+        self.assertEqual(transforms_list.code, "[updateColor(Color.C1), [moveNode(Direction.UP), [rotateNode(Rotation_Direction.CCW), [mirror(Mirror_Axis.Y_AXIS), [addBorder(Color.C7), NoOp]]]]]")
         self.assertEqual(transforms_list.size, 11)  # 2 for each transformation
         self.assertEqual(len(transforms_list.children), 2)
 

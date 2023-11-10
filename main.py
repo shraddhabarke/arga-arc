@@ -10,12 +10,12 @@ if __name__ == "__main__":
     task = Task("dataset/" + taskNumber + ".json")
     task.abstraction = "nbccg"
     update_color_instance = UpdateColor(Color.C0) # 7f4411dc, lrg
-    hollow_rect_instance = HollowRectangle(FillColor.C2) # bb43febb, nbccg
+    hollow_rect_instance = HollowRectangle(Color.C2) # bb43febb, nbccg
 
     filterinstance = FilterByColor(Color.C5, Exclude.FALSE)
     move_node_inst = MoveNode(Direction.UP)
     move_inst = MoveNodeMax(Direction.UP) # 3906de3d, nbvcg
-    add_border_inst = AddBorder(FillColor.C1)                 # 4258a5f9, nbccg # TODO: AddBorder semantics
+    add_border_inst = AddBorder(Color.C1)                 # 4258a5f9, nbccg # TODO: AddBorder semantics
     transformed_graph, output_graph = task.apply_transformation(hollow_rect_instance, task.abstraction) # applying here
     assert(len(transformed_graph) == len(output_graph))
     # testing transforms
@@ -34,8 +34,6 @@ if __name__ == "__main__":
 
     # testing filters
     print("Testing filters")
-    training_in = [getattr(input, Image.abstraction_ops[task.abstraction])() for
-                   input in task.train_input]
     task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
                                                               input in task.train_input]
     task.output_abstracted_graphs_original[task.abstraction] = [getattr(output, Image.abstraction_ops[task.abstraction])() for
@@ -55,9 +53,9 @@ if __name__ == "__main__":
         for node in input_abstracted_graph.graph.nodes():
             if input_abstracted_graph.apply_filters(node, filterinstance):
                 filtered_nodes_i.append(node)
-        filtered_nodes.extend(filtered_nodes_i)
+        filtered_nodes.append(filtered_nodes_i)
         print("iter:", filtered_nodes_i)
-    
+    print("filtered nodes:", filtered_nodes)
     # testing full rule
     print("Testing full rule:")
     transformed_graph, output_graph = task.apply_rule(filterinstance, hollow_rect_instance, task.abstraction)

@@ -8,7 +8,6 @@ class Types(Enum):
     DIRECTION = "Direction"
     OVERLAP = "Overlap"
     ROTATION_DIRECTION = "Rotation_Direction"
-    FILLCOLOR = "FillColor"
     MIRROR_AXIS = "Mirror_Axis"
     MIRROR_DIRECTION = "Mirror_Direction"
     RELATIVE_POS = "Relative_Pos"
@@ -121,37 +120,6 @@ class Rotation_Direction(TransformASTNode, Enum):
         self.size = 1
         self.children = []
         self.nodeType = Types.ROTATION_DIRECTION
-        self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-    
-    def apply(self, task, children=None):
-        return self
-    
-    @classmethod
-    def get_all_values(cls):
-        return list(cls.__members__.values())
-
-class FillColor(TransformASTNode, Enum):
-    C0 =  0
-    C1 =  1
-    C2 =  2
-    C3 =  3
-    C4 =  4
-    C5 =  5
-    C6 =  6
-    C7 =  7
-    C8 =  8
-    C9 =  9
-    nodeType = Types.FILLCOLOR
-    def __init__(self, value):
-        super().__init__(Types.FILLCOLOR)
-        self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
-        self.children = []
         self.values = []
 
     @classmethod
@@ -405,14 +373,14 @@ class RotateNode(Transforms):
 class AddBorder(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.FILLCOLOR]
-    def __init__(self, fill_color: FillColor):
+    childTypes = [Types.COLOR]
+    def __init__(self, color: Color):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
-        self.children = [fill_color]
-        self.size = 1 + fill_color.size
-        self.code = f"addBorder({fill_color.code})"
-        self.childTypes = [Types.FILLCOLOR]
+        self.children = [color]
+        self.size = 1 + color.size
+        self.code = f"addBorder({color.code})"
+        self.childTypes = [Types.COLOR]
     
     @classmethod
     def apply(cls, task, children, filter):
@@ -424,14 +392,14 @@ class AddBorder(Transforms):
 class FillRectangle(Transforms):
     arity = 2
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.FILLCOLOR, Types.OVERLAP]
-    def __init__(self, fill_color: FillColor, overlap: Overlap):
+    childTypes = [Types.COLOR, Types.OVERLAP]
+    def __init__(self, color: Color, overlap: Overlap):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
-        self.children = [fill_color, overlap]
-        self.size = 1 + fill_color.size + overlap.size
-        self.code = f"fillRectangle({fill_color.code}, {overlap.code})"
-        self.childTypes = [Types.FILLCOLOR, Types.OVERLAP]
+        self.children = [color, overlap]
+        self.size = 1 + color.size + overlap.size
+        self.code = f"fillRectangle({color.code}, {overlap.code})"
+        self.childTypes = [Types.COLOR, Types.OVERLAP]
     
     @classmethod
     def apply(cls, task, children, filter):
@@ -443,14 +411,14 @@ class FillRectangle(Transforms):
 class HollowRectangle(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.FILLCOLOR]
-    def __init__(self, fill_color: FillColor):
+    childTypes = [Types.COLOR]
+    def __init__(self, color: Color):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
-        self.children = [fill_color]
-        self.size = 1 + fill_color.size
-        self.code = f"hollowRectangle({fill_color.code})"
-        self.childTypes = [Types.FILLCOLOR]
+        self.children = [color]
+        self.size = 1 + color.size
+        self.code = f"hollowRectangle({color.code})"
+        self.childTypes = [Types.COLOR]
     
     @classmethod
     def apply(cls, task, children, filter):

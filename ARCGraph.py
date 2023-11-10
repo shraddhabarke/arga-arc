@@ -162,7 +162,7 @@ class ARCGraph:
             self.graph.nodes[node]["nodes"] = new_nodes
         return self
 
-    def AddBorder(self, node, border_color: FillColor):
+    def AddBorder(self, node, border_color: Color):
         """
         add a border with thickness 1 and border_color around the given node
         """
@@ -184,14 +184,14 @@ class ARCGraph:
             self.graph.add_node(new_node_id, nodes=list(border_pixels), color=border_color, size=len(border_pixels))
         return self
 
-    def FillRectangle(self, node, fill_color: FillColor, overlap: Overlap):
+    def FillRectangle(self, node, color: Color, overlap: Overlap):
         """
         fill the rectangle containing the given node with the given color.
         if overlap is True, fill the rectangle even if it overlaps with other nodes.
         """
 
-        if fill_color == "same":
-            fill_color = self.graph.nodes[node]["color"]
+        if color == "same":
+            color = self.graph.nodes[node]["color"]
 
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
@@ -206,16 +206,16 @@ class ARCGraph:
                     elif not self.check_pixel_occupied(pixel):
                         unfilled_pixels.append(pixel)
         if len(unfilled_pixels) > 0:
-            new_node_id = self.generate_node_id(fill_color)
+            new_node_id = self.generate_node_id(color)
             if self.is_multicolor:
                 self.graph.add_node(new_node_id, nodes=list(unfilled_pixels),
-                                    color=[fill_color for j in unfilled_pixels], size=len(unfilled_pixels))
+                                    color=[color for j in unfilled_pixels], size=len(unfilled_pixels))
             else:
-                self.graph.add_node(new_node_id, nodes=list(unfilled_pixels), color=fill_color,
+                self.graph.add_node(new_node_id, nodes=list(unfilled_pixels), color=color,
                                     size=len(unfilled_pixels))
         return self
 
-    def HollowRectangle(self, node, fill_color: FillColor):
+    def HollowRectangle(self, node, color: Color):
         """
         hollowing the rectangle containing the given node with the given color.
         """
@@ -234,9 +234,9 @@ class ARCGraph:
         self.graph.nodes[node]["nodes"] = new_subnodes
         # Updated the size parameter here
         self.graph.nodes[node]["size"] = len(new_subnodes)
-        if fill_color != self.image.background_color:
-            new_node_id = self.generate_node_id(fill_color)
-            self.graph.add_node(new_node_id, nodes=list(non_border_pixels), color=fill_color,
+        if color != self.image.background_color:
+            new_node_id = self.generate_node_id(color)
+            self.graph.add_node(new_node_id, nodes=list(non_border_pixels), color=color,
                                 size=len(non_border_pixels))
         return self
 
