@@ -195,7 +195,7 @@ class Not(FilterASTNode):
         return new_instance
 
 class FilterByColor(Filters):
-    arity = 2
+    arity = 1
     childTypes = [FilterTypes.COLOR]
     def __init__(self, color: FColor):
         super().__init__()
@@ -213,7 +213,7 @@ class FilterByColor(Filters):
         return instance
 
 class FilterBySize(Filters):
-    arity = 2
+    arity = 1
     childTypes = [FilterTypes.SIZE]
     def __init__(self, size: Size):
         super().__init__()
@@ -231,7 +231,7 @@ class FilterBySize(Filters):
         return instance
 
 class FilterByDegree(Filters):
-    arity = 2
+    arity = 1
     childTypes = [FilterTypes.DEGREE]
     def __init__(self, degree: Degree):
         super().__init__()
@@ -249,7 +249,7 @@ class FilterByDegree(Filters):
         return instance
 
 class FilterByNeighborSize(Filters):
-    arity = 2
+    arity = 1
     childTypes = [FilterTypes.SIZE]
     def __init__(self, size: Size):
         super().__init__()
@@ -267,7 +267,7 @@ class FilterByNeighborSize(Filters):
         return instance
 
 class FilterByNeighborColor(Filters):
-    arity = 2
+    arity = 1
     childTypes = [FilterTypes.COLOR]
     def __init__(self, color: FColor):
         super().__init__()
@@ -285,7 +285,7 @@ class FilterByNeighborColor(Filters):
         return instance
 
 class FilterByNeighborDegree(Filters):
-    arity = 2
+    arity = 1
     childTypes = [FilterTypes.DEGREE]
     def __init__(self, degree: Degree):
         super().__init__()
