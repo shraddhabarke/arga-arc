@@ -9,6 +9,7 @@ class Types(Enum):
     ROTATION_ANGLE = "Rotation_Angle"
     MIRROR_AXIS = "Mirror_Axis"
     SYMMETRY_AXIS = "Symmetry_Axis"
+    NO_OP = "No_Op"
 
 class TransformASTNode:
     def __init__(self, children = None):
@@ -45,7 +46,7 @@ class Color(TransformASTNode, Enum):
     def arity(cls):
         return 0
 
-    def apply(self, task, children):
+    def apply(self, task, children=None, filter=None):
         return self
 
     @classmethod
@@ -75,7 +76,7 @@ class Direction(TransformASTNode, Enum):
     def arity(cls):
         return 0
     
-    def apply(self, task, children=None):
+    def apply(self, task, children=None, filter=None):
         return self
     
     @classmethod
@@ -99,7 +100,7 @@ class Overlap(TransformASTNode, Enum):
     def arity(cls):
         return 0
     
-    def apply(self, task, children=None):
+    def apply(self, task, children=None, filter=None):
         return self
     
     @classmethod
@@ -124,7 +125,7 @@ class Rotation_Angle(TransformASTNode, Enum):
     def arity(cls):
         return 0
     
-    def apply(self, task, children=None):
+    def apply(self, task, children=None, filter=None):
         return self
     
     @classmethod
@@ -149,7 +150,7 @@ class Symmetry_Axis(TransformASTNode, Enum):
     def arity(cls):
         return 0
     
-    def apply(self, task, children=None):
+    def apply(self, task, children=None, filter=None):
         return self
     
     @classmethod
@@ -172,12 +173,38 @@ class Mirror_Axis(TransformASTNode, Enum): # TODO: fix the semantics of Mirror_A
     def arity(cls):
         return 0
     
-    def apply(self, task, children=None):
+    def apply(self, task, children=None, filter=None):
         return self
     
     @classmethod
     def get_all_values(cls):
         return list(cls.__members__.values())
+
+class NoOp(TransformASTNode):
+    _instance = None  # Single instance storage
+    arity = 0
+    nodeType = Types.NO_OP
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, 'initialized') or not self.initialized:
+            super().__init__()
+            self.code = "NoOp"
+            self.size = 1
+            self.children = []
+            self.initialized = True
+
+    def apply(self, task, children=None, filter=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return [cls._instance or cls()]
 
 class Transforms(TransformASTNode):
     nodeType = Types.TRANSFORMS
@@ -187,38 +214,16 @@ class Transforms(TransformASTNode):
         super().__init__()
         self.children = [transform1, transform2] if transform1 and transform2 else []
         self.size = sum(t.size for t in self.children) if transform1 and transform2 else 0
-        self.code = "[" + ", ".join(t.code for t in self.children) + "]" if transform1 and transform2 else ''
+        self.code = "[" + ", ".join(t.code for t in self.children) + "]"
         self.nodeType = Types.TRANSFORMS
         self.childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
-
+    
     @classmethod
-    def apply(cls, children):
-        return cls(children[0], children[1])
-
-class NoOp(Transforms):
-    _instance = None  # Single instance storage
-    arity = 0
-    nodeType = Types.TRANSFORMS
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(NoOp, cls).__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        if not hasattr(self, 'initialized') or not self.initialized:
-            super(Transforms, self).__init__()
-            self.code = "NoOp"
-            self.size = 1
-            self.children = []
-            self.initialized = True
-
-    def apply(self, task, children=None):
-        return self
-
-    @classmethod
-    def get_all_values(cls):
-        return [cls._instance or cls()]
+    def apply(cls, task, children, filter):
+        instance = cls(children[0], children[1])
+        values = task.transform_values(filter, [children[0], children[1]])
+        instance.values = values
+        return instance
 
 class UpdateColor(Transforms):
     arity = 1
