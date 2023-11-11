@@ -78,7 +78,6 @@ class TestTSizeEnumerator(unittest.TestCase):
         self.enumerator = TSizeEnumerator(task, vocab, self.filter, ValuesManager())
 
     def test_next_program(self):
-        print(list(self.enumerator.vocab.leaves()))
         self.assertEqual(list(self.enumerator.vocab.leaves()), [Color.C0, Color.C1, Color.C2, Color.C3, Color.C4, Color.C5, Color.C6, Color.C7, Color.C8, Color.C9, Color.LEAST, Color.MOST, NoOp()])
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("Color.C0", self.enumerator.next().code)

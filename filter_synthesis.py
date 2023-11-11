@@ -50,9 +50,7 @@ class FSizeEnumerator:
 
     def changeLevel(self) -> bool:
         self.costLevel += 1
-        print("costLevel:", self.costLevel)
         self.currIter = LookaheadIterator(iter(self.vocab.nonLeaves()))
-        print("currIter:", self.currIter)
         for p in self.currLevelProgs:
             self.updateBank(p)
         self.currLevelProgs.clear()
@@ -65,18 +63,13 @@ class FSizeEnumerator:
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
-                print("children:", children)
-                print("rootMaker in getNextProgram:", self.rootMaker)
-                print("rootMaker arity:", self.rootMaker.arity)
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
                 all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
-                    print("rootMaker:", self.rootMaker)
                     prog = self.rootMaker.execute(self.task, children)
                     print(prog.code, prog.values)
                     if self.oeManager.is_frepresentative(prog) or children is None:
                         res = prog
             elif self.currIter.hasNext():
-                print("currIter:", self.currIter)
                 if (not self.advanceRoot()):
                     return None
             else:
