@@ -175,6 +175,25 @@ class Or(FilterASTNode):
 
         return new_instance
 
+class Not(FilterASTNode):
+    arity = 1
+    nodeType = FilterTypes.FILTERS
+    childTypes = [FilterTypes.FILTERS]
+    def __init__(self, filter: Filters):
+        super().__init__(FilterTypes.FILTERS)
+        self.children = [filter]
+        self.code = f"Not({filter.code})"
+        self.size = 1 + filter.size
+        self.childTypes = [FilterTypes.FILTERS]
+
+    @classmethod
+    def execute(cls, task, children):
+        values = children[0].values
+        negated_values = [not v for v in values]
+        new_instance = cls(children[0])
+        new_instance.values = negated_values
+        return new_instance
+
 class FilterByColor(Filters):
     arity = 2
     childTypes = [FilterTypes.COLOR]

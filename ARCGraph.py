@@ -137,16 +137,16 @@ class ARCGraph:
 
         return self
 
-    def RotateNode(self, node, rotation_dir: Rotation_Direction):
+    def RotateNode(self, node, rotation_dir: Rotation_Angle):
         """
         rotates node around its center point in a given rotational direction
         """
         rotate_times = 1
-        if rotation_dir == "CW":
+        if rotation_dir == "270": #TODO: check
             mul = -1
-        elif rotation_dir == "CCW":
+        elif rotation_dir == "90":
             mul = 1
-        elif rotation_dir == "CW2":
+        elif rotation_dir == "180":
             rotate_times = 2
             mul = -1
 
@@ -246,7 +246,7 @@ class ARCGraph:
         mirror_axis takes the form of (y, x) where one of y, x equals None to
         indicate the other being the axis of mirroring
         """
-        if mirror_axis == "X_AXIS": #mirror_axis[1] is None and mirror_axis[0] is not None:
+        if mirror_axis[1] is None and mirror_axis[0] is not None:
             axis = mirror_axis[0]
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
@@ -255,7 +255,7 @@ class ARCGraph:
                 new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_axis == "Y_AXIS": #mirror_axis[0] is None and mirror_axis[1] is not None:
+        elif mirror_axis[0] is None and mirror_axis[1] is not None:
             axis = mirror_axis[1]
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
@@ -266,7 +266,7 @@ class ARCGraph:
                 self.graph.nodes[node]["nodes"] = new_subnodes
         return self
 
-    def Flip(self, node, mirror_direction: Mirror_Direction):
+    def Flip(self, node, mirror_direction: Symmetry_Axis):
         """
         flips the given node given direction horizontal, vertical, diagonal left/right
         """
@@ -365,7 +365,7 @@ class ARCGraph:
 
     # ------------------------------------- filters ------------------------------------------
     #  filters take the form of filter(node, params), return true if node satisfies filter
-    def FilterByColor(self, node, color: Color, exclude: Exclude = False):
+    def FilterByColor(self, node, color: Color):
         """
         return true if node has given color.
         if exclude, return true if node does not have given color.
@@ -376,17 +376,11 @@ class ARCGraph:
             color = self.least_common_color
 
         if self.is_multicolor:
-            if not exclude:
-                return color in self.graph.nodes[node]["color"]
-            else:
-                return color not in self.graph.nodes[node]["color"] != color
+            return color in self.graph.nodes[node]["color"]
         else:
-            if not exclude:
-                return self.graph.nodes[node]["color"] == color
-            else:
-                return self.graph.nodes[node]["color"] != color
+            return self.graph.nodes[node]["color"] == color
 
-    def FilterBySize(self, node, size: Size, exclude: Exclude = False):
+    def FilterBySize(self, node, size: Size):
         """
         return true if node has size equal to given size.
         if exclude, return true if node does not have size equal to given size.
@@ -396,26 +390,20 @@ class ARCGraph:
         elif size == "min":
             size = self.get_attribute_min("size")
 
-        if size == "odd" and not exclude:
+        elif size == "odd":
             return self.graph.nodes[node]["size"] % 2 != 0
-        elif size == "odd" and exclude:
-            return self.graph.nodes[node]["size"] % 2 == 0
-        elif not exclude:
+        else:
             return self.graph.nodes[node]["size"] == size
-        elif exclude:
-            return self.graph.nodes[node]["size"] != size
 
-    def FilterByDegree(self, node, degree: Degree, exclude: Exclude = False):
+    def FilterByDegree(self, node, degree: Degree):
         """
         return true if node has degree equal to given degree.
         if exclude, return true if node does not have degree equal to given degree.
         """
-        if not exclude:
-            return self.graph.degree[node] == degree
-        else:
-            return self.graph.degree[node] != degree
+        return self.graph.degree[node] == degree
 
-    def FilterByNeighborSize(self, node, size: Size, exclude: Exclude = False):
+
+    def FilterByNeighborSize(self, node, size: Size):
         """
         return true if node has a neighbor of a given size.
         if exclude, return true if node does not have a neighbor of a given size.
@@ -426,21 +414,15 @@ class ARCGraph:
             size = self.get_attribute_min("size")
 
         for neighbor in self.graph.neighbors(node):
-            if size == "odd" and not exclude:
+            if size == "odd":
                 if self.graph.nodes[neighbor]["size"] % 2 != 0:
                     return True
-            elif size == "odd" and exclude:
-                if self.graph.nodes[neighbor]["size"] % 2 == 0:
-                    return True
-            elif not exclude:
+            else:
                 if self.graph.nodes[neighbor]["size"] == size:
-                    return True
-            elif exclude:
-                if self.graph.nodes[neighbor]["size"] != size:
                     return True
         return False
 
-    def FilterByNeighborColor(self, node, color: Color, exclude: Exclude = False):
+    def FilterByNeighborColor(self, node, color: Color):
         """
         return true if node has a neighbor of a given color.
         if exclude, return true if node does not have a neighbor of a given color.
@@ -453,26 +435,18 @@ class ARCGraph:
             color = self.least_common_color
 
         for neighbor in self.graph.neighbors(node):
-            if not exclude:
-                if self.graph.nodes[neighbor]["color"] == color:
-                    return True
-            elif exclude:
-                if self.graph.nodes[neighbor]["color"] != color:
-                    return True
+            if self.graph.nodes[neighbor]["color"] == color:
+                return True
         return False
 
-    def FilterByNeighborDegree(self, node, degree: Degree, exclude: Exclude = False):
+    def FilterByNeighborDegree(self, node, degree: Degree):
         """
         return true if node has a neighbor of a given degree.
         if exclude, return true if node does not have a neighbor of a given degree.
         """
         for neighbor in self.graph.neighbors(node):
-            if not exclude:
-                if self.graph.degree[neighbor] == degree:
-                    return True
-            else:
-                if self.graph.degree[neighbor] != degree:
-                    return True
+            if self.graph.degree[neighbor] == degree:
+                return True
         return False
 
     # ------------------------------------- utils ------------------------------------------
@@ -636,8 +610,19 @@ class ARCGraph:
         given filters and a node, return True if node satisfies all filters
         """
         filter_name = filter.__class__.__name__
-        args = [child.value for child in filter.children]
-        return getattr(self, filter_name)(node, *args)
+        if filter_name == "Not":
+            return not self.apply_filters(node, filter.children[0])
+        elif filter_name == 'Or':
+            return any(self.apply_filters(node, child) for child in filter.children)
+        elif filter_name == 'And':
+            return all(self.apply_filters(node, child) for child in filter.children)
+        else:
+            args = [child.value for child in filter.children]
+            filter_method = getattr(self, filter_name, None)
+            if filter_method:
+                return getattr(self, filter_name)(node, *args)
+            else:
+                raise AttributeError(f"Method for filter '{filter_name}' not found in ARCGraph'")
 
     def apply_transform_inner(self, node, transformation: TransformASTNode, args: List[TransformASTNode]):
         """

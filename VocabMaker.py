@@ -41,11 +41,11 @@ class TestVocabFactory(unittest.TestCase):
 class TestFilterVocabFactory(unittest.TestCase):
     def setUp(self):
         self.leaf_makers = [FColor.C0, FColor.C1,  FColor.C2, FColor.C3, FColor.C4, FColor.C5, FColor.C6, FColor.C7, FColor.C8, FColor.C9, FColor.LEAST, FColor.MOST]
-        self.node_makers = [And, Or, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborSize, FilterByNeighborColor, FilterByNeighborDegree]
+        self.node_makers = [Not, And, Or, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborSize, FilterByNeighborColor, FilterByNeighborDegree]
         self.vocab_factory = VocabFactory(self.leaf_makers, self.node_makers)
 
     def test_create(self):
-        all_filter_classes = [Degree, FColor, And, Or, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborSize, FilterByNeighborColor, FilterByNeighborDegree]
+        all_filter_classes = [Degree, FColor, Not, And, Or, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborSize, FilterByNeighborColor, FilterByNeighborDegree]
         vocab_factory_from_create = VocabFactory.create(all_filter_classes)
         self.assertEqual(list(vocab_factory_from_create.leaves()), self.leaf_makers)
         self.assertEqual(list(vocab_factory_from_create.nonLeaves()), self.node_makers)

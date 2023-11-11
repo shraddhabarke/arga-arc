@@ -138,6 +138,16 @@ class TestFilterGrammarRepresentation(unittest.TestCase):
         self.assertEqual(len(new_instance.children), 2)
         self.assertEqual(new_instance.values, [[], []])
 
+    def test_not_operator(self):
+        filter = FilterByColor(FColor.C1)
+        newf = filter.execute(self.task, filter.children)
+        not_instance = Not(newf)
+        new_instance = not_instance.execute(self.task, not_instance.children)
+
+        self.assertEqual(new_instance.nodeType, FilterTypes.FILTERS)
+        self.assertEqual(new_instance.code, "Not(FilterByColor(FColor.C1))")
+        self.assertEqual(new_instance.size, 3)
+
     def test_and_operator(self):
         filter1 = FilterByColor(FColor.C1)
         filter2 = FilterByColor(FColor.C1)

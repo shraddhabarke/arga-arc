@@ -1,7 +1,7 @@
 import unittest
 from task import *
 from transform import *
-
+from filters import FilterByColor, Not
 class TestGrammarRepresentation(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -13,7 +13,7 @@ class TestGrammarRepresentation(unittest.TestCase):
             input in cls.task.train_input
         ]
         cls.task.get_static_object_attributes(cls.task.abstraction)
-        cls.filter = FilterByColor(FColor.C0, Exclude.TRUE)
+        cls.filter = Not(FilterByColor(FColor.C0))
 
     def test_color_enum(self):
         color_instance = Color.C0
@@ -84,9 +84,8 @@ class TestGrammarRepresentation(unittest.TestCase):
     def test_mirror(self):
         mirror_instance = Mirror(Mirror_Axis.X_AXIS)
         self.assertEqual(mirror_instance.nodeType, Types.TRANSFORMS)
-        self.assertEqual(mirror_instance.code, "mirror(Mirror_Axis.X_AXIS)")
+        self.assertEqual(mirror_instance.code, "mirror(Mirror_Axis(axis_point=(1, None)))")
         self.assertEqual(mirror_instance.size, 2)
-        self.assertEqual(mirror_instance.children, [Mirror_Axis.X_AXIS])
 
     def test_get_all_values(self):
         all_colors = Color.get_all_values()
@@ -121,7 +120,7 @@ class TestGrammarRepresentation(unittest.TestCase):
     def test_complex_transform_sequence(self):
         transforms_list = Transforms(UpdateColor(Color.C1),
                              Transforms(MoveNode(Direction.UP),
-                                        Transforms(RotateNode(Rotation_Direction.CCW),
+                                        Transforms(RotateNode(Rotation_Angle.CCW),
                                                    Transforms(Mirror(Mirror_Axis.Y_AXIS),
                                                               Transforms(AddBorder(Color.C7), NoOp())
                                                              )
@@ -129,7 +128,7 @@ class TestGrammarRepresentation(unittest.TestCase):
                                        )
                             )
         self.assertEqual(transforms_list.nodeType, Types.TRANSFORMS)
-        self.assertEqual(transforms_list.code, "[updateColor(Color.C1), [moveNode(Direction.UP), [rotateNode(Rotation_Direction.CCW), [mirror(Mirror_Axis.Y_AXIS), [addBorder(Color.C7), NoOp]]]]]")
+        self.assertEqual(transforms_list.code, "[updateColor(Color.C1), [moveNode(Direction.UP), [rotateNode(Rotation_Angle.CCW), [mirror(Mirror_Axis.Y_AXIS), [addBorder(Color.C7), NoOp]]]]]")
         self.assertEqual(transforms_list.size, 11)  # 2 for each transformation
         self.assertEqual(len(transforms_list.children), 2)
 
