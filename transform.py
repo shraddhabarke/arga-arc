@@ -197,6 +197,7 @@ class NoOp(TransformASTNode):
             self.code = "NoOp"
             self.size = 1
             self.children = []
+            self.values = []
             self.initialized = True
 
     def apply(self, task, children=None, filter=None):

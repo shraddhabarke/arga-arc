@@ -72,13 +72,14 @@ class TestTSizeEnumerator(unittest.TestCase):
                                                                output in task.train_output]
         task.get_static_inserted_objects()
         task.get_static_object_attributes(task.abstraction)
-        vocabMakers = [Color, UpdateColor, Transforms]
+        vocabMakers = [Color, UpdateColor, Transforms, NoOp]
         vocab = VocabFactory.create(vocabMakers)
         self.filter = Not(FilterByColor(FColor.C0))
         self.enumerator = TSizeEnumerator(task, vocab, self.filter, ValuesManager())
 
     def test_next_program(self):
-        self.assertEqual(list(self.enumerator.vocab.leaves()), [Color.C0, Color.C1, Color.C2, Color.C3, Color.C4, Color.C5, Color.C6, Color.C7, Color.C8, Color.C9, Color.LEAST, Color.MOST])
+        print(list(self.enumerator.vocab.leaves()))
+        self.assertEqual(list(self.enumerator.vocab.leaves()), [Color.C0, Color.C1, Color.C2, Color.C3, Color.C4, Color.C5, Color.C6, Color.C7, Color.C8, Color.C9, Color.LEAST, Color.MOST, NoOp()])
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("Color.C0", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
@@ -96,7 +97,7 @@ class TestTSizeEnumerator(unittest.TestCase):
         self.assertEqual("Color.LEAST", self.enumerator.next().code)
         self.assertEqual("Color.MOST", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        #self.assertEqual("NoOp", self.enumerator.next().code)
+        self.assertEqual("NoOp", self.enumerator.next().code)
         self.assertEqual("updateColor(Color.C0)", self.enumerator.next().code)
         self.assertEqual("updateColor(Color.C1)", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
