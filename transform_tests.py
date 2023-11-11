@@ -45,16 +45,7 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(new_instance.code, "extendNode(Direction.LEFT, Overlap.TRUE)")
         self.assertEqual(new_instance.size, 3)
         self.assertEqual(new_instance.children, [Direction.LEFT, Overlap.TRUE])
-        self.assertEqual(new_instance.values, [[5, 5, 5, 5, 5, 5, 0, 0, 0, 0], 
-                                               [5, 5, 5, 5, 5, 5, 0, 0, 0, 0], 
-                                               [5, 5, 5, 5, 5, 5, 0, 0, 0, 0], 
-                                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                                               [5, 5, 5, 5, 5, 5, 5, 5, 5, 5], 
-                                               [5, 5, 5, 5, 5, 5, 5, 5, 5, 5], 
-                                               [5, 5, 5, 5, 5, 5, 5, 5, 5, 5], 
-                                               [5, 5, 5, 5, 5, 5, 5, 5, 5, 5], 
-                                               [5, 5, 5, 5, 5, 5, 5, 5, 5, 5], 
-                                               [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]])
+        self.assertEqual(new_instance.values, [[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [5, 5, 5, 5, 5, 0, 0, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 5, 5, 0], [5, 5, 5, 5, 5, 5, 5, 5, 5, 0], [5, 5, 5, 5, 5, 5, 5, 5, 5, 0], [5, 5, 5, 5, 5, 5, 5, 5, 5, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [5, 5, 5, 5, 5, 5, 5, 5, 5, 0], [5, 5, 5, 5, 5, 5, 5, 5, 5, 0], [5, 5, 5, 5, 5, 5, 5, 5, 5, 0]]])
 
     def test_update_color(self):
         instance = UpdateColor(Color.C1)
@@ -63,16 +54,7 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(new_instance.code, "updateColor(Color.C1)")
         self.assertEqual(new_instance.size, 2)
         self.assertEqual(new_instance.children, [Color.C1])
-        self.assertEqual(new_instance.values, [[1, 1, 1, 1, 1, 1, 0, 0, 0, 0], 
-                                               [1, 1, 1, 1, 1, 1, 0, 0, 0, 0], 
-                                               [1, 1, 1, 1, 1, 1, 0, 0, 0, 0], 
-                                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-                                               [0, 0, 0, 1, 1, 1, 1, 1, 1, 1], 
-                                               [0, 0, 0, 1, 1, 1, 1, 1, 1, 1], 
-                                               [0, 0, 0, 1, 1, 1, 1, 1, 1, 1], 
-                                               [0, 0, 0, 1, 1, 1, 1, 1, 1, 1], 
-                                               [0, 0, 0, 1, 1, 1, 1, 1, 1, 1], 
-                                               [0, 0, 0, 1, 1, 1, 1, 1, 1, 1]])
+        self.assertEqual(new_instance.values, [[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 0]]])
 
     def test_add_border(self):
         add_border_instance = AddBorder(Color.C3)
@@ -100,7 +82,7 @@ class TestGrammarRepresentation(unittest.TestCase):
         noop = NoOp()
         self.assertEqual(noop.code, "NoOp")
         self.assertEqual(noop.size, 1)
-        self.assertEqual(noop.nodeType, Types.TRANSFORMS)
+        self.assertEqual(noop.nodeType, Types.NO_OP)
         self.assertEqual(NoOp.arity, 0)
 
     def test_transforms(self):
