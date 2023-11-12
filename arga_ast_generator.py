@@ -247,7 +247,7 @@ if __name__ == '__main__':
     with open("arga_dsl.lark", "r") as f:
         arga_dsl_grammar = f.read()
     ast_parser = Lark(arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst())
-    with open("gpt4/d2abd087.dsl", "r") as f:
+    with open("gpt4/694f12f3.dsl", "r") as f:
         program = f.read()
     ast_program = ast_parser.parse(program)
     print(ast_program)
