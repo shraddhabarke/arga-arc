@@ -9,7 +9,7 @@ class _Ast(ast_utils.Ast):
     pass
 
 @dataclass
-class Program(_Ast):
+class DoOperation(_Ast):
     rule_list: 'RuleList'
 
 @dataclass
@@ -135,9 +135,9 @@ class FilterByNeighborDegree(_Filter_Op):
     degree: Degree
 
 class ToAst(Transformer):
-    def program(self, rule_list):
-        return Program(rule_list=rule_list)
-
+    def do_operation(self, rule_list):
+        return DoOperation(rule_list=rule_list)
+    
     def rule_list(self, *rules):
         return RuleList(rules=list(rules))
 
@@ -246,8 +246,8 @@ def print_ast_class_names(node, indent=0):
 if __name__ == '__main__':
     with open("arga_dsl.lark", "r") as f:
         arga_dsl_grammar = f.read()
-    ast_parser = Lark(arga_dsl_grammar, start="program", parser="lalr", transformer=ToAst())
-    with open("08ed6ac7.dsl", "r") as f:
+    ast_parser = Lark(arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst())
+    with open("gpt4/d2abd087.dsl", "r") as f:
         program = f.read()
     ast_program = ast_parser.parse(program)
     print(ast_program)
