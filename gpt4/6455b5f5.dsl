@@ -58,7 +58,7 @@
         (
             (filter_by_color C0)
             (
-                (fill_rectangle C1 True)
+                (fill_rectangle C1 TRUE)
                 (add_border C8)
             )
         )
@@ -75,7 +75,7 @@
         (
             (filter_by_color C0)
             (
-                (fill_rectangle C1 True)
+                (fill_rectangle C1 TRUE)
             )
         )
     )

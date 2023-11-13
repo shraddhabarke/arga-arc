@@ -72,7 +72,7 @@ class Degree(FilterASTNode):
 def setup_size_and_degree_based_on_task(task):
     task_sizes = [w for w in task.object_sizes[task.abstraction]]
     _size_additional = {f'S{item}': int(item) for item in task_sizes}
-    SizeEnum = Enum("SizeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_size_additional})
+    SizeEnum = Enum("SizeEnum", {'MIN': "min", 'MAX': "max", 'ODD': "odd", **_size_additional})
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
     _degree_additional = {f'D{item}': int(item) for item in task_degrees}

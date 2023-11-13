@@ -71,6 +71,12 @@ transform_rules = {
 }
 
 filter_rules = {
+    'Filters': [
+        ('Filter', ''),
+        ('Not', 'Filter'),
+        ('And', 'Filter', 'Filter'),
+        ('Or', 'Filter', 'Filter')
+    ],
     'Filter': [
         ('FilterByColor', 'COLOR'),
         ('FilterBySize', 'SIZE'),
@@ -92,6 +98,7 @@ transform_rules_count, filter_rules_count = defaultdict(int), defaultdict(int)
 t_token_rules_count, f_token_rules_count = defaultdict(int), defaultdict(int)
 print("Initial PCFG", init_transform_pcfg)
 print("Filter PCFG:", init_filter_pcfg)
+
 def t_extract_rules_from_ast(node, rules_count, token_rules_count, current_transform=None):
     if isinstance(node, list):
         for item in node:
@@ -117,21 +124,55 @@ def t_extract_rules_from_ast(node, rules_count, token_rules_count, current_trans
         token_type = node.type
         token_rules_count[(token_type, node.value)] += 1
 
+def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filter=None):
+    if isinstance(node, list):
+        for item in node:
+            f_extract_rules_from_ast(item, rules_count, token_rules_count, current_filter)
+    elif isinstance(node, Tree):
+        for child in node.children:
+            f_extract_rules_from_ast(child, rules_count, token_rules_count, current_filter)
+    elif hasattr(node, '__dataclass_fields__'):
+        class_name = node.__class__.__name__
+        if class_name in filter_operations:
+            current_filter = class_name
+            rules_count[class_name] += 1
+        for field_name, field_info in node.__dataclass_fields__.items():
+            field_value = getattr(node, field_name)
+            if isinstance(field_value, Token) and current_filter:
+                token_type = field_value.type
+                token_rules_count[(token_type, field_value.value)] += 1
+            else:
+                f_extract_rules_from_ast(field_value, rules_count, token_rules_count, current_filter)
+        if class_name in filter_operations:
+            current_filter = None
+    elif isinstance(node, Token) and current_filter:
+        token_type = node.type
+        token_rules_count[(token_type, node.value)] += 1
+
 transform_operations = {'UpdateColor', 'HollowRectangle', 'FillRectangle', 'AddBorder', 'MoveNode', 'ExtendNode', 'MoveNodeMax', 'Mirror', 'Flip', 'RotateNode'}
 filter_operations = {'FilterByColor', 'FilterBySize', 'FilterByDegree', 'FilterByNeighborColor', 'FilterByNeighborSize', 
                    'FilterByNeighborDegree', 'Or', 'And', 'Not'}
 
 t_extract_rules_from_ast(ast_program, transform_rules_count, t_token_rules_count)
-t_token_type_counts = defaultdict(int)
+f_extract_rules_from_ast(ast_program, filter_rules_count, f_token_rules_count)
+print("filter counts:", filter_rules_count)
+print("token counts:", f_token_rules_count)
+t_token_type_counts, f_token_type_counts = defaultdict(int), defaultdict(int)
 for ((token_type, _)), count in t_token_rules_count.items():
     t_token_type_counts[token_type] += count
+
+for ((token_type, _)), count in f_token_rules_count.items():
+    f_token_type_counts[token_type] += count
 
 # Step 2: Probability estimation based on counts
 def compute_probabilities(rules_count, token_rules_count, token_type_counts):
     probabilities = {}
-    total_transforms = sum(rules_count.values())
+    total = sum(rules_count.values())
     for rule, count in rules_count.items():
-        probabilities[rule] = count / total_transforms
+        if rule == 'Not' or rule == 'Or' or rule == 'And':
+            probabilities[rule] = count / 4
+        else:
+            probabilities[rule] = count / total
     for ((token_type, token_value)), count in token_rules_count.items():
         total_tokens_of_type = token_type_counts[token_type]
         probabilities[(token_type, token_value)] = count / total_tokens_of_type
@@ -141,6 +182,7 @@ def compute_probabilities(rules_count, token_rules_count, token_type_counts):
 def laplace_smoothing(initial_pcfg, computed_probabilities, alpha=1):
     smoothed_probabilities = defaultdict(dict)
     # Handle transform rules
+    
     total_transforms = sum(value for key, value in computed_probabilities.items() if isinstance(key, str))
     total_transform_rules = len(initial_pcfg['Transform'])
 
@@ -161,6 +203,43 @@ def laplace_smoothing(initial_pcfg, computed_probabilities, alpha=1):
             smoothed_probabilities[category][rule] = smoothed_count / total_smoothed_count
     return smoothed_probabilities
 
+from collections import defaultdict
+
+def laplace_smoothing_for_filters(initial_pcfg, computed_probabilities, alpha=1):
+    smoothed_probabilities = defaultdict(dict)
+    # Handle filters and their sub-rules
+    for category, rules in initial_pcfg.items():
+        if category in ['COLOR', 'SIZE', 'DEGREE']:  # Skip token categories
+            continue
+        total_category_counts = sum(computed_probabilities.get((category, rule_key), 0) for rule_key in rules.keys())
+        total_category_rules = len(rules)
+        for rule, initial_prob in rules.items():
+            computed_count = computed_probabilities.get((str(rule[0])), 0)
+            smoothed_count = computed_count + alpha
+            total_smoothed_count = total_category_counts + alpha * total_category_rules
+            smoothed_probabilities[category][rule] = smoothed_count / total_smoothed_count
+            #print(f"P('{rule}' in '{category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[category][rule]:.2f}")
+
+    # Handle token categories (COLOR, SIZE, DEGREE)
+    for token_category, token_values in initial_pcfg.items():
+        if token_category not in ['COLOR', 'SIZE', 'DEGREE']:
+            continue
+        total_tokens_of_type = sum(computed_probabilities.get((token_category, token_value), 0) for token_value in token_values.keys())
+        total_token_rules = len(token_values)
+        for token_value in token_values.keys():
+            computed_count = computed_probabilities.get((token_category, token_value), 0)
+            smoothed_count = computed_count + alpha
+            total_smoothed_count = total_tokens_of_type + alpha * total_token_rules
+            smoothed_probabilities[token_category][token_value] = smoothed_count / total_smoothed_count
+            #print(f"P('{token_value}' in '{token_category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[token_category][token_value]:.2f}")
+
+    return smoothed_probabilities
+
 t_probabilities = compute_probabilities(transform_rules_count, t_token_rules_count, t_token_type_counts)
+f_probabilities = compute_probabilities(filter_rules_count, f_token_rules_count, f_token_type_counts)
+print("Transform Probs:", t_probabilities)
+print("Filter Probs:", f_probabilities)
 t_smoothed_probabilities = laplace_smoothing(init_transform_pcfg, t_probabilities)
+f_smoothed_probs = laplace_smoothing_for_filters(init_filter_pcfg, f_probabilities)
 print("smoothed:", t_smoothed_probabilities)
+print("smoothed filters:", f_smoothed_probs)

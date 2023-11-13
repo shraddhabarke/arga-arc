@@ -33,7 +33,7 @@
         (
             (filter_by_color C1)
             (
-                (fill_rectangle C2 True)
+                (fill_rectangle C2 TRUE)
             )
         )
     )
@@ -108,7 +108,7 @@
             (filter_by_color C2)
             (
                 (move_node U)
-                (fill_rectangle C2 True)
+                (fill_rectangle C2 TRUE)
             )
         )
     )

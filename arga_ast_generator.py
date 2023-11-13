@@ -194,7 +194,7 @@ class ToAst(Transformer):
             return AddBorder(color=operator[1])
         elif operator[0] == "fill_rectangle":
             overlap = self.bool_expr(operator[2]) 
-            return FillRectangle(color=operator[1], overlap=overlap)
+            return FillRectangle(color=operator[1], overlap=operator[2])
         elif operator[0] == "hollow_rectangle":
             return HollowRectangle(color=operator[1])
         elif operator[0] == "rotate_node":
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     with open("arga_dsl.lark", "r") as f:
         arga_dsl_grammar = f.read()
     ast_parser = Lark(arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst())
-    with open("gpt4/694f12f3.dsl", "r") as f:
+    with open("gpt4/ea32f347.dsl", "r") as f:
         program = f.read()
     ast_program = ast_parser.parse(program)
     print(ast_program)

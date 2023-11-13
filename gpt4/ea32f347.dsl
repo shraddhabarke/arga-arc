@@ -86,7 +86,7 @@
         (
             (filter_by_color C5)
             (
-                (fill_rectangle C4 True)
+                (fill_rectangle C4 TRUE)
                 (add_border C1)
             )
         )
