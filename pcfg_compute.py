@@ -232,7 +232,6 @@ def laplace_smoothing_for_filters(initial_pcfg, computed_probabilities, alpha=1)
             total_smoothed_count = total_tokens_of_type + alpha * total_token_rules
             smoothed_probabilities[token_category][token_value] = smoothed_count / total_smoothed_count
             #print(f"P('{token_value}' in '{token_category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[token_category][token_value]:.2f}")
-
     return smoothed_probabilities
 
 t_probabilities = compute_probabilities(transform_rules_count, t_token_rules_count, t_token_type_counts)

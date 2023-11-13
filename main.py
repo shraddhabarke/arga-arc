@@ -12,7 +12,7 @@ if __name__ == "__main__":
     update_color_instance = UpdateColor(Color.C0) # 7f4411dc, lrg
     hollow_rect_instance = HollowRectangle(Color.C2) # bb43febb, nbccg
 
-    filterinstance = FilterByColor(Color.C5, Exclude.FALSE)
+    filterinstance = FilterByColor(Color.C5)
     move_node_inst = MoveNode(Direction.UP)
     move_inst = MoveNodeMax(Direction.UP) # 3906de3d, nbvcg
     add_border_inst = AddBorder(Color.C1)                 # 4258a5f9, nbccg # TODO: AddBorder semantics
