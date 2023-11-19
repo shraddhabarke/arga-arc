@@ -25,11 +25,11 @@ if __name__ == '__main__':
     for filename in os.listdir(ref_dir):
         if filename.endswith(".dsl"):
             with open(os.path.join(ref_dir, filename), "r") as f:
-                program = f.read()
+                lib = "(" + f.read() + ")"
             print(f"Testing {filename}...")
             try:
-                t = parser.parse_tree(program)
-                print(t.pretty())
+                t = parser.lib_parse_tree(lib)
+                # print(t.pretty())
             except Exception as e:
                 print(f"Error parsing {filename}: {e}")
                 exit(1)

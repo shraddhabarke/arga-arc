@@ -1,54 +1,47 @@
 library: "(" program* ")"
 
 // Rules are executed one after another, in the order they appear.
+// There could be no rules, in which case the program does nothing.
 program: "(" KW_DO rule* ")"
 
-// A rule acts on the objects in the grid for which `filter` is true.
-// For each transformation in the `transform_list`, we apply it to these
-// objects.
-// The transformations are applied one after another, in the order they appear,
-// from the state of the grid after the previous transformation.
-rule: "(" filter transform_list ")"
+// A rule first selects the subset of objects for which `filter` is true,
+// then applies the transformations in `transform_list`, one after another,
+// to the selected objects.
+rule: "(" KW_RULE filter transform_list ")"
 
-// A filter is a boolean expression about an object.
-// The boolean expression can be a primitive filter operation, or a boolean 
-// expression involving `and`, `or`, and `not`.
-filter: filter_op
-      | "(" OP_AND filter filter ")"
-      | "(" OP_OR filter filter ")"
+// A filter is a predicate over the objects in the grid.
+// It can be a primitive filter operation, or a boolean expression using the 
+// `and`, `or`, and `not` connectives.
+filter: filter_prim
+      | "(" OP_AND filter filter+ ")"
+      | "(" OP_OR filter filter+ ")"
       | "(" OP_NOT filter ")"
 
-           // select all objects
-filter_op: "(" ")"
-           // select all objects with the given color.
-         | "(" FL_COLOR color_expr ")"
-           // select all objects that contain the given number of pixels.
-         | "(" FL_SIZE int_expr ")"
-           // select the objects of min/max size
-         | "(" FL_SIZE ORD_STAT ")"
-           // select all objects that can see the given number of neighbors.
-         | "(" FL_DEGREE int_expr ")"
-           // select all objects that have a neighbor of the given color.
-         | "(" FL_NEIGHBOR_COLOR color_expr ")"
-           // select all objects that have a neighbor of the given size.
-         | "(" FL_NEIGHBOR_SIZE int_expr ")"
-           // select all objects that have a neighbor of min/max size.
-         | "(" FL_NEIGHBOR_SIZE STAT ")"
-           // select all objects that have a neighbor of the given degree.
-         | "(" FL_NEIGHBOR_DEGREE int_expr ")"
+             // select all objects
+filter_prim: "(" ")"
+             // select all objects with the given color.
+           | "(" FL_COLOR color_expr ")"
+             // select all objects that contain the given number of pixels.
+           | "(" FL_SIZE int_expr ")"
+             // select the objects of min/max size
+           | "(" FL_SIZE ORD_STAT ")"
+             // select all objects that can see the given number of neighbors.
+           | "(" FL_DEGREE int_expr ")"
+             // select all objects that have a neighbor of the given color.
+           | "(" FL_NEIGHBOR_COLOR color_expr ")"
+             // select all objects that have a neighbor of the given size.
+           | "(" FL_NEIGHBOR_SIZE int_expr ")"
+             // select all objects that have a neighbor of min/max size.
+           | "(" FL_NEIGHBOR_SIZE STAT ")"
+             // select all objects that have a neighbor of the given degree.
+           | "(" FL_NEIGHBOR_DEGREE int_expr ")"
 
-// transformations in the list are applied sequentially.
-// an object could be selected in as many as all of the transformation,
-// or could be not selected by any, for example.
-transform_list: "(" ")"
-              | "(" transform_plus_ ")"
+// Transforms are applied one after another, in the order they appear.
+transform_list: "(" KW_APPLY transform+ ")"
 
-transform_plus_: transform
-               | transform transform_plus_
-
-// a single transformation is applied to the selected simultaneously.
+// A single transforma is applied to all the selected objects simultaneously,
 // so we can think of the transformation as applying to a single object.
-           // change the color the object to the given color.
+           // change the color of the object to the given color.
 transform: "(" TR_UPDATE_COLOR color_expr ")"
            // move the object in the given direction.
          | "(" TR_MOVE_NODE DIRECTION ")"
@@ -71,6 +64,7 @@ transform: "(" TR_UPDATE_COLOR color_expr ")"
 tr_extend_node_params: "overlap=" bool_expr
 
 int_expr: INT
+
             // black (this the letter o, not the number 0)
 color_expr: "O"
             // blue
@@ -91,8 +85,9 @@ color_expr: "O"
           | "C"
             // brown
           | "W"
-bool_expr: "true"
-         | "false"
+
+bool_expr: "T"
+         | "F"
 
            // reflection over x = c
 mirror_axis: "(" int_expr KW_NULL ")"
@@ -104,7 +99,9 @@ mirror_axis: "(" int_expr KW_NULL ")"
 ORD_STAT: "MIN"
         | "MAX"
         
+      // Most popular value
 STAT: "MODE"
+      // Least popular value
     | "ANTIMODE"
 
 DIRECTION: "U"
@@ -132,9 +129,10 @@ SYMM_AXIS: "H"
          | "AD"
 
 
-KW_WITH: "with"
 KW_NULL: "null"
 KW_DO: "do"
+KW_RULE: "rule"
+KW_APPLY: "apply"
 
 OP_AND: "and"
 OP_OR: "or"
@@ -158,8 +156,6 @@ TR_HOLLOW_RECTANGLE: "hollow_rectangle"
 TR_MIRROR: "mirror"
 TR_FLIP: "flip"
 TR_INSERT: "insert"
-
-IDENT: LCASE_LETTER+
 
 COMMENT: /\s*/ ";;" /[^\n]/*
 
