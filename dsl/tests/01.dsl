@@ -1,7 +1,5 @@
 (do
-    ;; Rule 1
     (rule
-        ;; Filter
         (and
             (or 
                 (filter_by_color B)
@@ -10,18 +8,13 @@
             (not (filter_by_size 4))
         )
         (apply
-            ;; Transformation 1
             (move_node_max U)
-            ;; Transformation 2
             (update_color X)
         )
     )
-    ;; Rule 2
     (rule
-        ;; Filter
-        (not (filter_by_color G))
+        (filter_by_size MAX)
         (apply
-            ;; Transformation 1
             (extend_node D overlap=T)
         )
     )
@@ -32,6 +25,51 @@
         ()
         (apply
             (update_color Y)
+        )
+    )
+)
+
+(do
+    (rule
+        (and
+            (filter_by_color X)
+            (filter_by_size MIN)
+        )
+        (apply
+            (update_color R)
+        )
+    )
+    (rule
+        (and
+            (filter_by_color X)
+            (filter_by_size MIN)
+        )
+        (apply
+            (update_color G)
+        )
+    )
+    (rule
+        (and
+            (filter_by_color X)
+            (filter_by_size MIN)
+        )
+        (apply
+            (update_color B)
+        )
+    )
+)
+
+(do
+    (rule
+        ()
+        (apply
+            (update_color R)
+        )
+    )
+    (rule
+        (filter_by_size 1)
+        (apply
+            (update_color B)
         )
     )
 )

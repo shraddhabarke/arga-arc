@@ -1,5 +1,11 @@
-from lark import Lark
 import os
+import sys
+
+from lark import Lark
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+
+import defs
 
 class Parser:
     def __init__(self, grammar_file):

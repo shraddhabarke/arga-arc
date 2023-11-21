@@ -1,0 +1,92 @@
+Now I will show you some example programs in the DSL.
+
+The following program recolors all the objects to color Y:
+```
+(do
+    (rule
+        ()
+        (apply
+            (update_color Y)
+        )
+    )
+)
+```
+
+The following program recolors the 3 smallest objects of color X, to colors R, G, B, in that order:
+```
+(do
+    (rule
+        (and
+            (filter_by_color X)
+            (filter_by_size MIN)
+        )
+        (apply
+            (update_color R)
+        )
+    )
+    (rule
+        (and
+            (filter_by_color X)
+            (filter_by_size MIN)
+        )
+        (apply
+            (update_color G)
+        )
+    )
+    (rule
+        (and
+            (filter_by_color X)
+            (filter_by_size MIN)
+        )
+        (apply
+            (update_color B)
+        )
+    )
+)
+```
+
+The following program first recolors all the objects to color R, then it recolors all the objects of size 1 to colors B.
+```
+(do
+    (rule
+        ()
+        (apply
+            (update_color R)
+        )
+    )
+    (rule
+        (filter_by_size 1)
+        (apply
+            (update_color B)
+        )
+    )
+)
+```
+
+The following program consists of two rules.
+The first rule selects all the objects of either color B or color R, and that have size different than 4, and applies two transforms:
+first we push the objects up, then we recolor them to color X.
+The second rule selects the objects of maximum size, and extends them downward with overlap.
+```
+(do
+    (rule
+        (and
+            (or 
+                (filter_by_color B)
+                (filter_by_color R)
+            )
+            (not (filter_by_size 4))
+        )
+        (apply
+            (move_node_max U)
+            (update_color X)
+        )
+    )
+    (rule
+        (filter_by_size MAX)
+        (apply
+            (extend_node D overlap=T)
+        )
+    )
+)
+```
