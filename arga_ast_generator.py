@@ -9,6 +9,14 @@ class _Ast(ast_utils.Ast):
     pass
 
 @dataclass
+class Library(_Ast):
+    programs: List['Program']
+
+@dataclass
+class Program(_Ast):
+    rules: List['_Rule']
+
+@dataclass
 class DoOperation(_Ast):
     rule_list: 'RuleList'
 
@@ -138,12 +146,16 @@ class ToAst(Transformer):
     def do_operation(self, rule_list):
         return DoOperation(rule_list=rule_list)
     
+    @v_args(inline=True)
     def rule_list(self, *rules):
         return RuleList(rules=list(rules))
 
-    @v_args(inline=True)
-    def rule(self, filter_op, transforms):
-        return _Rule(filter_op=filter_op, transforms=transforms)
+    def rule(self, args):
+        filter_op, transforms = args[0], args[1] if len(args) > 1 else []
+        return _Rule(filter_op=filter_op, transforms=Transforms(transforms))
+
+    def transforms(self, transforms):
+        return Transforms(transforms=transforms)
 
     @v_args(inline=True)
     def color(self, color_token):
@@ -174,9 +186,6 @@ class ToAst(Transformer):
     @v_args(inline=True)
     def bool_expr(self, value):
         return bool(value)
-
-    def transforms(self, transforms):
-        return Transforms(transforms=transforms)
 
     def transform(self, operator):
         if operator[0] == "update_color":
@@ -244,10 +253,10 @@ def print_ast_class_names(node, indent=0):
             print_ast_class_names(item, indent + 1)
 
 if __name__ == '__main__':
-    with open("arga_dsl.lark", "r") as f:
+    with open("dsl/dsl.lark", "r") as f:
         arga_dsl_grammar = f.read()
     ast_parser = Lark(arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst())
-    with open("gpt4/ea32f347.dsl", "r") as f:
+    with open("dsl/gens/gens_20231120/08ed6ac7_correct.txt", "r") as f:
         program = f.read()
     ast_program = ast_parser.parse(program)
     print(ast_program)

@@ -1,108 +1,49 @@
-library: "(" program* ")"
-
 // Rules are executed one after another, in the order they appear.
 // There could be no rules, in which case the program does nothing.
-program: "(" KW_DO rule* ")"
+start: do_operation+ 
+do_operation: "(" "do" rule_list+ ")"
 
 // A rule first selects the subset of objects for which `filter` is true,
-// then applies the transformations in `transform_list`, one after another,
+// then applies the transformations in `transforms`, one after another,
 // to the selected objects.
-rule: "(" KW_RULE filter transform_list ")"
+rule_list: "(" "rule" rule+ ")"
+rule: filter_op transforms
 
 // A filter is a predicate over the objects in the grid.
-// It can be a primitive filter operation, or a boolean expression using the 
-// `and`, `or`, and `not` connectives.
-filter: filter_prim
-      | "(" OP_AND filter filter ")"
-      | "(" OP_OR filter filter ")"
-      | "(" OP_NOT filter ")"
+// It can be a primitive filter operation, or a boolean expression using the `and`, `or`, and `not` connectives
 
-             // select all objects
-filter_prim: "(" ")"
-             // select all objects with the given color.
-           | "(" FL_COLOR color_expr ")"
-             // select all objects that contain the given number of pixels.
-           | "(" FL_SIZE int_expr ")"
-             // select the objects of min/max size
-           | "(" FL_SIZE ORD_STAT ")"
-             // select all objects that can see the given number of neighbors.
-           | "(" FL_DEGREE int_expr ")"
-             // select all objects that have a neighbor of the given color.
-           | "(" FL_NEIGHBOR_COLOR color_expr ")"
-             // select all objects that have a neighbor of the given size.
-           | "(" FL_NEIGHBOR_SIZE int_expr ")"
-             // select all objects that have a neighbor of min/max size.
-           | "(" FL_NEIGHBOR_SIZE STAT ")"
-             // select all objects that have a neighbor of the given degree.
-           | "(" FL_NEIGHBOR_DEGREE int_expr ")"
+filter_op:  "(" FL_COLOR COLOR ")"               // select all objects with the given color
+          | "(" FL_SIZE SIZE ")"                 // select the objects of a particular size
+          | "(" FL_DEGREE DEGREE ")"             // select all objects that have a given number of neighbors i.e degree
+          | "(" FL_NEIGHBOR_COLOR COLOR ")"      // select all objects that have a neighbor of a given color
+          | "(" FL_NEIGHBOR_SIZE SIZE ")"         // select all objects that have a neighbor of a given size
+          | "(" FL_NEIGHBOR_DEGREE DEGREE ")"    // select all objects that have a neighbor of the given degree.
+          | "(" OP_AND filter_op filter_op ")"   
+          | "(" OP_OR filter_op filter_op ")"
+          | "(" OP_NOT filter_op ")"
 
 // Transforms are applied one after another, in the order they appear.
-transform_list: "(" KW_APPLY transform+ ")"
+transforms: "(" "apply" transform+ ")"
 
-// A single transforma is applied to all the selected objects simultaneously,
+// A single transform is applied to all the selected objects simultaneously,
 // so we can think of the transformation as applying to a single object.
-           // change the color of the object to the given color.
-transform: "(" TR_UPDATE_COLOR color_expr ")"
-           // move the object in the given direction.
-         | "(" TR_MOVE_NODE DIRECTION ")"
-           // extend (move while leaving a trail) the object in the given direction.
-         | "(" TR_EXTEND_NODE DIRECTION tr_extend_node_params*")"
-           // move the object in the given direction until it hits another object.
-         | "(" TR_MOVE_NODE_MAX DIRECTION ")"
-           // rotate the object by the given angle.
-         | "(" TR_ROTATE_NODE ROT_ANGLE ")"
-           // color the exterior pixels of the object with the given color.
-         | "(" TR_ADD_BORDER color_expr ")"
-           // color the interior of a hollow rectangle with the given color.
-         | "(" TR_FILL_RECTANGLE color_expr ")"
-           // color the interior of a solid rectangle with the given color.
-         | "(" TR_HOLLOW_RECTANGLE color_expr ")"
-         | "(" TR_MIRROR mirror_axis ")"
-         | "(" TR_FLIP SYMM_AXIS ")"
-                       // if overlap is false, then the object is extended until it hits
-                       // another object, otherwise it is extended until the edge of the grid.
-tr_extend_node_params: "overlap=" bool_expr
+           
+transform: "(" TR_UPDATE_COLOR COLOR ")"                       // change the object color to the given color
+         | "(" TR_MOVE_NODE DIRECTION ")"                      // move the object in the given direction
+         | "(" TR_EXTEND_NODE DIRECTION tr_extend_node_params*")" // extend (move while leaving a trail) the object in the given direction
+         // if overlap is false, then the object is extended until it hits another object, otherwise it is extended until the edge of the grid.
+         | "(" TR_MOVE_NODE_MAX DIRECTION ")"                  // move the object in the given direction until it hits another object
+         | "(" TR_ROTATE_NODE ROT_ANGLE ")"                    // rotate the object by the given angle
+         | "(" TR_ADD_BORDER COLOR ")"                         // color the exterior pixels of the object with the given color
+         | "(" TR_FILL_RECTANGLE COLOR OVERLAP ")"             // color the interior of a hollow rectangle with the given color
+         | "(" TR_HOLLOW_RECTANGLE COLOR ")"                   // color the interior of a solid rectangle with the given color
+         | "(" TR_MIRROR "(" mirror_params ")" ")"
+         | "(" TR_FLIP SYMMETRY_AXIS ")"
+                       
+tr_extend_node_params: OVERLAP
 
-int_expr: INT
-
-            // black (this the letter o, not the number 0)
-color_expr: "O"
-            // blue
-          | "B"
-            // red
-          | "R"
-            // green
-          | "G"
-            // yellow
-          | "Y"
-            // grey
-          | "X"
-            // fuchsia
-          | "F"
-            // orange
-          | "A"
-            // cyan
-          | "C"
-            // brown
-          | "W"
-
-bool_expr: "T"
-         | "F"
-
-           // reflection over x = c
-mirror_axis: "(" int_expr KW_NULL ")"
-           // reflection over y = c
-           | "(" KW_NULL int_expr ")"
-           // reflection over point (x, y)
-           | "(" int_expr int_expr ")"
-
-ORD_STAT: "MIN"
-        | "MAX"
-        
-      // Most popular value
-STAT: "MODE"
-      // Least popular value
-    | "ANTIMODE"
+SIZE: "MIN" | "MAX" | "ODD" | /[0-9]+/
+DEGREE: "MIN" | "MAX" | "ODD" | /[0-9]+/
 
 DIRECTION: "U"
          | "D"
@@ -113,26 +54,37 @@ DIRECTION: "U"
          | "DL"
          | "DR"
 
+SYMMETRY_AXIS: "VERTICAL" | "HORIZONTAL" | "DIAGONAL_LEFT" | "DIAGONAL_RIGHT"
+
 // The angle of clockwise rotation, in degrees.
 ROT_ANGLE: "0" 
          | "90" 
          | "180" 
          | "270"
 
-         // Horizontal
-SYMM_AXIS: "H" 
-         // Vertical
-         | "Y"
-         // Diagonal
-         | "D"
-         // Anti-diagonal
-         | "AD"
+mirror_params: INT INT            // reflection over point (x, y)
+             | INT KW_NULL        // reflection over x = c
+             | KW_NULL INT        // reflection over y = c
 
+COLOR: "O" // black
+      | "B" // blue
+      | "R" // red
+      | "G" // green
+      | "Y" // yellow
+      | "X" // grey
+      | "F" // fuchsia
+      | "A" // orange
+      | "C" // cyan  
+      | "W" // brown
+
+OVERLAP: "TRUE" | "FALSE"
+
+      // Most popular value
+STAT: "MODE"
+      // Least popular value
+    | "ANTIMODE"
 
 KW_NULL: "null"
-KW_DO: "do"
-KW_RULE: "rule"
-KW_APPLY: "apply"
 
 OP_AND: "and"
 OP_OR: "or"
