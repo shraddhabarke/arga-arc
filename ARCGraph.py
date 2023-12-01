@@ -7,7 +7,9 @@ from filters import *
 from transform import *
 from task import *
 import itertools
-
+from typing import *
+from OEValuesManager import *
+from VocabMaker import *
 class ARCGraph:
 
     def __init__(self, graph, name, image, abstraction=None):
@@ -44,10 +46,11 @@ class ARCGraph:
             color = self.most_common_color
         elif color == "least":
             color = self.least_common_color
-        self.graph.nodes[node]["color"] = color
+        color_map = {"O": 0, "B": 1, "R": 2, "G": 3, "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
+        self.graph.nodes[node]["color"] = color_map[color]
         return self
 
-    def MoveNode(self, node, direction: Direction):
+    def MoveNode(self, node, direction: Dir):
         """
         move node by 1 pixel in a given direction
         """
@@ -56,13 +59,13 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "UP" or direction == "UP_LEFT" or direction == "UP_RIGHT":
+        if direction == "U" or direction == "UL" or direction == "UR":
             delta_y = -1
-        elif direction == "DOWN" or direction == "DOWN_LEFT" or direction == "DOWN_RIGHT":
+        elif direction == "D" or direction == "DL" or direction == "DR":
             delta_y = 1
-        if direction == "LEFT" or direction == "UP_LEFT" or direction == "DOWN_LEFT":
+        if direction == "L" or direction == "UL" or direction == "DL":
             delta_x = -1
-        elif direction == "RIGHT" or direction == "UP_RIGHT" or direction == "DOWN_RIGHT":
+        elif direction == "R" or direction == "UR" or direction == "DR":
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
             updated_sub_nodes.append((sub_node[0] + delta_y, sub_node[1] + delta_x))
@@ -71,7 +74,7 @@ class ARCGraph:
 
         return self
 
-    def ExtendNode(self, node, direction: Direction, overlap: Overlap = False):
+    def ExtendNode(self, node, direction: Dir, overlap: Overlap = False):
         """
         extend node in a given direction,
         if overlap is true, extend node even if it overlaps with another node
@@ -110,7 +113,7 @@ class ARCGraph:
 
         return self
 
-    def MoveNodeMax(self, node, direction: Direction):
+    def MoveNodeMax(self, node, direction: Dir):
         """
         move node in a given direction until it hits another node or the edge of the image
         """
@@ -141,6 +144,7 @@ class ARCGraph:
         """
         rotates node around its center point in a given rotational direction
         """
+        mul = 0
         rotate_times = 1
         if rotation_dir == "270": #TODO: check
             mul = -1
@@ -550,14 +554,14 @@ class ARCGraph:
             for sub_node_2 in self.graph.nodes[node2]["nodes"]:
                 if sub_node_1[0] == sub_node_2[0]:
                     if sub_node_1[1] < sub_node_2[1]:
-                        return Direction.RIGHT
+                        return Dir.RIGHT
                     elif sub_node_1[1] > sub_node_2[1]:
-                        return Direction.LEFT
+                        return Dir.LEFT
                 elif sub_node_1[1] == sub_node_2[1]:
                     if sub_node_1[0] < sub_node_2[0]:
-                        return Direction.DOWN
+                        return Dir.DOWN
                     elif sub_node_1[0] > sub_node_2[0]:
-                        return Direction.UP
+                        return Dir.UP
         return None
 
     def get_mirror_axis(self, node1, node2):
@@ -598,7 +602,26 @@ class ARCGraph:
         for node in self.graph.nodes():
             if self.apply_filters(node, filter):
                 transformed_nodes[node] = [child.value for child in transformation.children]
-            all_nodes[node] = [child.value for child in transformation.children]
+        for node, params in transformed_nodes.items():
+            self.apply_transform_inner(node, transformation, params)
+
+        # update the edges in the abstracted graph to reflect the changes
+        self.update_abstracted_graph(list(transformed_nodes.keys()))
+
+    def apply_transform_inner(self, node, transformation: TransformASTNode, args: List[TransformASTNode]):
+        """
+        apply transformation to a node
+        """
+        function_name = transformation.__class__.__name__
+        getattr(self, function_name)(node, *args)  # apply transformation
+
+    def apply_transform(self, transformation: TransformASTNode):
+        """
+        perform a full transformation on the entire abstracted graph before applying any filters
+        """
+        transformed_nodes = {}
+        for node in self.graph.nodes():
+            transformed_nodes[node] = [child.value for child in transformation.children]
         for node, params in transformed_nodes.items():
             self.apply_transform_inner(node, transformation, params)
 
@@ -610,6 +633,8 @@ class ARCGraph:
         given filters and a node, return True if node satisfies all filters
         """
         filter_name = filter.__class__.__name__
+        if filter is None:
+            return self
         if filter_name == "Not":
             return not self.apply_filters(node, filter.children[0])
         elif filter_name == 'Or':
@@ -623,27 +648,6 @@ class ARCGraph:
                 return getattr(self, filter_name)(node, *args)
             else:
                 raise AttributeError(f"Method for filter '{filter_name}' not found in ARCGraph'")
-
-    def apply_transform_inner(self, node, transformation: TransformASTNode, args: List[TransformASTNode]):
-        """
-        apply transformation to a node
-        """
-        function_name = transformation.__class__.__name__
-        getattr(self, function_name)(node, *args)  # apply transformation
-
-    def apply_transform(self, transformation: TransformASTNode):
-        """
-        perform a full transformation on the entire abstracted graph before applying any filters
-        """
-        all_nodes = {}
-        args = [child.value for child in transformation.children]
-        for node in self.graph.nodes():
-            all_nodes[node] = args
-        for node, args in all_nodes.items():
-            self.apply_transform_inner(node, transformation, args)
-
-        # update the edges in the abstracted graph to reflect the changes
-        self.update_abstracted_graph(list(all_nodes.keys()))
 
     def update_abstracted_graph(self, affected_nodes):
         """
