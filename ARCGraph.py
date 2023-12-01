@@ -38,6 +38,9 @@ class ARCGraph:
         #self.save_dir = self.img_dir + "/" + self.task_id
 
     # ------------------------------------------ transformations ------------------------------------------
+    def NoOp(self, node):
+        return self
+
     def UpdateColor(self, node, color: Color):
         """
         update node color to given color
@@ -85,13 +88,13 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "UP" or direction == "UP_LEFT" or direction == "UP_RIGHT":
+        if direction == "U" or direction == "UL" or direction == "UR":
             delta_y = -1
-        elif direction == "DOWN" or direction == "DOWN_LEFT" or direction == "DOWN_RIGHT":
+        elif direction == "D" or direction == "DL" or direction == "DR":
             delta_y = 1
-        if direction == "LEFT" or direction == "UP_LEFT" or direction == "DOWN_LEFT":
+        if direction == "L" or direction == "UL" or direction == "DL":
             delta_x = -1
-        elif direction == "RIGHT" or direction == "UP_RIGHT" or direction == "DOWN_RIGHT":
+        elif direction == "R" or direction == "UR" or direction == "DR":
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
             sub_node_y = sub_node[0]
@@ -121,13 +124,13 @@ class ARCGraph:
 
         delta_x = 0
         delta_y = 0
-        if direction == "UP" or direction == "UP_LEFT" or direction == "UP_RIGHT":
+        if direction == "U" or direction == "UL" or direction == "UR":
             delta_y = -1
-        elif direction == "DOWN" or direction == "DOWN_LEFT" or direction == "DOWN_RIGHT":
+        elif direction == "D" or direction == "DL" or direction == "DR":
             delta_y = 1
-        if direction == "LEFT" or direction == "UP_LEFT" or direction == "DOWN_LEFT":
+        if direction == "L" or direction == "UL" or direction == "DL":
             delta_x = -1
-        elif direction == "RIGHT" or direction == "UP_RIGHT" or direction == "DOWN_RIGHT":
+        elif direction == "R" or direction == "UR" or direction == "DR":
             delta_x = 1
         max_allowed = 1000
         for foo in range(max_allowed):
@@ -378,11 +381,11 @@ class ARCGraph:
             color = self.most_common_color
         elif color == "least":
             color = self.least_common_color
-
+        color_map = {"O": 0, "B": 1, "R": 2, "G": 3, "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
         if self.is_multicolor:
             return color in self.graph.nodes[node]["color"]
         else:
-            return self.graph.nodes[node]["color"] == color
+            return self.graph.nodes[node]["color"] == color_map[color]
 
     def FilterBySize(self, node, size: Size):
         """

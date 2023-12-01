@@ -66,7 +66,7 @@ class FSizeEnumerator:
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
                 all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
                     prog = self.rootMaker.execute(self.task, children)
-                    print(prog.code, prog.values)
+                    #print(prog.code, prog.values)
                     if self.oeManager.is_frepresentative(prog) or children is None:
                         res = prog
             elif self.currIter.hasNext():

@@ -257,28 +257,20 @@ class Task:
         """
         Returns the values of the transformed grid
         """
+        self.input_abstracted_graphs_original[self.abstraction] = [getattr(input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
+
+        if transformations == None:
+            return self.input_abstracted_graphs_original[self.abstraction]
+
         if not isinstance(transformations, list):
             transformations = [transformations]
-
-        self.input_abstracted_graphs_original[self.abstraction] = [getattr(
-        input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
-
         transformed_values = []
         for train_input, input_abstracted_graph in zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction]):
             for transformation in transformations:
                 input_abstracted_graph.apply_all(filter, transformation)
             reconstructed = train_input.undo_abstraction(input_abstracted_graph)
-            print("transform:", transformation.code)
-            print("checking intermediate values:", self.extract_color_matrix(reconstructed.graph.nodes(data=True)))
-            transformed_values.append(self.extract_color_matrix(reconstructed.graph.nodes(data=True)))
-
-        # check if the solution found the correct test output
-        error = 0
-        for node, data in self.test_output[0].graph.nodes(data=True):
-            if data["color"] != reconstructed.graph.nodes[node]["color"]:
-                error += 1
-        print("values:", transformed_values)
-        return transformed_values #self.extract_color_matrix(reconstructed.graph.nodes(data=True))
+            transformed_values.append(reconstructed.graph.nodes(data=True))
+        return transformed_values
 
     def filter_values(self, filter: FilterASTNode):
         filtered_nodes = []
@@ -290,12 +282,11 @@ class Task:
                 if input_abstracted_graph.apply_filters(node, filter):
                     filtered_nodes_i.append(node)
             filtered_nodes.append(filtered_nodes_i)
-            print("filtered_nodes:", filtered_nodes_i)
         return filtered_nodes
 
     def extract_color_matrix(self, data):
-        if len(data) != 100:
-            raise ValueError("Data does not represent a 10x10 matrix.")
+        #if len(data) != 100:
+            #raise ValueError("Data does not represent a 10x10 matrix.")
         expected_coords = {(i, j) for i in range(10) for j in range(10)}
         provided_coords = {item[0] for item in data}
         if expected_coords != provided_coords:

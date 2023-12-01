@@ -44,38 +44,6 @@ def colorNum(prompt):
         prompt = prompt.replace(str(key), str(val))
     return prompt
 
-def plot_2d_grid(data):
-    cvals  = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    colors = ["black", "dodgerblue", "red", "lightgreen", "yellow", "grey", "magenta", "orange", "lightblue", "brown"]
-    norm=plt.Normalize(min(cvals),max(cvals))
-    tuples = list(zip(map(norm,cvals), colors))
-    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", tuples)
-
-    fig, axs = plt.subplots(1, 3, figsize=(5, len(data['test']) * 3))
-    axs[0].set_title('Test Input')
-    axs[0].set_xticks([]); axs[0].set_yticks([])
-    axs[0].imshow(np.array(data['test'][0]['input']), cmap=cmap, vmin=0, vmax=9)
-    axs[1].set_title('Test Output')
-    axs[1].set_xticks([]); axs[1].set_yticks([])
-    axs[1].imshow(np.array(data['test'][0]['output']), cmap=cmap, vmin=0, vmax=9)
-    if data['gpt_output'] is not None:
-        axs[2].set_title('GPT Output')
-        axs[2].set_xticks([]); axs[2].set_yticks([])
-        axs[2].imshow(np.array(data['gpt_output']), cmap=cmap, vmin=0, vmax=9) 
-    else:
-        axs[2].axis('off')
-
-    fig, axs = plt.subplots(len(data['train']), 2, figsize=(5, len(data['train']) * 3))
-    for i, example in enumerate(data['train']):
-        axs[i, 0].set_title(f'Training Input {i}')
-        axs[i, 0].set_xticks([]); axs[i, 0].set_yticks([])
-        axs[i, 0].imshow(np.array(example['input']), cmap=cmap, vmin=0, vmax=9)
-        axs[i, 1].set_title(f'Training Output {i}')
-        axs[i, 1].set_xticks([]); axs[i, 1].set_yticks([])
-        axs[i, 1].imshow(np.array(example['output']), cmap=cmap, vmin=0, vmax=9)
-    plt.tight_layout()
-    plt.show()
-
 task_preamble = "<TASK>: I want you to act like an expert in pattern recognition and programming. You are given a series of " +\
 "input and output 2D arrays, representing a 2D grid with values from 0-9. The values represent different colors, do not perform arithmetic operations " +\
 "on them. The grids consists of objects (same or differently colored) which are continuous squares connected horizontally, vertically and/or diagonally. " +\
@@ -163,7 +131,7 @@ test_format_prompt = "Your task is to perform the following actions:\n" +\
 def test_prompt(task_id):
     formatted_grid = generate_test_grid(task_id)[0]
     gold_sol = generate_test_grid(task_id)[1]
-    prompt = f"""{task_preamble}\n{arga_prompt}\n{formatted_grid}\n{test_format_prompt2}"""
+    prompt = f"""{task_preamble}\n{arga_prompt}\n{formatted_grid}"""
     return prompt, gold_sol
 
 test = ['4258a5f9', 'bb43febb', 'ae3edfdc', '7f4411dc', '08ed6ac7',

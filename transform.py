@@ -4,7 +4,7 @@ from typing import Union, List, Dict, Iterator, Any, Tuple, Optional
 class Types(Enum):
     TRANSFORMS = "Transforms"
     COLOR = "Color"
-    DIRECTION = "Direction"
+    DIRECTION = "Dir"
     OVERLAP = "Overlap"
     ROTATION_ANGLE = "Rotation_Angle"
     MIRROR_AXIS = "Mirror_Axis"
@@ -20,19 +20,17 @@ class TransformASTNode:
         self.nodeType: Types
 
 class Color(TransformASTNode, Enum):
-    C0 =  0
-    C1 =  1
-    C2 =  2
-    C3 =  3
-    C4 =  4
-    C5 =  5
-    C6 =  6
-    C7 =  7
-    C8 =  8
-    C9 =  9
-    LEAST = "least"
-    MOST =  "most"
-
+    black = "O"
+    blue = "B"
+    red = "R"
+    green = "G"
+    yellow = "Y"
+    grey =  "X"
+    fuchsia =  "F"
+    orange =  "A"
+    cyan =  "C"
+    brown =  "W"
+    nodeType = Types.COLOR
     def __init__(self, value=None):
         super().__init__(Types.COLOR)
         self.code = f"{self.__class__.__name__}.{self.name}"
@@ -53,23 +51,23 @@ class Color(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
-class Direction(TransformASTNode, Enum):
-    UP = "UP"
-    DOWN = "DOWN"
-    LEFT = "LEFT"
-    RIGHT = "RIGHT"
-    UP_LEFT = "UP_LEFT"
-    UP_RIGHT = "UP_RIGHT"
-    DOWN_LEFT = "DOWN_LEFT"
-    DOWN_RIGHT = "DOWN_RIGHT"
+class Dir(TransformASTNode, Enum):
+    UP = "U"
+    DOWN = "D"
+    LEFT = "L"
+    RIGHT = "R"
+    UP_LEFT = "UL"
+    UP_RIGHT = "UR"
+    DOWN_LEFT = "DL"
+    DOWN_RIGHT = "DR"
     nodeType = Types.DIRECTION
     def __init__(self, value):
         super().__init__(Types.DIRECTION)
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []
         self.nodeType = Types.DIRECTION
         self.values = []
+        self.size = 1
 
     @classmethod
     @property
@@ -191,6 +189,11 @@ class NoOp(TransformASTNode):
             cls._instance.initialized = False
         return cls._instance
 
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
     def __init__(self):
         if not hasattr(self, 'initialized') or not self.initialized:
             super().__init__()
@@ -201,8 +204,9 @@ class NoOp(TransformASTNode):
             self.initialized = True
 
     def apply(self, task, children=None, filter=None):
+        self.values = task.transform_values(filter, None)
         return self
-
+    
     @classmethod
     def get_all_values(cls):
         return [cls._instance or cls()]
@@ -248,12 +252,12 @@ class MoveNode(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.DIRECTION]
-    def __init__(self, direction: Direction):
+    def __init__(self, dir: Dir):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
-        self.children = [direction]
-        self.size = 1 + direction.size
-        self.code = f"moveNode({direction.code})"
+        self.children = [dir]
+        self.size = 1 + dir.size
+        self.code = f"moveNode({dir.code})"
         self.childTypes = [Types.DIRECTION]
 
     @classmethod
@@ -267,12 +271,12 @@ class ExtendNode(Transforms):
     arity = 2
     nodeType = Types.TRANSFORMS
     childTypes = [Types.DIRECTION, Types.OVERLAP]
-    def __init__(self, direction: Direction, overlap: Overlap):
+    def __init__(self, dir: Dir, overlap: Overlap):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
-        self.children = [direction, overlap]
-        self.size = 1 + direction.size + overlap.size
-        self.code = f"extendNode({direction.code}, {overlap.code})"
+        self.children = [dir, overlap]
+        self.size = 1 + overlap.size + dir.size
+        self.code = f"extendNode({dir.code}, {overlap.code})"
         self.childTypes = [Types.DIRECTION, Types.OVERLAP]
 
     @classmethod
@@ -286,12 +290,12 @@ class MoveNodeMax(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.DIRECTION]
-    def __init__(self, direction: Direction):
+    def __init__(self, dir: Dir):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
-        self.children = [direction]
-        self.size = 1 + direction.size
-        self.code = f"moveNodeMax({direction.code})"
+        self.children = [dir]
+        self.size = 1 + dir.size
+        self.code = f"moveNodeMax({dir.code})"
         self.childTypes = [Types.DIRECTION]
     
     @classmethod

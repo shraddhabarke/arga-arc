@@ -71,12 +71,12 @@ class Degree(FilterASTNode):
 
 def setup_size_and_degree_based_on_task(task):
     task_sizes = [w for w in task.object_sizes[task.abstraction]]
-    _size_additional = {f'S{item}': int(item) for item in task_sizes}
-    SizeEnum = Enum("SizeEnum", {'MIN': "min", 'MAX': "max", 'ODD': "odd", **_size_additional})
+    _size_additional = {f'{item}': int(item) for item in task_sizes}
+    SizeEnum = Enum("SizeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_size_additional})
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
-    _degree_additional = {f'D{item}': int(item) for item in task_degrees}
-    DegreeEnum = Enum("DegreeEnum", {'MIN': "min", 'MAX': "max", 'ODD': "odd", **_degree_additional})
+    _degree_additional = {f'{item}': int(item) for item in task_degrees}
+    DegreeEnum = Enum("DegreeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_degree_additional})
     _degrees, _sizes = [], []
 
     for name, member in SizeEnum.__members__.items():
@@ -90,18 +90,16 @@ def setup_size_and_degree_based_on_task(task):
     Degree._enum_members = _degrees
 
 class FColor(FilterASTNode, Enum):
-    C0 = 0
-    C1 = 1
-    C2 = 2
-    C3 = 3
-    C4 = 4
-    C5 = 5
-    C6 = 6
-    C7 = 7
-    C8 = 8
-    C9 = 9
-    LEAST = "least"
-    MOST = "most"
+    black = "O"
+    blue = "B"
+    red = "R"
+    green = "G"
+    yellow = "Y"
+    grey =  "X"
+    fuchsia =  "F"
+    orange =  "A"
+    cyan =  "C"
+    brown =  "W"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.COLOR)
@@ -189,9 +187,16 @@ class Not(FilterASTNode):
     @classmethod
     def execute(cls, task, children):
         values = children[0].values
-        negated_values = [not v for v in values]
+        nodes_with_data = []
+        # TODO: Optimize
+        for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
+            local_data = []
+            for node, data in input_abstracted_graphs.graph.nodes(data=True):
+                local_data.append(node)
+            nodes_with_data.append(local_data)
+        result = [[item for item in sublist1 if item not in sublist2] for sublist1, sublist2 in zip(nodes_with_data, values)]
         new_instance = cls(children[0])
-        new_instance.values = negated_values
+        new_instance.values = result
         return new_instance
 
 class FilterByColor(Filters):

@@ -9,7 +9,7 @@ from lookaheadIterator import LookaheadIterator
 from childrenIterator import ChildrenIterator
 
 class TSizeEnumerator:
-    def __init__(self, task: Task, vocab: VocabFactory, filterast: FilterASTNode, oeManager, contexts=[]):
+    def __init__(self, task: Task, vocab: VocabFactory, oeManager, filterast=None, contexts=[]):
         self.task = task
         self.vocab = vocab
         self.oeManager = oeManager
@@ -45,6 +45,9 @@ class TSizeEnumerator:
             self.rootMaker.childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
             childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
+
+        elif self.rootMaker.arity == 0 and self.rootMaker.nodeType == Types.TRANSFORMS:
+            self.childrenIterator = LookaheadIterator(iter([None]))
         elif self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
             self.childrenIterator = LookaheadIterator(iter([None]))
         elif 1 < self.costLevel: # TODO: update this later for the cost-based enumeration
@@ -68,17 +71,19 @@ class TSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 10:
+            if self.costLevel > 5:
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
                 all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):                  
                     prog = self.rootMaker.apply(self.task, children, self.filter)
+                    print("Program:", prog.code)
                     if children is None:
                         res = prog
                     elif self.oeManager.is_representative(prog):
                         res = prog
+
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None
