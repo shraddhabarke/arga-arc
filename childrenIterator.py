@@ -141,13 +141,13 @@ class TestResetIterators(unittest.TestCase):
     def test_reset_iterators_advanced(self):
         childTypes = [Types.COLOR, Types.DIRECTION, Types.ROTATION_DIRECTION]
         bank = {
-        1: [Color.C1, Color.C2, Dir.LEFT, Overlap.TRUE],
-        2: [Dir.UP, Color.C3, Rotation_Angle.CCW],
+        1: [Color.blue, Color.red, Dir.LEFT, Overlap.TRUE],
+        2: [Dir.UP, Color.green, Rotation_Angle.CCW],
         3: [Overlap.FALSE, Rotation_Angle.CW]
         }
         cost_scenarios = [
-            ([1, 1, 2], [Color.C1, Dir.LEFT]), # allExceptLast
-            ([2, 1, 3], [Color.C3, Dir.LEFT])]
+            ([1, 1, 2], [Color.blue, Dir.LEFT]), # allExceptLast
+            ([2, 1, 3], [Color.green, Dir.LEFT])]
         self.obj = ChildrenIterator(childTypes, 6, bank)
         for cost, expected_all_except_last in cost_scenarios:
             self.obj.resetIterators(cost)
@@ -161,8 +161,8 @@ class TestChildrenIterator(unittest.TestCase):
 
     def setUp(self):
         self.bank = {
-            1: [Color.C1, Color.C2, Dir.LEFT],
-            2: [Dir.UP, Color.C3],
+            1: [Color.blue, Color.red, Dir.LEFT],
+            2: [Dir.UP, Color.green],
             3: [Rotation_Angle.CW]
         }
 
@@ -173,61 +173,61 @@ class TestChildrenIterator(unittest.TestCase):
         iterator.resetIterators(costs)
         self.assertEqual(len(iterator.childrenLists), 3)
         self.assertEqual(len(iterator.candidates), 3)
-        self.assertEqual(iterator.allExceptLast, [Color.C1, Dir.UP])
+        self.assertEqual(iterator.allExceptLast, [Color.blue, Dir.UP])
 
     def test_hasNext_and_next_methods(self):
         childTypes = [Types.COLOR, Types.DIRECTION]
         iterator = ChildrenIterator(childTypes, 3, self.bank)
         self.assertTrue(iterator.hasNext())
         result = iterator.next()
-        expected = [Color.C1, Dir.UP]
+        expected = [Color.blue, Dir.UP]
         self.assertListEqual(result, expected)
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.UP])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.UP])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C3, Dir.LEFT])
+        self.assertListEqual(iterator.next(), [Color.green, Dir.LEFT])
     
     def test_complex_combinations(self):
         childTypes = [Types.COLOR, Types.DIRECTION, Types.ROTATION_DIRECTION, Types.OVERLAP]
         self.bank = {
-            1: [Color.C1, Color.C2],
+            1: [Color.blue, Color.red],
             2: [Dir.UP, Dir.LEFT],
             3: [Rotation_Angle.CW, Rotation_Angle.CCW],
             4: [Overlap.TRUE, Overlap.FALSE]
         }
         iterator = ChildrenIterator(childTypes, 10, self.bank)
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.UP, Rotation_Angle.CW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.UP, Rotation_Angle.CW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.UP, Rotation_Angle.CW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.UP, Rotation_Angle.CW, Overlap.FALSE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.UP, Rotation_Angle.CCW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.UP, Rotation_Angle.CCW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.UP, Rotation_Angle.CCW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.UP, Rotation_Angle.CCW, Overlap.FALSE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.LEFT, Rotation_Angle.CW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.LEFT, Rotation_Angle.CW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.LEFT, Rotation_Angle.CW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.LEFT, Rotation_Angle.CW, Overlap.FALSE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.LEFT, Rotation_Angle.CCW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.LEFT, Rotation_Angle.CCW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C1, Dir.LEFT, Rotation_Angle.CCW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.blue, Dir.LEFT, Rotation_Angle.CCW, Overlap.FALSE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.UP, Rotation_Angle.CW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.UP, Rotation_Angle.CW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.UP, Rotation_Angle.CW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.UP, Rotation_Angle.CW, Overlap.FALSE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.UP, Rotation_Angle.CCW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.UP, Rotation_Angle.CCW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.UP, Rotation_Angle.CCW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.UP, Rotation_Angle.CCW, Overlap.FALSE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.LEFT, Rotation_Angle.CW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.LEFT, Rotation_Angle.CW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.LEFT, Rotation_Angle.CW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.LEFT, Rotation_Angle.CW, Overlap.FALSE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.LEFT, Rotation_Angle.CCW, Overlap.TRUE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.LEFT, Rotation_Angle.CCW, Overlap.TRUE])
         self.assertTrue(iterator.hasNext())
-        self.assertListEqual(iterator.next(), [Color.C2, Dir.LEFT, Rotation_Angle.CCW, Overlap.FALSE])
+        self.assertListEqual(iterator.next(), [Color.red, Dir.LEFT, Rotation_Angle.CCW, Overlap.FALSE])
         self.assertFalse(iterator.hasNext())
         iterator = ChildrenIterator(childTypes, 200, self.bank)
         self.assertFalse(iterator.hasNext())
