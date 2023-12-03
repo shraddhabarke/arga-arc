@@ -182,7 +182,8 @@ class ARCGraph:
                     border_pixel = (sub_node[0] + y, sub_node[1] + x)
                     if border_pixel not in border_pixels and not self.check_pixel_occupied(border_pixel):
                         border_pixels.append(border_pixel)
-
+        color_map = {"O": 0, "B": 1, "R": 2, "G": 3, "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
+        border_color = color_map[border_color]
         new_node_id = self.generate_node_id(border_color)
         if self.is_multicolor:
             self.graph.add_node(new_node_id, nodes=list(border_pixels), color=[border_color for j in border_pixels],
@@ -233,6 +234,8 @@ class ARCGraph:
         border_x = [min(all_x), max(all_x)]
         non_border_pixels = []
         new_subnodes = []
+        color_map = {"O": 0, "B": 1, "R": 2, "G": 3, "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
+        color = color_map[color]
         for subnode in self.graph.nodes[node]["nodes"]:
             if subnode[0] in border_y or subnode[1] in border_x:
                 new_subnodes.append(subnode)
@@ -392,12 +395,13 @@ class ARCGraph:
         return true if node has size equal to given size.
         if exclude, return true if node does not have size equal to given size.
         """
-        if size == "max":
+        if str(size) == "MAX":
             size = self.get_attribute_max("size")
-        elif size == "min":
+            return self.graph.nodes[node]["size"] == size
+        elif str(size) == "MIN":
             size = self.get_attribute_min("size")
-
-        elif size == "odd":
+            return self.graph.nodes[node]["size"] == size
+        elif size == "ODD":
             return self.graph.nodes[node]["size"] % 2 != 0
         else:
             return self.graph.nodes[node]["size"] == size
@@ -415,13 +419,13 @@ class ARCGraph:
         return true if node has a neighbor of a given size.
         if exclude, return true if node does not have a neighbor of a given size.
         """
-        if size == "max":
+        if size == "MAX":
             size = self.get_attribute_max("size")
-        elif size == "min":
+        elif size == "MIN":
             size = self.get_attribute_min("size")
 
         for neighbor in self.graph.neighbors(node):
-            if size == "odd":
+            if size == "ODD":
                 if self.graph.nodes[neighbor]["size"] % 2 != 0:
                     return True
             else:
