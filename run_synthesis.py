@@ -26,6 +26,37 @@ def sort_leaf_makers(leaf_makers, probabilities):
             return 0
     return sorted(leaf_makers, key=get_probability, reverse=True)
 
+def get_probability(vocab_maker):
+    transform_mapping = {
+        UpdateColor: ('UpdateColor', 'COLOR'),
+        MoveNode: ('MoveNode', 'DIRECTION'),
+        ExtendNode: ('ExtendNode', 'DIRECTION', 'OVERLAP'),
+        MoveNodeMax: ('MoveNodeMax', 'DIRECTION'),
+        RotateNode: ('RotateNode', 'ROT_ANGLE'),
+        AddBorder: ('AddBorder', 'COLOR'),
+        FillRectangle: ('FillRectangle', 'COLOR', 'OVERLAP'),
+        HollowRectangle: ('HollowRectangle', 'COLOR'),
+        Flip: ('Flip', 'SYMMETRY_AXIS')
+    }
+    transform_key = transform_mapping.get(vocab_maker, ())
+    return transform_probabilities['Transform'].get(transform_key, 0)
+
+def get_fprobability(vocab_maker):
+    filter_mapping = {
+        FilterByColor: ('FilterByColor', 'COLOR'),
+        FilterBySize: ('FilterBySize', 'SIZE'),
+        FilterByDegree: ('FilterByDegree', 'DEGREE'),
+        FilterByNeighborColor: ('FilterByNeighborColor', 'COLOR'),
+        FilterByNeighborSize: ('FilterByNeighborSize', 'SIZE'),
+        FilterByNeighborDegree: ('FilterByNeighborDegree', 'DEGREE'),
+        Not: ('Not', 'Filter'),
+        And: ('And', 'Filter', 'Filter'),
+        Or: ('Or', 'Filter', 'Filter'),
+    }
+    filter_key = filter_mapping.get(vocab_maker, ())
+    category = 'Filters' if vocab_maker in [Not, And, Or] else 'Filter'
+    return filter_probabilites[category].get(filter_key, 0)
+
 def sort_vocab_makers(vocab_makers, probabilities):
     def get_transform_probability(vocab_maker):
         transform_mapping = {
@@ -43,8 +74,21 @@ def sort_vocab_makers(vocab_makers, probabilities):
         return probabilities['Transform'].get(transform_key, 0)
     return sorted(vocab_makers, key=get_transform_probability, reverse=True)
 
-#from pcfg_compute import laplace_smoothing
-#transform_probabilities = laplace_smoothing()
+def sort_filter_makers(filter_makers, filter_probs): # TODO: also account for Not, And, Or
+    def get_filter_probability(filter_maker):
+        # Map filter maker instances to their corresponding keys in filter_probs
+        filter_mapping = {
+            FilterByColor: ('FilterByColor', 'COLOR'),
+            FilterBySize: ('FilterBySize', 'SIZE'),
+            FilterByDegree: ('FilterByDegree', 'DEGREE'),
+            FilterByNeighborColor: ('FilterByNeighborColor', 'COLOR'),
+            FilterByNeighborSize: ('FilterByNeighborSize', 'SIZE'),
+            FilterByNeighborDegree: ('FilterByNeighborDegree', 'DEGREE'),
+        }
+        filter_key = filter_mapping.get(filter_maker, ())
+        return filter_probs['Filter'].get(filter_key, 0)
+    return sorted(filter_makers, key=get_filter_probability, reverse=True)
+
 # Transform Vocab
 tleaf_makers = [Color.black, Color.blue, Color.red, Color.green, Color.yellow, Color.grey, Color.fuchsia, Color.orange, Color.cyan, Color.brown,
                 NoOp(), Dir.UP, Dir.DOWN, Dir.LEFT, Dir.RIGHT, Dir.DOWN_LEFT, Dir.DOWN_RIGHT, Dir.UP_LEFT,
@@ -52,14 +96,51 @@ tleaf_makers = [Color.black, Color.blue, Color.red, Color.green, Color.yellow, C
                 Symmetry_Axis.HORIZONTAL, Symmetry_Axis.DIAGONAL_LEFT, Symmetry_Axis.DIAGONAL_RIGHT]
 t_vocabMakers = [UpdateColor, MoveNode, ExtendNode, MoveNodeMax, RotateNode, AddBorder, FillRectangle, HollowRectangle, Flip]
 transform_vocab = VocabFactory(tleaf_makers, t_vocabMakers)
+expected_nodes = []
+taskNumber = "ea32f347"
+abstraction = "nbccg"
+task = Task("ARC/data/training/" + taskNumber + ".json")
+task.abstraction = abstraction
+task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for input in task.train_input]
+task.output_abstracted_graphs_original[task.abstraction] = [getattr(output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
+task.get_static_inserted_objects()
+task.get_static_object_attributes(task.abstraction)
+setup_size_and_degree_based_on_task(task)
 
-pcfg = False # toggle this
+# Compute Expected Solution
+for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
+    local_data = []
+    for node, data in input_abstracted_graphs.graph.nodes(data=True):
+        local_data.extend(data['nodes'])
+    expected_nodes.append(local_data)
+
+# Filter Vocab
+f_vocabMakers = [FColor, Degree, Size, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, Or, And]
+filter_vocab = VocabFactory.create(f_vocabMakers)
+
+pcfg = True # toggle this
 if pcfg:
-    sorted_leaf_makers = sort_leaf_makers(tleaf_makers, transform_probabilities)
+    from pcfg_compute import laplace_smoothing, laplace_smoothing_for_filters
+    transform_probabilities = laplace_smoothing()
+    filter_probabilites = laplace_smoothing_for_filters() # TODO: check filter synthesis for ea32f347
+    f_vocabMakers = [FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, Or, And]
+    sorted_leaf_makers = sort_leaf_makers(tleaf_makers, transform_probabilities) # TODO: Set the initial costs for the leaves as well
     sorted_vocab_makers = sort_vocab_makers(t_vocabMakers, transform_probabilities)
+    sorted_filters = sort_filter_makers(f_vocabMakers, filter_probabilites)
+    transform_values = [get_probability(vocab_maker) for vocab_maker in t_vocabMakers]
+    filter_values = [get_fprobability(vocab_maker) for vocab_maker in f_vocabMakers]
+    t_trans_number = max(transform_values) + 0.1
+    t_filter_number = max(filter_values) + 0.1
+    for vocab_maker in t_vocabMakers:
+        prob = get_probability(vocab_maker)
+        vocab_maker.default_size = round(((t_trans_number - prob) * 100) / 2)  ## Set the initial cost of transform vocabs
+    for vocab_maker in f_vocabMakers:
+        prob = get_fprobability(vocab_maker)
+        vocab_maker.default_size = round(((t_filter_number - prob) * 100) / 2)
     transform_vocab = VocabFactory(sorted_leaf_makers, sorted_vocab_makers)
-    #print("PCFG Sorted:", sorted_leaf_makers)
+    filter_vocab = VocabFactory.create([FColor, Size, Degree] + sorted_filters)
 
+#----------------------------------------------------------------------------------------------------------------------------------------------
 def filter_matches(matches, expected):
     filtered_matches = []
     for match_list, expected_list in zip(matches, expected):
@@ -148,17 +229,15 @@ def synthesize():
                             solution_sets = [list(partial_solutions[program]) for program in subset]
                             combined_solutions = [sorted(list(set().union(*tuples))) for tuples in zip(*solution_sets)]
                             if all(sol == exp for sol, exp in zip(combined_solutions, total_pixels)):
-                                #print("Collective solution found with subset of partial solutions.")
+                                print("Collective solution found with subset of partial solutions.")
                                 for permuted_subset in permutations(subset):                                # Consider different rule orderings
                                     solution = {program: partial_solutions[program] for program in permuted_subset}
-                                    #print("Solution considered", [sub.code for sub in solution])
+                                    print("Solution considered", [sub.code for sub in solution])
                                     # Synthesizing filters...
                                     all_filters_found = True
                                     pixels = [filter_matches(value, expected_nodes) for key, value in solution.items()]
                                     for idx, (prog_key, prog_value) in enumerate(solution.items()):       # Iteratively synthesizing more specific filters
                                         final_lst = []
-                                        print("Prog_Key:", prog_key)
-                                        print("Prog_Value:", prog_value)
                                         for iter in range(len(pixels[0])):
                                             local_lst = set()
                                             for pixel_lst in pixels[idx:]:
@@ -194,27 +273,6 @@ def synthesize_filter(subset, timeout: int=0):
             print("Filter Solution!", program.code, program.size)
             return program, i
 
-expected_nodes = []
-taskNumber = "dc1df850"
-abstraction = "nbccg"
-task = Task("ARC/data/training/" + taskNumber + ".json") 
-task.abstraction = abstraction
-task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for input in task.train_input]
-task.output_abstracted_graphs_original[task.abstraction] = [getattr(output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
-task.get_static_inserted_objects()
-task.get_static_object_attributes(task.abstraction)
-setup_size_and_degree_based_on_task(task)
-
-# Compute Expected Solution
-for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
-    local_data = []
-    for node, data in input_abstracted_graphs.graph.nodes(data=True):
-        local_data.extend(data['nodes'])
-    expected_nodes.append(local_data)
-
-# Filter Vocab
-vocabMakers = [FColor, Degree, Size, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, Or, And]
-filter_vocab = VocabFactory.create(vocabMakers)
 import time
 start_time = time.time()
 synthesize()

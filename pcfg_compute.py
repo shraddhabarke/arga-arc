@@ -7,9 +7,9 @@ from VocabMaker import *
 from filters import *
 import enum
 
-taskNumber = "3906de3d"
+taskNumber = "ea32f347"
 task = Task("ARC/data/training/" + taskNumber + ".json")
-task.abstraction = "nbvcg"
+task.abstraction = "nbccg"
 task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
                                                         input in task.train_input]
 task.output_abstracted_graphs_original[task.abstraction] = [getattr(output, Image.abstraction_ops[task.abstraction])() for
@@ -31,7 +31,7 @@ for leaf in list(vocab.leaves()):
 with open("dsl/dsl.lark", "r") as f:
     arga_dsl_grammar = f.read()
 ast_parser = Lark(arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst())
-with open(f"dsl/gens/gens_20231120/3906de3d_correct.txt", "r") as f:
+with open(f"dsl/gens/gens_20231120/{taskNumber}_correct.txt", "r") as f:
     program = f.read()
 ast_program = ast_parser.parse(program)
 
@@ -216,10 +216,11 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
 
-def laplace_smoothing_for_filters(initial_pcfg, computed_probabilities, alpha=1):
+def laplace_smoothing_for_filters(alpha=1):
     smoothed_probabilities = defaultdict(dict)
+    computed_probabilities = compute_probabilities(filter_rules_count, f_token_rules_count, f_token_type_counts)
     # Handle filters and their sub-rules
-    for category, rules in initial_pcfg.items():
+    for category, rules in init_filter_pcfg.items():
         if category in ['COLOR', 'SIZE', 'DEGREE']:  # Skip token categories
             continue
         total_category_counts = sum(computed_probabilities.get((category, rule_key), 0) for rule_key in rules.keys())
@@ -229,11 +230,11 @@ def laplace_smoothing_for_filters(initial_pcfg, computed_probabilities, alpha=1)
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_category_counts + alpha * total_category_rules
             smoothed_probabilities[category][rule] = round(smoothed_count / total_smoothed_count, 2)
-            print(f"P('{rule}' in '{category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[category][rule]:.2f}")
-            print(f"Filter: {rule}, Category: {category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
+            #print(f"P('{rule}' in '{category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[category][rule]:.2f}")
+            #print(f"Filter: {rule}, Category: {category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
 
     # Handle token categories (COLOR, SIZE, DEGREE)
-    for token_category, token_values in initial_pcfg.items():
+    for token_category, token_values in init_filter_pcfg.items():
         if token_category not in ['COLOR', 'SIZE', 'DEGREE']:
             continue
         total_tokens_of_type = sum(computed_probabilities.get((token_category, token_value), 0) for token_value in token_values.keys())
@@ -243,12 +244,11 @@ def laplace_smoothing_for_filters(initial_pcfg, computed_probabilities, alpha=1)
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_tokens_of_type + alpha * total_token_rules
             smoothed_probabilities[token_category][token_value] = round(smoothed_count / total_smoothed_count, 2)
-            print(f"P('{token_value}' in '{token_category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[token_category][token_value]:.2f}")
-            print(f"Token: {token_value}, Category: {token_category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[token_category][token_value]}")
+            #print(f"P('{token_value}' in '{token_category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[token_category][token_value]:.2f}")
+            #print(f"Token: {token_value}, Category: {token_category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[token_category][token_value]}")
     return smoothed_probabilities
 
 t_probabilities = compute_probabilities(transform_rules_count, t_token_rules_count, t_token_type_counts)
-f_probabilities = compute_probabilities(filter_rules_count, f_token_rules_count, f_token_type_counts)
 
 t_smoothed_probabilities = laplace_smoothing()
-f_smoothed_probs = laplace_smoothing_for_filters(init_filter_pcfg, f_probabilities)
+f_smoothed_probs = laplace_smoothing_for_filters()
