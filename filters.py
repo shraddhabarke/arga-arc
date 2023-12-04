@@ -136,11 +136,12 @@ class And(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
+    default_size = 1
     def __init__(self, filter1: Filters, filter2: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter1, filter2]
         self.code = f"And({filter1.code}, {filter2.code})"
-        self.size = 1 + filter1.size + filter2.size
+        self.size = self.default_size + filter1.size + filter2.size
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
     @classmethod
@@ -156,11 +157,12 @@ class Or(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
+    default_size = 1
     def __init__(self, filter1: Filters, filter2: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter1, filter2]
         self.code = f"Or({filter1.code}, {filter2.code})"
-        self.size = 1 + filter1.size + filter2.size
+        self.size = self.default_size + filter1.size + filter2.size
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
     
     @classmethod
@@ -177,11 +179,12 @@ class Not(FilterASTNode):
     arity = 1
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS]
+    default_size = 1
     def __init__(self, filter: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter]
         self.code = f"Not({filter.code})"
-        self.size = 1 + filter.size
+        self.size = self.default_size + filter.size
         self.childTypes = [FilterTypes.FILTERS]
 
     @classmethod
@@ -202,11 +205,12 @@ class Not(FilterASTNode):
 class FilterByColor(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
+    default_size = 1
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.code = f"FilterByColor({color.code})"
-        self.size = 1 + color.size
+        self.size = self.default_size + color.size
         self.children = [color]
         self.childTypes = [FilterTypes.COLOR]
 
@@ -220,11 +224,12 @@ class FilterByColor(Filters):
 class FilterBySize(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
+    default_size = 1
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.code = f"FilterBySize({size.code})"
-        self.size = 1 + size.size
+        self.size = self.default_size + size.size
         self.children = [size]
         self.childTypes = [FilterTypes.SIZE]
 
@@ -238,11 +243,12 @@ class FilterBySize(Filters):
 class FilterByDegree(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
+    default_size = 1
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.code = f"FilterByDegree({degree.code})"
-        self.size = 1 + degree.size
+        self.size = self.default_size + degree.size
         self.children = [degree]
         self.childTypes = [FilterTypes.DEGREE]
 
@@ -256,11 +262,12 @@ class FilterByDegree(Filters):
 class FilterByNeighborSize(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
+    default_size = 1
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.code = f"FilterByNeighborSize({size.code})"
-        self.size = 1 + size.size
+        self.size = self.default_size + size.size
         self.children = [size]
         self.childTypes = [FilterTypes.SIZE]
 
@@ -274,11 +281,12 @@ class FilterByNeighborSize(Filters):
 class FilterByNeighborColor(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
+    default_size = 1
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.code = f"FilterByNeighborColor({color.code})"
-        self.size = 1 + color.size
+        self.size = self.default_size + color.size
         self.children = [color]
         self.childTypes = [FilterTypes.COLOR]
 
@@ -292,11 +300,12 @@ class FilterByNeighborColor(Filters):
 class FilterByNeighborDegree(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
+    default_size = 1
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.code = f"FilterByNeighborDegree({degree.code})"
-        self.size = 1 + degree.size
+        self.size = self.default_size + degree.size
         self.children = [degree]
         self.childTypes = [FilterTypes.DEGREE]
 

@@ -234,10 +234,11 @@ class UpdateColor(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.COLOR]
+    default_size = 1
     def __init__(self, color: Color):
         super().__init__()
         self.children = [color]
-        self.size = 1 + color.size
+        self.size = self.default_size + color.size
         self.code = f"updateColor({color.code})"
         self.childTypes = [Types.COLOR]
 
@@ -252,11 +253,12 @@ class MoveNode(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.DIRECTION]
+    default_size = 1
     def __init__(self, dir: Dir):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [dir]
-        self.size = 1 + dir.size
+        self.size = self.default_size + dir.size
         self.code = f"moveNode({dir.code})"
         self.childTypes = [Types.DIRECTION]
 
@@ -271,11 +273,12 @@ class ExtendNode(Transforms):
     arity = 2
     nodeType = Types.TRANSFORMS
     childTypes = [Types.DIRECTION, Types.OVERLAP]
+    default_size = 1
     def __init__(self, dir: Dir, overlap: Overlap):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [dir, overlap]
-        self.size = 1 + overlap.size + dir.size
+        self.size = self.default_size + overlap.size + dir.size
         self.code = f"extendNode({dir.code}, {overlap.code})"
         self.childTypes = [Types.DIRECTION, Types.OVERLAP]
 
@@ -290,11 +293,12 @@ class MoveNodeMax(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.DIRECTION]
+    default_size = 1
     def __init__(self, dir: Dir):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [dir]
-        self.size = 1 + dir.size
+        self.size = self.default_size + dir.size
         self.code = f"moveNodeMax({dir.code})"
         self.childTypes = [Types.DIRECTION]
     
@@ -309,11 +313,12 @@ class RotateNode(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.ROTATION_ANGLE]
+    default_size = 1
     def __init__(self, rotation_angle: Rotation_Angle):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [rotation_angle]
-        self.size = 1 + rotation_angle.size
+        self.size = self.default_size + rotation_angle.size
         self.code = f"rotateNode({rotation_angle.code})"
         self.childTypes = [Types.ROTATION_ANGLE]
     
@@ -328,11 +333,12 @@ class AddBorder(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.COLOR]
+    default_size = 1
     def __init__(self, color: Color):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [color]
-        self.size = 1 + color.size
+        self.size = self.default_size + color.size
         self.code = f"addBorder({color.code})"
         self.childTypes = [Types.COLOR]
     
@@ -347,11 +353,12 @@ class FillRectangle(Transforms):
     arity = 2
     nodeType = Types.TRANSFORMS
     childTypes = [Types.COLOR, Types.OVERLAP]
+    default_size = 1
     def __init__(self, color: Color, overlap: Overlap):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [color, overlap]
-        self.size = 1 + color.size + overlap.size
+        self.size = self.default_size + color.size + overlap.size
         self.code = f"fillRectangle({color.code}, {overlap.code})"
         self.childTypes = [Types.COLOR, Types.OVERLAP]
     
@@ -366,11 +373,12 @@ class HollowRectangle(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.COLOR]
+    default_size = 1
     def __init__(self, color: Color):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [color]
-        self.size = 1 + color.size
+        self.size = self.default_size + color.size
         self.code = f"hollowRectangle({color.code})"
         self.childTypes = [Types.COLOR]
     
@@ -385,11 +393,12 @@ class Mirror(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.MIRROR_AXIS]
+    default_size = 1
     def __init__(self, mirror_axis: Mirror_Axis):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [mirror_axis]
-        self.size = 1 + mirror_axis.size
+        self.size = self.default_size + mirror_axis.size
         self.code = f"mirror({mirror_axis.code})"
         self.childTypes = [Types.MIRROR_AXIS]
         self.arity = 1
@@ -405,11 +414,12 @@ class Flip(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
     childTypes = [Types.SYMMETRY_AXIS]
+    default_size = 1
     def __init__(self, mirror_direction: Symmetry_Axis):
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [mirror_direction]
-        self.size = 1 + mirror_direction.size
+        self.size = self.default_size + mirror_direction.size
         self.code = f"flip({mirror_direction.code})"
         self.arity = 1
         self.childTypes = [Types.SYMMETRY_AXIS]
