@@ -395,16 +395,13 @@ class ARCGraph:
         return true if node has size equal to given size.
         if exclude, return true if node does not have size equal to given size.
         """
-        if str(size) == "MAX":
+        if size == "MAX":
             size = self.get_attribute_max("size")
-            return self.graph.nodes[node]["size"] == size
-        elif str(size) == "MIN":
+        elif size == "MIN":
             size = self.get_attribute_min("size")
-            return self.graph.nodes[node]["size"] == size
         elif size == "ODD":
             return self.graph.nodes[node]["size"] % 2 != 0
-        else:
-            return self.graph.nodes[node]["size"] == size
+        return self.graph.nodes[node]["size"] == size
 
     def FilterByDegree(self, node, degree: Degree):
         """

@@ -278,9 +278,9 @@ class Task:
             input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
         for input_abstracted_graph in self.input_abstracted_graphs_original[self.abstraction]:
             filtered_nodes_i = []
-            for node in input_abstracted_graph.graph.nodes():
-                if input_abstracted_graph.apply_filters(node, filter):
-                    filtered_nodes_i.append(node)
+            for node in input_abstracted_graph.graph.nodes(data=True):
+                if input_abstracted_graph.apply_filters(node[0], filter):
+                    filtered_nodes_i.extend(node[1]['nodes'])
             filtered_nodes.append(filtered_nodes_i)
         return filtered_nodes
 
