@@ -1,151 +1,188 @@
-from lark import Lark, ast_utils, Transformer, v_args
+from lark import Lark, ast_utils, Transformer, v_args, ParseTree
 from typing import List, Any, Optional, Tuple
 from lark import Tree
 import sys
 from dataclasses import dataclass, fields, is_dataclass
+import typing as t
 
 this_module = sys.modules[__name__]
+
+
 class _Ast(ast_utils.Ast):
     pass
 
+
 @dataclass
 class Library(_Ast):
-    programs: List['Program']
+    programs: List["Program"]
+
 
 @dataclass
 class Program(_Ast):
-    rules: List['_Rule']
+    rules: List["_Rule"]
+
 
 @dataclass
 class DoOperation(_Ast):
-    rule_list: 'RuleList'
+    rule_list: "RuleList"
+
 
 @dataclass
 class RuleList(_Ast):
-    rules: List['_Rule']
+    rules: List["_Rule"]
+
 
 @dataclass
 class _Rule(_Ast):
-    filter_op: '_Filter_Op'
-    transforms: 'Transforms'
+    filter_op: "_Filter_Op"
+    transforms: "Transforms"
+
 
 @dataclass
 class Transforms(_Ast, ast_utils.AsList):
-    transforms: List['Transform']
+    transforms: List["Transform"]
+
 
 @dataclass
 class _Filter_Op(_Ast):
     pass
 
+
 class Transform(_Ast):
     pass
+
 
 @dataclass
 class Color(_Ast):
     value: str
 
+
 @dataclass
 class Direction(_Ast):
     value: str
+
 
 @dataclass
 class Size(_Ast):
     value: str
 
+
 @dataclass
 class Degree(_Ast):
     value: str
+
 
 @dataclass
 class Symmetry_Axis(_Ast):
     value: str
 
+
 @dataclass
 class Rotation_Angle(_Ast):
     value: str
+
 
 @dataclass
 class UpdateColor(Transform):
     color: Color
 
+
 @dataclass
 class MoveNode(Transform):
     direction: Direction
+
 
 @dataclass
 class ExtendNode(Transform):
     direction: Direction
     overlap: Optional[bool] = False
 
+
 @dataclass
 class MoveNodeMax(Transform):
     direction: Direction
+
 
 @dataclass
 class AddBorder(Transform):
     color: Color
 
+
 @dataclass
 class HollowRectangle(Transform):
     color: Color
+
 
 @dataclass
 class FillRectangle(Transform):
     color: Color
     overlap: bool
 
-@dataclass 
+
+@dataclass
 class Flip(Transform):
     symmetry_axis: Symmetry_Axis
+
 
 @dataclass
 class RotateNode(Transform):
     rotation_angle: Rotation_Angle
 
+
 @dataclass
 class Mirror(Transform):
     axis_point: Tuple[Optional[int], Optional[int]]
+
 
 @dataclass
 class Not(_Filter_Op):
     not_filter: _Filter_Op
 
+
 @dataclass
 class And:
     filters: List[_Filter_Op]
+
 
 @dataclass
 class Or:
     filters: List[_Filter_Op]
 
+
 @dataclass
 class FilterByColor(_Filter_Op):
     color: Color
+
 
 @dataclass
 class FilterByNeighborColor(_Filter_Op):
     color: Color
 
+
 @dataclass
 class FilterBySize(_Filter_Op):
     size: Size
+
 
 @dataclass
 class FilterByNeighborSize(_Filter_Op):
     size: Size
 
+
 @dataclass
 class FilterByDegree(_Filter_Op):
     degree: Degree
+
 
 @dataclass
 class FilterByNeighborDegree(_Filter_Op):
     degree: Degree
 
+
 class ToAst(Transformer):
     def do_operation(self, rule_list):
         return DoOperation(rule_list=rule_list)
-    
+
     @v_args(inline=True)
     def rule_list(self, *rules):
         return RuleList(rules=list(rules))
@@ -182,7 +219,7 @@ class ToAst(Transformer):
         x = None if axis1 == "null" else int(axis1)
         y = None if axis2 == "null" else int(axis2)
         return Mirror(axis_point=(x, y))
-    
+
     @v_args(inline=True)
     def bool_expr(self, value):
         return bool(value)
@@ -202,7 +239,7 @@ class ToAst(Transformer):
         elif operator[0] == "add_border":
             return AddBorder(color=operator[1])
         elif operator[0] == "fill_rectangle":
-            overlap = self.bool_expr(operator[2]) 
+            overlap = self.bool_expr(operator[2])
             return FillRectangle(color=operator[1], overlap=operator[2])
         elif operator[0] == "hollow_rectangle":
             return HollowRectangle(color=operator[1])
@@ -237,13 +274,14 @@ class ToAst(Transformer):
         else:
             raise ValueError(f"Unknown operation: {operator}")
 
+
 def print_ast_class_names(node, indent=0):
-    indent_str = '    ' * indent
+    indent_str = "    " * indent
     if is_dataclass(node):
         # Print class name
-        print(f"{indent_str}{node.__class__.__name__}", end='')
-        if hasattr(node, 'value'):
-            print(f"(value='{node.value}')", end='')
+        print(f"{indent_str}{node.__class__.__name__}", end="")
+        if hasattr(node, "value"):
+            print(f"(value='{node.value}')", end="")
         for field in fields(node):
             field_value = getattr(node, field.name)
             if isinstance(field_value, _Ast) or isinstance(field_value, list):
@@ -252,11 +290,27 @@ def print_ast_class_names(node, indent=0):
         for item in node:
             print_ast_class_names(item, indent + 1)
 
-if __name__ == '__main__':
-    with open("dsl/dsl.lark", "r") as f:
-        arga_dsl_grammar = f.read()
-    ast_parser = Lark(arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst())
+
+GRAMMAR: t.Optional[Lark] = None
+
+
+def __ensure_grammar() -> Lark:
+    global GRAMMAR
+    if GRAMMAR is None:
+        with open("dsl/dsl.lark", "r") as f:
+            arga_dsl_grammar = f.read()
+        GRAMMAR = Lark(
+            arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst()
+        )
+    return GRAMMAR
+
+
+def parse(program: str) -> ParseTree:
+    return __ensure_grammar().parse(program)
+
+
+if __name__ == "__main__":
     with open("dsl/gens/gens_20231120/08ed6ac7_correct.txt", "r") as f:
         program = f.read()
-    ast_program = ast_parser.parse(program)
+    ast_program = parse(program)
     print(ast_program)
