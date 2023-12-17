@@ -214,9 +214,15 @@ class Task:
                                                                output in self.train_output]
         self.get_static_inserted_objects()
         self.get_static_object_attributes(self.abstraction)
-        [abstracted_graph.apply_transform(transform)
-         for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
-        
+        children = transform.childTypes
+        if len(children) > 0 and children[0] == Types.TRANSFORMS:
+            transformations = [transform.children[0], transform.children[1]]
+        else:
+            transformations = [transform]
+        if transformations is not None:
+            for abstracted_graph in self.input_abstracted_graphs_original[abstraction]:
+                for transformation in transformations:
+                    abstracted_graph.apply_transform(transformation)
         return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
 
     def apply_rule(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction, save_images=False):
