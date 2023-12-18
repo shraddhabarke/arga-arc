@@ -26,7 +26,6 @@ def build_prompt(task_id):
         prompt.append(f.read()) 
     with open(path_dict["task_preamble"], "r") as f:
         prompt.append(f.read())
-    # data.print_task_description(task_id)
     prompt.append(data.task_description(task_id, color_map="char"))
     with open(path_dict["query"], "r") as f:
         prompt.append(f.read())

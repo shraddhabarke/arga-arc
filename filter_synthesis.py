@@ -41,8 +41,8 @@ class FSizeEnumerator:
         self.rootMaker = self.currIter.next()
         if self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
             self.childrenIterator = LookaheadIterator(iter([None]))
-        elif 1 < self.costLevel: # TODO: update this later for the cost-based enumeration
-            childrenCost = self.costLevel - 1
+        elif self.rootMaker.arity > 0: # TODO: Cost-based enumeration
+            childrenCost = self.costLevel - self.rootMaker.default_size
             self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
         else:
             self.childrenIterator = LookaheadIterator(iter([]))
@@ -59,14 +59,13 @@ class FSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 5:
+            if self.costLevel > 50:
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
                 all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
                     prog = self.rootMaker.execute(self.task, children)
-                    print(prog.code, prog.values)
                     if self.oeManager.is_frepresentative(prog) or children is None:
                         res = prog
             elif self.currIter.hasNext():
