@@ -1,0 +1,179 @@
+library: "(" program* ")"
+
+// Rules are executed one after another, in the order they appear.
+// There could be no rules, in which case the program does nothing.
+program: "(" KW_DO rule* ")"
+
+// A rule first selects the subset of objects for which `filter` is true,
+// then applies the transformations in `transform_list`, one after another,
+// to the selected objects.
+rule: "(" KW_RULE params filter transform_list ")"
+
+params: "(" KW_WITH var_names ")"
+
+var_names: "(" VAR_THIS VAR* ")"
+
+// A filter is a predicate over the objects in the grid.
+// It can be a primitive filter operation, or a boolean expression using the 
+// `and`, `or`, and `not` connectives.
+filter: "(" KW_FILTER bool_expr ")"
+
+bool_expr: bool_const
+         | "(" OP_AND bool_expr bool_expr+ ")"
+         | "(" OP_OR bool_expr bool_expr+ ")"
+         | "(" OP_NOT bool_expr ")"
+         | "(" OP_EQ color_expr color_expr ")"
+         | "(" OP_EQ int_expr int_expr ")"
+         | "(" OP_EQ VAR VAR")"
+         | "(" BOOL_PRIM_CAN_SEE VAR VAR bool_prim_can_see_params* ")"
+
+bool_prim_can_see_params: "n=" int_const
+                        | "dir=" can_see_dir
+
+can_see_dir: "all" | "horizontal" | "vertical" 
+
+int_expr: int_const
+        | "(" INT_PRIM_SIZE VAR ")"
+        | "(" INT_PRIM_DEGREE VAR ")"
+
+color_expr: color_const
+          | "(" COL_PRIM_COLOR VAR ")"
+
+dir_expr: DIRECTION
+        | "(" DIR_PRIM_TO VAR VAR ")"
+
+// Transforms are applied one after another, in the order they appear.
+transform_list: "(" KW_APPLY transform+ ")"
+
+// A single transforma is applied to all the selected objects simultaneously,
+// so we can think of the transformation as applying to a single object.
+           // change the color of the object to the given color.
+transform: "(" TR_RECOLOR VAR_THIS color_expr ")"
+         | "(" TR_PUSH VAR_THIS dir_expr tr_push_params* ")"
+           // move the object in the given direction.
+         | "(" TR_ROTATE_NODE ROT_ANGLE ")"
+           // color the exterior pixels of the object with the given color.
+         | "(" TR_ADD_BORDER color_const ")"
+           // color the interior of a hollow rectangle with the given color.
+         | "(" TR_FILL_RECTANGLE color_const ")"
+           // color the interior of a solid rectangle with the given color.
+         | "(" TR_HOLLOW_RECTANGLE color_const ")"
+         | "(" TR_MIRROR mirror_axis ")"
+         | "(" TR_FLIP SYMM_AXIS ")"
+
+                // number of steps to take in the given direction
+                // if n = 0, then move 
+tr_push_params: "n=" int_const
+              | "overlap=" bool_const
+              | "trail=" tr_push_trail_opts
+tr_push_trail_opts: "no" | "keep" | "leave" | "reset"
+ 
+int_const: INT
+
+             // black (this the letter o, not the number 0)
+color_const: "O"
+             // blue
+           | "B"
+             // red
+           | "R"
+             // green
+           | "G"
+             // yellow
+           | "Y"
+             // grey
+           | "X"
+             // fuchsia
+           | "F"
+             // orange
+           | "A"
+             // cyan
+           | "C"
+             // brown
+           | "W"
+
+bool_const: "T"
+          | "F"
+
+           // reflection over x = c
+mirror_axis: "(" int_const KW_NULL ")"
+           // reflection over y = c
+           | "(" KW_NULL int_const ")"
+           // reflection over point (x, y)
+           | "(" int_const int_const ")"
+
+ORD_STAT: "MIN"
+        | "MAX"
+        
+      // Most popular value
+STAT: "MODE"
+      // Least popular value
+    | "ANTIMODE"
+
+DIRECTION: "U"
+         | "D"
+         | "L"
+         | "R"
+         | "UL"
+         | "UR"
+         | "DL"
+         | "DR"
+
+// The angle of clockwise rotation, in degrees.
+ROT_ANGLE: "0" 
+         | "90" 
+         | "180" 
+         | "270"
+
+         // Horizontal
+SYMM_AXIS: "H" 
+         // Vertical
+         | "Y"
+         // Diagonal
+         | "D"
+         // Anti-diagonal
+         | "AD"
+
+
+KW_NULL: "null"
+KW_DO: "do"
+KW_RULE: "rule"
+KW_APPLY: "apply"
+KW_FILTER: "filter"
+KW_WITH: "with"
+
+OP_AND: "and"
+OP_OR: "or"
+OP_NOT: "not"
+OP_EQ: "=="
+
+BOOL_PRIM_CAN_SEE: "can_see"
+
+INT_PRIM_SIZE: "size"
+INT_PRIM_DEGREE: "degree"
+
+COL_PRIM_COLOR: "color"
+
+DIR_PRIM_TO: "to"
+
+TR_RECOLOR: "recolor"
+TR_PUSH: "push"
+TR_ROTATE_NODE: "rotate_node"
+TR_ADD_BORDER: "add_border"
+TR_FILL_RECTANGLE: "fill_rectangle"
+TR_HOLLOW_RECTANGLE: "hollow_rectangle"
+TR_MIRROR: "mirror"
+TR_FLIP: "flip"
+TR_INSERT: "insert"
+
+VAR: VAR_THIS
+    | VAR_OTHER
+VAR_THIS: "this"
+VAR_OTHER: LCASE_LETTER+
+
+COMMENT: /\s*/ ";;" /[^\n]/*
+
+%import common.WS
+%import common.LCASE_LETTER
+%import common.INT
+%ignore WS
+%ignore COMMENT
