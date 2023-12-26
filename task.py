@@ -271,6 +271,7 @@ class Task:
         if not isinstance(transformations, list):
             transformations = [transformations]
         transformed_values = []
+        #TODO: some issue here for na, mcccg
         for train_input, input_abstracted_graph in zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction]):
             for transformation in transformations:
                 input_abstracted_graph.apply_all(filter, transformation)

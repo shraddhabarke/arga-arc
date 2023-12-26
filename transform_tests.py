@@ -6,7 +6,7 @@ class TestGrammarRepresentation(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.taskNumber = "bb43febb"
-        cls.task = Task("dataset/" + cls.taskNumber + ".json")
+        cls.task = Task("ARC/data/training/" + cls.taskNumber + ".json")
         cls.task.abstraction = "nbccg"
         cls.task.input_abstracted_graphs_original[cls.task.abstraction] = [
             getattr(input, Image.abstraction_ops[cls.task.abstraction])() for
@@ -22,7 +22,41 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(color_instance.size, 1)
         self.assertEqual(color_instance.children, [])
         self.assertEqual(color_instance.values, [])
-        
+
+    def test_variable_initialization(self):
+        color_variable = VariableASTNode(name="colorVar", node_type=Types.COLOR)
+        self.assertEqual(color_variable.name, "colorVar")
+        self.assertEqual(color_variable.nodeType, Types.COLOR)
+        self.assertEqual(color_variable.code, "Variable(colorVar)")
+        self.assertEqual(color_variable.size, 1)
+
+    def test_variable_initialization(self):
+        var_node = VariableASTNode(name="colorVar", node_type=Types.COLOR, value=Color.black)
+        self.assertEqual(var_node.name, "colorVar")
+        self.assertEqual(var_node.nodeType, Types.VARIABLE)
+        self.assertEqual(var_node.code, "Variable(colorVar)")
+        self.assertEqual(var_node.size, 1)
+        self.assertEqual(var_node.children, [Color.black])
+        self.assertEqual(var_node.childTypes, [Types.COLOR])
+        self.assertEqual(var_node.values, [])
+        applied_node = var_node.apply(None, [Color.black], None)
+        self.assertIsInstance(applied_node, VariableASTNode)
+        self.assertEqual(applied_node.children[0], Color.black)
+        self.assertEqual(applied_node.childTypes, [Types.COLOR])
+
+    def test_update_color_mod(self):
+        constant_color = Color.blue
+        variable_color = VariableASTNode("X", Types.COLOR, Color.blue)
+        update_color_const = UpdateColor(constant_color)
+        self.assertEqual(update_color_const.children[0], constant_color)
+        self.assertEqual(update_color_const.code, "updateColor(Color.blue)")
+        update_color_var = UpdateColor(variable_color)
+        node_const = constant_color.apply(self.task, constant_color.children, self.filter)
+        node_var = variable_color.apply(self.task, variable_color.children, self.filter)
+        self.assertEqual(update_color_var.children[0], Color.blue)
+        self.assertEqual(update_color_var.code, "updateColor(Variable(X))")
+        self.assertEqual(node_const.values, node_var.values)
+
     def test_direction_enum(self):
         direction_instance = Dir.UP
         self.assertEqual(direction_instance.nodeType, Types.DIRECTION)
@@ -54,7 +88,6 @@ class TestGrammarRepresentation(unittest.TestCase):
         self.assertEqual(new_instance.code, "updateColor(Color.blue)")
         self.assertEqual(new_instance.size, 2)
         self.assertEqual(new_instance.children, [Color.blue])
-        #self.assertEqual(new_instance.values, [[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [1, 1, 1, 1, 1, 0, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 1, 1, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 0], [0, 0, 0, 0, 1, 1, 1, 1, 1, 0]]])
 
     def test_add_border(self):
         add_border_instance = AddBorder(Color.red)

@@ -10,6 +10,7 @@ class Types(Enum):
     MIRROR_AXIS = "Mirror_Axis"
     SYMMETRY_AXIS = "Symmetry_Axis"
     NO_OP = "No_Op"
+    VARIABLE = "Variable"
 
 class TransformASTNode:
     def __init__(self, children = None):
@@ -18,6 +19,26 @@ class TransformASTNode:
         self.children: List[TransformASTNode] = children if children else []
         self.childTypes: List[Types] = []
         self.nodeType: Types
+
+class VariableASTNode(TransformASTNode):
+    nodeType = Types.VARIABLE
+    def __init__(self, name, node_type, value: TransformASTNode):
+        super().__init__()
+        self.name = name                # to distinguish between different variables
+        self.nodeType = Types.VARIABLE
+        self.code = f"Variable({self.name})"
+        self.size = 1
+        self.children = [value]
+        self.childTypes = [node_type]
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    def apply(self, task, children, filter):
+        return self
 
 class Color(TransformASTNode, Enum):
     black = "O"
@@ -235,12 +256,18 @@ class UpdateColor(Transforms):
     nodeType = Types.TRANSFORMS
     childTypes = [Types.COLOR]
     default_size = 1
-    def __init__(self, color: Color):
+
+    def __init__(self, color_or_variable):
         super().__init__()
-        self.children = [color]
-        self.size = self.default_size + color.size
-        self.code = f"updateColor({color.code})"
-        self.childTypes = [Types.COLOR]
+        if color_or_variable.nodeType == Types.VARIABLE and color_or_variable.childTypes[0] == Types.COLOR:
+            self.children = color_or_variable.children  # Use the children of the variable node
+            self.childTypes = [Types.VARIABLE]
+        else:
+            self.children = [color_or_variable]
+            self.childTypes = [Types.COLOR]
+
+        self.size = self.default_size + sum(child.size for child in self.children)
+        self.code = f"updateColor({color_or_variable.code})"
 
     @classmethod
     def apply(cls, task, children, filter):
