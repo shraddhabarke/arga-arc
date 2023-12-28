@@ -20,15 +20,15 @@ class TransformASTNode:
         self.childTypes: List[Types] = []
         self.nodeType: Types
 
-class VariableASTNode(TransformASTNode):
+class Variable(TransformASTNode):
     nodeType = Types.VARIABLE
-    def __init__(self, name, node_type, value: TransformASTNode):
+    def __init__(self, name, node_type):
         super().__init__()
-        self.name = name                # to distinguish between different variables
+        self.name = name       # to distinguish between different variables
         self.nodeType = Types.VARIABLE
         self.code = f"Variable({self.name})"
         self.size = 1
-        self.children = [value]
+        self.children = None
         self.childTypes = [node_type]
         self.values = []
 
@@ -224,10 +224,15 @@ class NoOp(TransformASTNode):
             self.values = []
             self.initialized = True
 
+    @classmethod
     def apply(self, task, children=None, filter=None):
-        self.values = task.transform_values(filter, None)
+        original_graph = task.input_abstracted_graphs_original[task.abstraction]
+        self.code = "NoOp"
+        self.size = 1
+        self.values = [{node: data['color'] for node, data in task.train_input[iter].undo_abstraction(original_graph[iter]).graph.nodes(data=True)} 
+                        for iter in range(len(task.input_abstracted_graphs_original[task.abstraction]))]
         return self
-    
+
     @classmethod
     def get_all_values(cls):
         return [cls._instance or cls()]
@@ -256,23 +261,24 @@ class UpdateColor(Transforms):
     nodeType = Types.TRANSFORMS
     childTypes = [Types.COLOR]
     default_size = 1
-
     def __init__(self, color_or_variable):
         super().__init__()
         if color_or_variable.nodeType == Types.VARIABLE and color_or_variable.childTypes[0] == Types.COLOR:
-            self.children = color_or_variable.children  # Use the children of the variable node
+            self.children = [color_or_variable]
             self.childTypes = [Types.VARIABLE]
         else:
             self.children = [color_or_variable]
             self.childTypes = [Types.COLOR]
-
         self.size = self.default_size + sum(child.size for child in self.children)
         self.code = f"updateColor({color_or_variable.code})"
 
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
-        values = task.transform_values(filter, instance)
+        if children[0].nodeType == Types.VARIABLE:
+            values = task.var_transform_values(filter, instance)
+        else:
+            values = task.transform_values(filter, instance)
         instance.values = values
         return instance
 

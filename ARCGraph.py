@@ -50,7 +50,10 @@ class ARCGraph:
         elif color == "least":
             color = self.least_common_color
         color_map = {"O": 0, "B": 1, "R": 2, "G": 3, "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
-        self.graph.nodes[node]["color"] = color_map[color]
+        if not isinstance(color, int):
+            self.graph.nodes[node]["color"] = color_map[color]
+        else:
+            self.graph.nodes[node]["color"] = color
         return self
 
     def MoveNode(self, node, direction: Dir):
@@ -602,10 +605,21 @@ class ARCGraph:
         2. apply param binding to the filtered nodes to retrieve parameters for the transformation
         3. apply transformation to the nodes
         """
-        transformed_nodes, all_nodes = {}, {}
+        transformed_nodes = {}
         for node in self.graph.nodes():
             if self.apply_filters(node, filter):
                 transformed_nodes[node] = [child.value for child in transformation.children]
+        for node, params in transformed_nodes.items():
+            self.apply_transform_inner(node, transformation, params)
+
+        # update the edges in the abstracted graph to reflect the changes
+        self.update_abstracted_graph(list(transformed_nodes.keys()))
+
+    def var_apply_all(self, cur_colors: list, filter: FilterASTNode, transformation: TransformASTNode):
+        transformed_nodes = {}
+        for node, color in zip(self.graph.nodes(), cur_colors):
+            if self.apply_filters(node, filter):
+                transformed_nodes[node] = [color]
         for node, params in transformed_nodes.items():
             self.apply_transform_inner(node, transformation, params)
 
@@ -754,7 +768,6 @@ class ARCGraph:
         width, height = self.image.image_size
         reconstructed_graph = nx.grid_2d_graph(height, width)
         nx.set_node_attributes(reconstructed_graph, self.image.background_color, "color")
-
         if self.abstraction in self.image.multicolor_abstractions:
             for component, data in self.graph.nodes(data=True):
                 for i, node in enumerate(data["nodes"]):

@@ -20,7 +20,8 @@ class ValuesManager(OEValuesManager):
         return ';'.join(','.join(str(item) for item in sublist) for sublist in values)
 
     def is_representative(self, program: Union[FilterASTNode, TransformASTNode]) -> bool:
-        results = '|'.join(['-'.join(map(str, inner_list)) for inner_list in program.values])
+        #results = '|'.join(['-'.join(map(str, inner_list)) for inner_list in program.values])
+        results = '|'.join([';'.join([f"{key}-{value}" for key, value in sorted(inner_dict.items())]) for inner_dict in program.values])
         if results == "":
             return False
         if results in self.class_values:
