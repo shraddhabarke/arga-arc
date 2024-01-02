@@ -5,6 +5,7 @@ from filters import *
 from transform import *
 import json
 
+
 class OEValuesManager:
     def is_representative(self, program: Union[FilterASTNode, TransformASTNode]) -> bool:
         raise NotImplementedError
@@ -12,16 +13,18 @@ class OEValuesManager:
     def clear(self) -> None:
         raise NotImplementedError
 
+
 class ValuesManager(OEValuesManager):
     def __init__(self):
         self.class_values = set()
 
-    def _serialize(self, values):
-        return ';'.join(','.join(str(item) for item in sublist) for sublist in values)
-
-    def is_representative(self, program: Union[FilterASTNode, TransformASTNode]) -> bool:
-        #results = '|'.join(['-'.join(map(str, inner_list)) for inner_list in program.values])
-        results = '|'.join([';'.join([f"{key}-{value}" for key, value in sorted(inner_dict.items())]) for inner_dict in program.values])
+    def is_representative(self, values) -> bool:
+        def process_element(element):
+            if isinstance(element, dict):
+                return '-'.join([f"({k[0]}, {k[1]})-{v}" for k, v in sorted(element.items())])
+            elif isinstance(element, tuple):
+                return ' | '.join(process_element(d) for d in element)
+        results = ' | '.join(process_element(e) for e in values)
         if results == "":
             return False
         if results in self.class_values:
@@ -29,7 +32,7 @@ class ValuesManager(OEValuesManager):
 
         self.class_values.add(results)
         return True
-    
+
     def is_frepresentative(self, program: Union[FilterASTNode, TransformASTNode]) -> bool:
         results = tuple(tuple(inner_list) for inner_list in program.values)
         if results in self.class_values:

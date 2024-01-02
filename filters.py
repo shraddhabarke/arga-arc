@@ -1,16 +1,17 @@
 from enum import Enum
 from typing import Union, List, Dict
-import typing
+
 
 class FilterTypes(Enum):
     FILTERS = "Filters"
-    #FILTER_OPS = "Filter_Ops"
+    # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
     SIZE = "Size"
     DEGREE = "Degree"
 
+
 class FilterASTNode:
-    def __init__(self, children = None):
+    def __init__(self, children=None):
         self.nodeType: FilterTypes
         self.code: str = self.__class__.__name__
         self.size: int = 1
@@ -18,8 +19,10 @@ class FilterASTNode:
         self.childTypes: List[FilterTypes] = []
         self.values = None
 
+
 class SizeValue:
     arity = 0
+
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.SIZE
@@ -31,8 +34,10 @@ class SizeValue:
     def execute(cls, task, children=None):
         return cls
 
+
 class DegreeValue:
     arity = 0
+
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.DEGREE
@@ -43,6 +48,7 @@ class DegreeValue:
 
     def execute(cls, task, children=None):
         return cls
+
 
 class Size(FilterASTNode):
     _all_values = set()
@@ -57,9 +63,11 @@ class Size(FilterASTNode):
     def get_all_values(cls):
         return list(cls._enum_members)
 
+
 class Degree(FilterASTNode):
     _all_values = set()
     arity = 0
+
     def __new__(cls, enum_value):
         instance = DegreeValue(enum_value)
         cls._all_values.add(instance)
@@ -69,14 +77,17 @@ class Degree(FilterASTNode):
     def get_all_values(cls):
         return list(cls._enum_members)
 
+
 def setup_size_and_degree_based_on_task(task):
     task_sizes = [w for w in task.object_sizes[task.abstraction]]
     _size_additional = {f'{item}': int(item) for item in task_sizes}
-    SizeEnum = Enum("SizeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_size_additional})
+    SizeEnum = Enum(
+        "SizeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_size_additional})
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
     _degree_additional = {f'{item}': int(item) for item in task_degrees}
-    DegreeEnum = Enum("DegreeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_degree_additional})
+    DegreeEnum = Enum(
+        "DegreeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_degree_additional})
     _degrees, _sizes = [], []
 
     for name, member in SizeEnum.__members__.items():
@@ -85,9 +96,10 @@ def setup_size_and_degree_based_on_task(task):
     for name, member in DegreeEnum.__members__.items():
         setattr(Degree, name, Degree(member))
         _degrees.append(Degree(member))
-    
+
     Size._enum_members = _sizes
     Degree._enum_members = _degrees
+
 
 class FColor(FilterASTNode, Enum):
     black = "O"
@@ -95,11 +107,11 @@ class FColor(FilterASTNode, Enum):
     red = "R"
     green = "G"
     yellow = "Y"
-    grey =  "X"
-    fuchsia =  "F"
-    orange =  "A"
-    cyan =  "C"
-    brown =  "W"
+    grey = "X"
+    fuchsia = "F"
+    orange = "A"
+    cyan = "C"
+    brown = "W"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.COLOR)
@@ -121,10 +133,12 @@ class FColor(FilterASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+
 class Filters(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
+
     def __init__(self, filters: Union['And', 'Or', 'Filters'] = None):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filters] if filters else []
@@ -132,11 +146,13 @@ class Filters(FilterASTNode):
         self.size = filters.size if filters else 0
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
+
 class And(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
     default_size = 1
+
     def __init__(self, filter1: Filters, filter2: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter1, filter2]
@@ -148,38 +164,44 @@ class And(FilterASTNode):
     def execute(cls, task, children):
         values1 = children[0].values
         values2 = children[1].values
-        intersected_values = [list(set(v1).intersection(set(v2))) if set(v1).intersection(set(v2)) else [] for v1, v2 in zip(values1, values2)]
+        intersected_values = [list(set(v1).intersection(set(v2))) if set(
+            v1).intersection(set(v2)) else [] for v1, v2 in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
         new_instance.values = intersected_values
         return new_instance
+
 
 class Or(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
     default_size = 1
+
     def __init__(self, filter1: Filters, filter2: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter1, filter2]
         self.code = f"Or({filter1.code}, {filter2.code})"
         self.size = self.default_size + filter1.size + filter2.size
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
-    
+
     @classmethod
     def execute(cls, task, children):
         values1 = children[0].values
         values2 = children[1].values
-        unioned_values = [list(set(v1).union(set(v2))) for v1, v2 in zip(values1, values2)]
+        unioned_values = [list(set(v1).union(set(v2)))
+                          for v1, v2 in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
         new_instance.values = unioned_values
 
         return new_instance
+
 
 class Not(FilterASTNode):
     arity = 1
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS]
     default_size = 1
+
     def __init__(self, filter: Filters):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filter]
@@ -197,15 +219,18 @@ class Not(FilterASTNode):
             for node, data in input_abstracted_graphs.graph.nodes(data=True):
                 local_data.extend(data['nodes'])
             nodes_with_data.append(local_data)
-        result = [[item for item in sublist1 if item not in sublist2] for sublist1, sublist2 in zip(nodes_with_data, values)]
+        result = [[item for item in sublist1 if item not in sublist2]
+                  for sublist1, sublist2 in zip(nodes_with_data, values)]
         new_instance = cls(children[0])
         new_instance.values = result
         return new_instance
+
 
 class FilterByColor(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
     default_size = 1
+
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
@@ -221,10 +246,12 @@ class FilterByColor(Filters):
         instance.values = values
         return instance
 
+
 class FilterBySize(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
     default_size = 1
+
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
@@ -240,10 +267,12 @@ class FilterBySize(Filters):
         instance.values = values
         return instance
 
+
 class FilterByDegree(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
     default_size = 1
+
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
@@ -259,10 +288,12 @@ class FilterByDegree(Filters):
         instance.values = values
         return instance
 
+
 class FilterByNeighborSize(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
     default_size = 1
+
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
@@ -278,10 +309,12 @@ class FilterByNeighborSize(Filters):
         instance.values = values
         return instance
 
+
 class FilterByNeighborColor(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
     default_size = 1
+
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
@@ -297,10 +330,12 @@ class FilterByNeighborColor(Filters):
         instance.values = values
         return instance
 
+
 class FilterByNeighborDegree(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
     default_size = 1
+
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS

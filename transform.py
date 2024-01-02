@@ -302,7 +302,7 @@ class UpdateColor(Transforms):
 class UpdateColorVar(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.VARIABLE]  # TODO: need to fix this
+    childTypes = [Types.VARIABLE]  # TODO: need to generalize this
     default_size = 1
 
     def __init__(self, color_or_variable):
