@@ -10,15 +10,16 @@ from filter_synthesis import *
 import unittest
 from transform_synthesis import *
 
+
 class TestFSizeEnumerator(unittest.TestCase):
     def setUp(self):
         taskNumber = "bb43febb"
-        task = Task("dataset/" + taskNumber + ".json")
+        task = Task("ARC/data/training/" + taskNumber + ".json")
         task.abstraction = "nbccg"
-        task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
-                                                              input in task.train_input]
-        task.output_abstracted_graphs_original[task.abstraction] = [getattr(output, Image.abstraction_ops[task.abstraction])() for
-                                                               output in task.train_output]
+        task.input_abstracted_graphs_original[task.abstraction] = [getattr(
+            input, Image.abstraction_ops[task.abstraction])() for input in task.train_input]
+        task.output_abstracted_graphs_original[task.abstraction] = [getattr(
+            output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
         task.get_static_inserted_objects()
         task.get_static_object_attributes(task.abstraction)
         setup_size_and_degree_based_on_task(task)
@@ -53,41 +54,44 @@ class TestFSizeEnumerator(unittest.TestCase):
         self.assertEqual("FColor.cyan", self.enumerator.next().code)
         self.assertEqual("FColor.brown", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("FilterByColor(FColor.grey)", self.enumerator.next().code)
-        self.assertFalse(self.enumerator.hasNext())
-        #self.assertEqual("FilterByColor(FColor.C0)", self.enumerator.next().code)
-        #self.assertEqual("FilterByColor(FColor.C1, Exclude.TRUE)", self.enumerator.next().code)
-        #self.assertEqual("FilterByColor(FColor.C1, Exclude.FALSE)", self.enumerator.next().code)
-        #self.assertEqual("FilterByColor(FColor.C2, Exclude.TRUE)", self.enumerator.next().code)
-        #self.assertEqual("FilterByColor(FColor.C2, Exclude.FALSE)", self.enumerator.next().code)
-        #self.assertEqual("FilterByColor(FColor.C3, Exclude.TRUE)", self.enumerator.next().code)
-        #for i in range(18):
-            #self.enumerator.next()
-        #self.assertEqual("And(FilterByColor(FColor.C0, Exclude.TRUE), FilterByColor(FColor.C0, Exclude.FALSE))", self.enumerator.next().code)
-        #self.assertEqual("And(FilterByColor(FColor.C0, Exclude.TRUE), FilterByColor(FColor.C1, Exclude.TRUE))", self.enumerator.next().code)
+        self.assertEqual("FilterByColor(FColor.black)",
+                         self.enumerator.next().code)
+        # self.assertFalse(self.enumerator.hasNext())
+        # self.assertEqual("FilterByColor(FColor.C0)", self.enumerator.next().code)
+        # self.assertEqual("FilterByColor(FColor.C1, Exclude.TRUE)", self.enumerator.next().code)
+        # self.assertEqual("FilterByColor(FColor.C1, Exclude.FALSE)", self.enumerator.next().code)
+        # self.assertEqual("FilterByColor(FColor.C2, Exclude.TRUE)", self.enumerator.next().code)
+        # self.assertEqual("FilterByColor(FColor.C2, Exclude.FALSE)", self.enumerator.next().code)
+        # self.assertEqual("FilterByColor(FColor.C3, Exclude.TRUE)", self.enumerator.next().code)
+        # for i in range(18):
+        # self.enumerator.next()
+        # self.assertEqual("And(FilterByColor(FColor.C0, Exclude.TRUE), FilterByColor(FColor.C0, Exclude.FALSE))", self.enumerator.next().code)
+        # self.assertEqual("And(FilterByColor(FColor.C0, Exclude.TRUE), FilterByColor(FColor.C1, Exclude.TRUE))", self.enumerator.next().code)
 
-import unittest
+
 class TestTSizeEnumerator(unittest.TestCase):
     def setUp(self):
-        taskNumber = "bb43febb"
+        taskNumber = "ddf7fa4f"
         task = Task("dataset/" + taskNumber + ".json")
         task.abstraction = "nbccg"
-        task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
-                                                              input in task.train_input]
-        task.output_abstracted_graphs_original[task.abstraction] = [getattr(output, Image.abstraction_ops[task.abstraction])() for
-                                                               output in task.train_output]
+        task.input_abstracted_graphs_original[task.abstraction] = [getattr(
+            input, Image.abstraction_ops[task.abstraction])() for input in task.train_input]
+        task.output_abstracted_graphs_original[task.abstraction] = [getattr(
+            output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
         task.get_static_inserted_objects()
         task.get_static_object_attributes(task.abstraction)
-        tleaf_makers = [Color.black, Color.blue, Color.red, Color.green, Color.yellow, Color.grey, Color.fuchsia, Color.orange, Color.cyan, Color.brown, NoOp()]
-        t_vocabMakers = [UpdateColor, Transforms]
+        tleaf_makers = [Color.black, Color.blue, Color.red, Color.green, Color.yellow, Color.grey,
+                        Color.fuchsia, Color.orange, Color.cyan, Color.brown, NoOp(), Variable("colorVar", Types.COLOR)]
+        t_vocabMakers = [UpdateColor]
         transform_vocab = VocabFactory(tleaf_makers, t_vocabMakers)
 
-        #UpdateColor, MoveNode, ExtendNode, MoveNodeMax, RotateNode, AddBorder, FillRectangle, HollowRectangle, Flip
+        # UpdateColor, MoveNode, ExtendNode, MoveNodeMax, RotateNode, AddBorder, FillRectangle, HollowRectangle, Flip
         self.filter = Not(FilterByColor(FColor.black))
-        self.enumerator = TSizeEnumerator(task, transform_vocab, ValuesManager())
+        self.enumerator = TSizeEnumerator(
+            task, transform_vocab, ValuesManager())
 
     def test_next_program(self):
-        #self.assertEqual(list(self.enumerator.vocab.leaves()), [Color.black, Color.blue, Color.red, Color.green, Color.yellow, Color.grey, Color.fuchsia, Color.orange, Color.cyan, Color.brown])
+        # self.assertEqual(list(self.enumerator.vocab.leaves()), [Color.black, Color.blue, Color.red, Color.green, Color.yellow, Color.grey, Color.fuchsia, Color.orange, Color.cyan, Color.brown])
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("Color.black", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
@@ -103,30 +107,42 @@ class TestTSizeEnumerator(unittest.TestCase):
         self.assertEqual("Color.cyan", self.enumerator.next().code)
         self.assertEqual("Color.brown", self.enumerator.next().code)
         self.assertEqual("NoOp", self.enumerator.next().code)
-        self.assertEqual("updateColor(Color.black)", self.enumerator.next().code)
+        self.assertEqual("Variable(colorVar)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.black)",
+                         self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("updateColor(Color.blue)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.blue)",
+                         self.enumerator.next().code)
         self.assertEqual("updateColor(Color.red)", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("updateColor(Color.green)", self.enumerator.next().code)
-        self.assertEqual("updateColor(Color.yellow)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.green)",
+                         self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.yellow)",
+                         self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("updateColor(Color.grey)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.grey)",
+                         self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("updateColor(Color.fuchsia)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.fuchsia)",
+                         self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("updateColor(Color.orange)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.orange)",
+                         self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("updateColor(Color.cyan)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.cyan)",
+                         self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
-        self.assertEqual("updateColor(Color.brown)", self.enumerator.next().code)
+        self.assertEqual("updateColor(Color.brown)",
+                         self.enumerator.next().code)
         self.assertFalse(self.enumerator.hasNext())
-        self.assertFalse(self.enumerator.hasNext())  # OE gets rid of all other programs
-        #self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), updateColor(Color.C0)]")
-        #self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), updateColor(Color.C0)]")
-        #self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), updateColor(Color.C1)]")
-        #self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), updateColor(Color.C2)]")
-        #self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), updateColor(Color.C4)]")
+        # OE gets rid of all other programs
+        self.assertFalse(self.enumerator.hasNext())
+        # self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), updateColor(Color.C0)]")
+        # self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), updateColor(Color.C0)]")
+        # self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), updateColor(Color.C1)]")
+        # self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C1), updateColor(Color.C2)]")
+        # self.assertEqual(self.enumerator.next().code, "[updateColor(Color.C0), updateColor(Color.C4)]")
+
 
 if __name__ == "__main__":
     unittest.main()

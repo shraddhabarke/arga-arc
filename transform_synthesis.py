@@ -8,6 +8,7 @@ from VocabMaker import VocabFactory
 from lookaheadIterator import LookaheadIterator
 from childrenIterator import ChildrenIterator
 
+
 class TSizeEnumerator:
     def __init__(self, task: Task, vocab: VocabFactory, oeManager, filterast=None, contexts=[]):
         self.task = task
@@ -22,7 +23,8 @@ class TSizeEnumerator:
         self.currIter = LookaheadIterator(iter(vocab.leaves()))
         self.rootMaker = self.currIter.next()
         self.childrenIterator = LookaheadIterator(iter([None]))
-        self.maxterminals = max([nonleaf.default_size for nonleaf in vocab.nonLeaves()])
+        self.maxterminals = max(
+            [nonleaf.default_size for nonleaf in vocab.nonLeaves()])
 
     def hasNext(self) -> bool:
         if self.nextProgram:
@@ -45,15 +47,17 @@ class TSizeEnumerator:
         if self.rootMaker.nodeType == Types.TRANSFORMS and self.rootMaker.arity == 2:
             self.rootMaker.childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
             childrenCost = self.costLevel - 1
-            self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
+            self.childrenIterator = ChildrenIterator(
+                self.rootMaker.childTypes, childrenCost, self.bank)
 
         elif self.rootMaker.arity == 0 and self.rootMaker.nodeType == Types.TRANSFORMS:
             self.childrenIterator = LookaheadIterator(iter([None]))
         elif self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
             self.childrenIterator = LookaheadIterator(iter([None]))
-        elif self.rootMaker.arity > 0:# TODO: Cost-based enumeration
+        elif self.rootMaker.arity > 0:  # TODO: Cost-based enumeration
             childrenCost = self.costLevel - self.rootMaker.default_size
-            self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
+            self.childrenIterator = ChildrenIterator(
+                self.rootMaker.childTypes, childrenCost, self.bank)
         else:
             self.childrenIterator = LookaheadIterator(iter([]))
         return True
@@ -64,7 +68,6 @@ class TSizeEnumerator:
             self.currIter = LookaheadIterator(iter([Transforms]))
         else:
             self.currIter = LookaheadIterator(iter(self.vocab.nonLeaves()))
-            #print("NonLeaves Considered:", self.currIter)
         for p in self.currLevelProgs:
             self.updateBank(p)
         self.currLevelProgs.clear()
@@ -78,14 +81,14 @@ class TSizeEnumerator:
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
-                all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):                  
-                    prog = self.rootMaker.apply(self.task, children, self.filter)
-                    #print("Program:", prog.code)
+                                                                        all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
+                    prog = self.rootMaker.apply(
+                        self.task, children, self.filter)
                     if children is None:
                         res = prog
-                    elif self.oeManager.is_representative(prog):
+                    elif self.oeManager.is_representative(prog.values):
                         res = prog
-
+                        #print(res.code)
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None
