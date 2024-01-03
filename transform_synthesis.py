@@ -24,7 +24,7 @@ class TSizeEnumerator:
         self.rootMaker = self.currIter.next()
         self.childrenIterator = LookaheadIterator(iter([None]))
         self.maxterminals = max(
-            [nonleaf.default_size for nonleaf in vocab.nonLeaves()])
+            [nonleaf.default_size + nonleaf.arity for nonleaf in vocab.nonLeaves()])
 
     def hasNext(self) -> bool:
         if self.nextProgram:
@@ -44,8 +44,7 @@ class TSizeEnumerator:
         if not self.currIter.hasNext():
             return False
         self.rootMaker = self.currIter.next()
-        if self.rootMaker.nodeType == Types.TRANSFORMS and self.rootMaker.arity == 2:
-            self.rootMaker.childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
+        if self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
             childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(
                 self.rootMaker.childTypes, childrenCost, self.bank)
@@ -76,7 +75,7 @@ class TSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 15:
+            if self.costLevel > 25: # TODO: test transform sequence
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
@@ -88,7 +87,7 @@ class TSizeEnumerator:
                         res = prog
                     elif self.oeManager.is_representative(prog.values):
                         res = prog
-                        #print(res.code)
+                    # print(res.code)
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None
