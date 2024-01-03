@@ -53,10 +53,18 @@ class ARCGraph:
             color = self.least_common_color
         color_map = {"O": 0, "B": 1, "R": 2, "G": 3,
                      "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
-        if not isinstance(color, int):
-            self.graph.nodes[node]["color"] = color_map[color]
+        if self.is_multicolor:
+            if not isinstance(color, int):
+                self.graph.nodes[node]["color"] = [
+                    color_map[color]] * sum(len(data["nodes"]) for node, data in self.graph.nodes(data=True))
+            else:
+                self.graph.nodes[node]["color"] = [
+                    color] * sum(len(data["nodes"]) for node, data in self.graph.nodes(data=True))
         else:
-            self.graph.nodes[node]["color"] = color
+            if not isinstance(color, int):
+                self.graph.nodes[node]["color"] = color_map[color]
+            else:
+                self.graph.nodes[node]["color"] = color
         return self
 
     def UpdateColorVar(self, node, color: Color):
@@ -265,7 +273,17 @@ class ARCGraph:
         new_subnodes = []
         color_map = {"O": 0, "B": 1, "R": 2, "G": 3,
                      "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
-        color = color_map[color]
+        if self.is_multicolor:
+            if not isinstance(color, int):
+                color = [
+                    color_map[color]] * sum(len(data["nodes"]) for node, data in self.graph.nodes(data=True))
+            else:
+                color = [
+                    color] * sum(len(data["nodes"]) for node, data in self.graph.nodes(data=True))
+        else:
+            if not isinstance(color, int):
+                color = color_map[color]
+
         for subnode in self.graph.nodes[node]["nodes"]:
             if subnode[0] in border_y or subnode[1] in border_x:
                 new_subnodes.append(subnode)
