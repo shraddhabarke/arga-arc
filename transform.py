@@ -259,6 +259,7 @@ class Transforms(TransformASTNode):
     nodeType = Types.TRANSFORMS
     arity = 2
     childTypes = [Types.TRANSFORMS, Types.TRANSFORMS]
+    default_size = 1
 
     def __init__(self, transform1: 'Transforms' = None, transform2: 'Transforms' = None):
         super().__init__()
