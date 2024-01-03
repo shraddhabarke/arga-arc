@@ -137,8 +137,8 @@ class Overlap(TransformASTNode, Enum):
 
 
 class Rotation_Angle(TransformASTNode, Enum):
-    CW = "270"
     CCW = "90"
+    CW = "270"
     CW2 = "180"
     nodeType = Types.ROTATION_ANGLE
 
@@ -175,6 +175,7 @@ class Symmetry_Axis(TransformASTNode, Enum):
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = []
+        self.nodeType = Types.SYMMETRY_AXIS
         self.values = []
 
     @classmethod
