@@ -236,7 +236,9 @@ class ARCGraph:
 
         if color == "same":
             color = self.graph.nodes[node]["color"]
-
+        color_map = {"O": 0, "B": 1, "R": 2, "G": 3,
+                     "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
+        color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
         min_x, min_y, max_x, max_y = min(all_x), min(
