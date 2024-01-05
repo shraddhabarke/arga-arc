@@ -67,22 +67,6 @@ class ARCGraph:
                 self.graph.nodes[node]["color"] = color
         return self
 
-    def UpdateColorVar(self, node, color: Color):
-        """
-        update node color to given color
-        """
-        if color == "most":
-            color = self.most_common_color
-        elif color == "least":
-            color = self.least_common_color
-        color_map = {"O": 0, "B": 1, "R": 2, "G": 3,
-                     "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
-        if not isinstance(color, int):
-            self.graph.nodes[node]["color"] = color_map[color]
-        else:
-            self.graph.nodes[node]["color"] = color
-        return self
-
     def MoveNode(self, node, direction: Dir):
         """
         move node by 1 pixel in a given direction
@@ -181,7 +165,7 @@ class ARCGraph:
         """
         mul = 0
         rotate_times = 1
-        if rotation_dir == "270":  # TODO: check
+        if rotation_dir == "270":
             mul = -1
         elif rotation_dir == "90":
             mul = 1
@@ -714,7 +698,12 @@ class ARCGraph:
         apply transformation to a node
         """
         function_name = transformation.__class__.__name__
-        getattr(self, function_name)(node, *args)  # apply transformation
+        try:
+            getattr(self, function_name)(node, *args) # apply transformation
+        except AttributeError:
+            function_name_var = function_name.replace("Var", "")
+            getattr(self, function_name_var)(
+                node, *args)  # apply var transformation
 
     def apply_transform(self, transformation: TransformASTNode):
         """

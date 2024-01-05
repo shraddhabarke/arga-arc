@@ -3,7 +3,6 @@ import os
 from inspect import signature
 from itertools import product
 
-from utils import *
 from image import Image
 from ARCGraph import ARCGraph
 from transform import *
@@ -98,28 +97,6 @@ class Task:
                 self.object_sizes[abstraction].add(size)
             for node, degree in abs_graph.graph.degree():
                 self.object_degrees[abstraction].add(degree)
-
-    def apply_transformation(self, transform: TransformASTNode, abstraction):
-        """
-        apply transformation rule to training images without filtering
-        """
-        self.abstraction = abstraction
-        self.input_abstracted_graphs_original[abstraction] = [getattr(input, Image.abstraction_ops[abstraction])() for
-                                                              input in self.train_input]
-        self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
-                                                               output in self.train_output]
-        self.get_static_inserted_objects()
-        self.get_static_object_attributes(self.abstraction)
-        children = transform.childTypes
-        if len(children) > 0 and children[0] == Types.TRANSFORMS:
-            transformations = [transform.children[0], transform.children[1]]
-        else:
-            transformations = [transform]
-        if transformations is not None:
-            for abstracted_graph in self.input_abstracted_graphs_original[abstraction]:
-                for transformation in transformations:
-                    abstracted_graph.apply_transform(transformation)
-        return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
 
     def output_matches(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction):
         """
