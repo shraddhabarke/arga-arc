@@ -26,7 +26,7 @@ class TransformASTNode:
 class Variable(TransformASTNode):
     nodeType = Types.VARIABLE
 
-    def __init__(self, name, node_type):
+    def __init__(self, name):
         super().__init__()
         self.name = name       # to distinguish between different variables
         self.nodeType = Types.VARIABLE
@@ -285,13 +285,13 @@ class UpdateColor(Transforms):
     childTypes = [Types.COLOR]
     default_size = 1
 
-    def __init__(self, color_or_variable):
+    def __init__(self, color: Color):
         super().__init__()
-        self.children = [color_or_variable]
+        self.children = [color]
         self.childTypes = [Types.COLOR]
         self.size = self.default_size + \
             sum(child.size for child in self.children)
-        self.code = f"updateColor({color_or_variable.code})"
+        self.code = f"updateColor({color.code})"
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -307,13 +307,13 @@ class UpdateColorVar(Transforms):
     childTypes = [Types.VARIABLE]  # TODO: need to generalize this
     default_size = 1
 
-    def __init__(self, color_or_variable):
+    def __init__(self, variable: Variable):
         super().__init__()
-        self.children = [color_or_variable]
+        self.children = [variable]
         self.childTypes = [Types.VARIABLE]
         self.size = self.default_size + \
             sum(child.size for child in self.children)
-        self.code = f"updateColorVar({color_or_variable.code})"
+        self.code = f"updateColorVar({variable.code})"
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -367,6 +367,28 @@ class ExtendNode(Transforms):
         return instance
 
 
+class ExtendNodeVar(Transforms):
+    arity = 2
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.VARIABLE, Types.OVERLAP]
+    default_size = 1
+
+    def __init__(self, dir: Variable, overlap: Overlap):
+        super().__init__()
+        self.nodeType = Types.TRANSFORMS
+        self.children = [dir, overlap]
+        self.size = self.default_size + overlap.size + dir.size
+        self.code = f"extendNodeVar({dir.code}, {overlap.code})"
+        self.childTypes = [Types.VARIABLE, Types.OVERLAP]
+
+    @classmethod
+    def apply(cls, task, children, filter):
+        instance = cls(children[0], children[1])
+        values = task.transform_values(filter, instance) # TODO
+        instance.values = values
+        return instance
+
+
 class MoveNodeMax(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
@@ -385,6 +407,28 @@ class MoveNodeMax(Transforms):
     def apply(cls, task, children, filter):
         instance = cls(children[0])
         values = task.transform_values(filter, instance)
+        instance.values = values
+        return instance
+
+
+class MoveNodeMaxVar(Transforms):
+    arity = 1
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.VARIABLE]
+    default_size = 1
+
+    def __init__(self, dirvar: Dir):
+        super().__init__()
+        self.nodeType = Types.TRANSFORMS
+        self.children = [dirvar]
+        self.size = self.default_size + dirvar.size
+        self.code = f"moveNodeMaxVar({dirvar.code})"
+        self.childTypes = [Types.VARIABLE]
+
+    @classmethod
+    def apply(cls, task, children, filter):
+        instance = cls(children[0])
+        values = task.transform_values(filter, instance)  # TODO
         instance.values = values
         return instance
 
