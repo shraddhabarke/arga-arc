@@ -4,6 +4,7 @@ from lark import Tree
 import sys
 from dataclasses import dataclass, fields, is_dataclass
 import typing as t
+from config import CONFIG
 
 this_module = sys.modules[__name__]
 
@@ -207,6 +208,10 @@ class ToAst(Transformer):
         return Size(value=str(size_token))
 
     @v_args(inline=True)
+    def degree(self, degree_token):
+        return Degree(value=str(degree_token))
+
+    @v_args(inline=True)
     def symmetry_axis(self, axis_token):
         return Symmetry_Axis(value=str(axis_token))
 
@@ -226,45 +231,46 @@ class ToAst(Transformer):
 
     def transform(self, operator):
         if operator[0] == "update_color":
-            return UpdateColor(color=operator[1])
+            return UpdateColor(color=self.color(operator[1]))
         elif operator[0] == "move_node":
-            return MoveNode(direction=operator[1])
+            return MoveNode(direction=self.direction(operator[1]))
         elif operator[0] == "extend_node":
             overlap = False
             if len(operator) == 3:
                 overlap = self.bool_expr(operator[2])
-            return ExtendNode(direction=operator[1], overlap=overlap)
+            return ExtendNode(direction=self.direction(operator[1]), overlap=overlap)
         elif operator[0] == "move_node_max":
-            return MoveNodeMax(direction=operator[1])
+            return MoveNodeMax(direction=self.direction(operator[1]))
         elif operator[0] == "add_border":
-            return AddBorder(color=operator[1])
+            return AddBorder(color=self.color(operator[1]))
         elif operator[0] == "fill_rectangle":
             overlap = self.bool_expr(operator[2])
-            return FillRectangle(color=operator[1], overlap=operator[2])
+            return FillRectangle(color=self.color(operator[1]), overlap=operator[2])
         elif operator[0] == "hollow_rectangle":
-            return HollowRectangle(color=operator[1])
+            return HollowRectangle(color=self.color(operator[1]))
         elif operator[0] == "rotate_node":
-            return RotateNode(rotation_angle=operator[1])
+            return RotateNode(rotation_angle=self.rotation_angle(operator[1]))
         elif operator[0] == "mirror":
+            # TODO: not sure how to fix this transformation
             return Mirror(axis_point=operator[1])
         elif operator[0] == "flip":
-            return Flip(symmetry_axis=operator[1])
+            return Flip(symmetry_axis=self.symmetry_axis(operator[1]))
         else:
             raise ValueError(f"Unknown operation: {operator}")
 
     def filter_op(self, operator):
         if operator[0] == "filter_by_color":
-            return FilterByColor(color=operator[1])
+            return FilterByColor(color=self.color(operator[1]))
         elif operator[0] == "filter_by_neighbor_color":
-            return FilterByNeighborColor(color=operator[1])
+            return FilterByNeighborColor(color=self.color(operator[1]))
         elif operator[0] == "filter_by_size":
-            return FilterBySize(size=operator[1])
+            return FilterBySize(size=self.size(operator[1]))
         elif operator[0] == "filter_by_neighbor_size":
-            return FilterByNeighborSize(size=operator[1])
+            return FilterByNeighborSize(size=self.size(operator[1]))
         elif operator[0] == "filter_by_degree":
-            return FilterByDegree(degree=operator[1])
+            return FilterByDegree(degree=self.degree(operator[1]))
         elif operator[0] == "filter_by_neighbor_degree":
-            return FilterByNeighborDegree(degree=operator[1])
+            return FilterByNeighborDegree(degree=self.degree(operator[1]))
         elif operator[0] == "not":
             return Not(not_filter=operator[1])
         elif operator[0] == "and":
@@ -296,8 +302,9 @@ GRAMMAR: t.Optional[Lark] = None
 
 def __ensure_grammar() -> Lark:
     global GRAMMAR
+    grammar_file = CONFIG.ROOT_DIR / "dsl" / "dsl.lark"
     if GRAMMAR is None:
-        with open("dsl/dsl.lark", "r") as f:
+        with open(grammar_file, "r") as f:
             arga_dsl_grammar = f.read()
         GRAMMAR = Lark(
             arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst()
