@@ -136,16 +136,15 @@ class ARCGraph:
         move node in a given direction until it hits another node or the edge of the image
         """
         assert direction is not None
-
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == "UL" or direction == "UR":
+        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
             delta_y = -1
-        elif direction == "D" or direction == "DL" or direction == "DR":
+        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
             delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL":
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or Dir.DOWN_LEFT:
             delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR":
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.DOWN_RIGHT or direction == Dir.UP_RIGHT:
             delta_x = 1
         max_allowed = 1000
         for foo in range(max_allowed):
@@ -554,28 +553,6 @@ class ARCGraph:
                 return True
         return False
 
-    def can_see(self, main_cluster, other_clusters):
-        def is_adjacent(node1, node2):                  # TODO: check for obstacle nodes
-            same_row = node1[0] == node2[0]
-            same_column = node1[1] == node2[1]
-            if same_row:
-                return all((node1[0], y) not in main_cluster_nodes for y in range(min(node1[1], node2[1]) + 1, max(node1[1], node2[1])))
-            elif same_column:
-                return all((x, node1[1]) not in main_cluster_nodes for x in range(min(node1[0], node2[0]) + 1, max(node1[0], node2[0])))
-            return False
-
-        main_cluster_nodes = set([node for coord, cluster in self.graph.nodes(
-            data=True) if coord == main_cluster for node in cluster['nodes']])
-        visible_clusters = []
-        visible = []
-        for cluster_coordinate in other_clusters:
-            other_cluster_nodes = [node for coord, cluster in self.graph.nodes(
-                data=True) if coord == cluster_coordinate for node in cluster['nodes']]
-            if any(is_adjacent(main_node, other_node) for main_node in main_cluster_nodes for other_node in other_cluster_nodes):
-                visible_clusters.append(other_cluster_nodes)
-                visible.append(cluster_coordinate)
-        return visible_clusters
-
     def check_pixel_occupied(self, pixel):
         """
         check if a pixel is occupied by any node in the graph
@@ -679,16 +656,16 @@ class ARCGraph:
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
 
-    # TODO: currently only works for UpdateColor
-    def varcolor_apply_all(self, cur_colors: dict, filter: FilterASTNode, transformation: TransformASTNode):
+    def var_apply_all(self, parameters: dict, filter: FilterASTNode, transformation: TransformASTNode):
         transformed_nodes = {}
         for node in self.graph.nodes():
-            if self.apply_filters(node, filter) and node in list(cur_colors.keys()):
-                transformed_nodes[node] = [cur_colors[node]]
+            if self.apply_filters(node, filter) and node in list(parameters.keys()):
+                transformed_nodes[node] = [parameters[node]]
             elif self.apply_filters(node, filter):
-                transformed_nodes[node] = [0]  # TODO: hacky
+                transformed_nodes[node] = None
         for node, params in transformed_nodes.items():
-            self.apply_transform_inner(node, transformation, params)
+            if params:
+                self.apply_transform_inner(node, transformation, params)
 
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
@@ -699,7 +676,7 @@ class ARCGraph:
         """
         function_name = transformation.__class__.__name__
         try:
-            getattr(self, function_name)(node, *args) # apply transformation
+            getattr(self, function_name)(node, *args)  # apply transformation
         except AttributeError:
             function_name_var = function_name.replace("Var", "")
             getattr(self, function_name_var)(

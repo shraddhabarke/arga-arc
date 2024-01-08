@@ -304,7 +304,7 @@ class UpdateColor(Transforms):
 class UpdateColorVar(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.VARIABLE]  # TODO: need to generalize this
+    childTypes = [Types.VARIABLE]
     default_size = 1
 
     def __init__(self, variable: Variable):
@@ -384,7 +384,7 @@ class ExtendNodeVar(Transforms):
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0], children[1])
-        values = task.transform_values(filter, instance) # TODO
+        values = task.transform_values(filter, instance)  # TODO
         instance.values = values
         return instance
 
