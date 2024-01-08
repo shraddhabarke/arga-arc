@@ -34,6 +34,8 @@ class FSizeEnumerator:
         res = self.nextProgram
         self.nextProgram = None
         return res
+    # TODO: can_see from the list of selected nodes
+    # TODO: then synthesize filters for those!
 
     def advanceRoot(self) -> bool:
         if not self.currIter.hasNext():

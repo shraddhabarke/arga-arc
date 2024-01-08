@@ -3,16 +3,16 @@ import os
 from inspect import signature
 from itertools import product
 
-from utils import *
 from image import Image
 from ARCGraph import ARCGraph
 from transform import *
 from filters import *
 from transform import *
 
+
 class Task:
-    #all_possible_abstractions = Image.abstractions
-    #all_possible_transformations = ARCGraph.transformation_ops
+    # all_possible_abstractions = Image.abstractions
+    # all_possible_transformations = ARCGraph.transformation_ops
 
     def __init__(self, filepath):
         """
@@ -57,111 +57,6 @@ class Task:
             self.test_output.append(
                 Image(self, grid=data_pair["output"], name=self.task_id + "_" + str(i + 1) + "_test_out"))
 
-    def get_candidate_filters(self):
-        """
-        return list of candidate filters
-        """
-        ret_apply_filter_calls = []  # final list of filter calls
-        # use this list to avoid filters that return the same set of nodes
-        filtered_nodes_all = []
-
-        self.input_abstracted_graphs_original[self.abstraction] = [getattr(
-            input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
-
-        for filter_op in ARCGraph.filter_ops:
-            # first, we generate all possible values for each parameter
-            sig = signature(getattr(ARCGraph, filter_op))
-            generated_params = []
-            for param in sig.parameters:
-                param_name = sig.parameters[param].name
-                param_type = sig.parameters[param].annotation
-                param_default = sig.parameters[param].default
-                if param_name == "self" or param_name == "node":
-                    continue
-                if param_name == "color":
-                    generated_params.append(
-                        [c for c in range(10)] + ["most", "least"])
-                elif param_name == "size":
-                    generated_params.append(
-                        [w for w in self.object_sizes[self.abstraction]] + ["min", "max", "odd"])
-                elif param_name == "degree":
-                    generated_params.append(
-                        [d for d in self.object_degrees[self.abstraction]] + ["min", "max", "odd"])
-                elif param_type == bool:
-                    generated_params.append([True, False])
-                elif issubclass(param_type, Enum):
-                    generated_params.append([value for value in param_type])
-
-            # then, we combine all generated values to get all possible combinations of parameters
-            for item in product(*generated_params):
-
-                # generate dictionary, keys are the parameter names, values are the corresponding values
-                param_vals = {}
-                # skip "self", "node"
-                for i, param in enumerate(list(sig.parameters)[2:]):
-                    param_vals[sig.parameters[param].name] = item[i]
-                candidate_filter = {"filters": [
-                    filter_op], "filter_params": [param_vals]}
-
-                #  do not include if the filter result in empty set of nodes (this will be the majority of filters)
-                filtered_nodes = []
-                applicable_to_all = True
-                for input_abstracted_graph in self.input_abstracted_graphs[self.abstraction]:
-                    filtered_nodes_i = []
-                    for node in input_abstracted_graph.graph.nodes():
-                        if input_abstracted_graph.apply_filters(node, **candidate_filter):
-                            filtered_nodes_i.append(node)
-                    if len(filtered_nodes_i) == 0:
-                        applicable_to_all = False
-                    filtered_nodes.extend(filtered_nodes_i)
-                filtered_nodes.sort()
-                # does not result in empty or duplicate set of nodes
-                if applicable_to_all and filtered_nodes not in filtered_nodes_all:
-                    ret_apply_filter_calls.append(candidate_filter)
-                    filtered_nodes_all.append(filtered_nodes)
-
-        return ret_apply_filter_calls
-
-    def parameters_generation(self, transform_sig):
-        """
-        given a transformation, generate parameters to be passed to the transformation
-        :param all_calls: all apply filter calls, this is used to generate the dynamic parameters
-        :param transform_sig: signature for a transformation
-        :return: parameters to be passed to the transformation
-        """
-        generated_params = []
-        for param in transform_sig.parameters:
-            param_name = transform_sig.parameters[param].name
-            param_type = transform_sig.parameters[param].annotation
-            param_default = transform_sig.parameters[param].default
-            if param_name == "self" or param_name == "node":  # nodes are already generated using the filters
-                continue
-
-            # first we generate the static values
-            if param_name == "color":
-                all_possible_values = [
-                    c for c in range(10)] + ["most", "least"]
-            elif param_name == "fill_color" or param_name == "border_color":
-                all_possible_values = [c for c in range(10)]
-            elif param_name == "object_id":
-                all_possible_values = [id for id in range(len(self.static_objects_for_insertion[self.abstraction]))] + [
-                    -1]
-            # for insertion, could be ImagePoints or a coordinate on image (tuple)
-            elif param_name == "point":
-                all_possible_values = [value for value in ImagePoints]
-            elif issubclass(param_type, Enum):
-                all_possible_values = [value for value in param_type]
-            elif param_type == bool:
-                all_possible_values = [True, False]
-            elif param_default is None:
-                all_possible_values = [None]
-            else:
-                all_possible_values = []
-            # TODO: Currently not dealing with dynamic parameter values
-            generated_params.append(all_possible_values)
-
-        return generated_params
-
     # --------------------------------- Utility Functions ---------------------------------
     def get_static_inserted_objects(self):
         """
@@ -203,36 +98,6 @@ class Task:
             for node, degree in abs_graph.graph.degree():
                 self.object_degrees[abstraction].add(degree)
 
-    def apply_transformation(self, transform: TransformASTNode, abstraction):
-        """
-        apply transformation rule to training images without filtering
-        """
-        self.abstraction = abstraction
-        self.input_abstracted_graphs_original[abstraction] = [getattr(input, Image.abstraction_ops[abstraction])() for
-                                                              input in self.train_input]
-        self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
-                                                               output in self.train_output]
-        self.get_static_inserted_objects()
-        self.get_static_object_attributes(self.abstraction)
-        [abstracted_graph.apply_transform(transform)
-         for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
-        
-        return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
-
-    def apply_rule(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction, save_images=False):
-        """
-        apply solution abstraction and apply_call to test image
-        """
-        self.abstraction = abstraction
-        self.input_abstracted_graphs_original[abstraction] = [getattr(input, Image.abstraction_ops[abstraction])() for
-                                                              input in self.train_input]
-        self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
-                                                               output in self.train_output]
-        self.get_static_inserted_objects()
-        [abstracted_graph.apply_all(filter, transformation)
-         for abstracted_graph in self.input_abstracted_graphs_original[abstraction]]
-        return self.input_abstracted_graphs_original[abstraction], self.output_abstracted_graphs_original[abstraction]
-
     def output_matches(self, filter: FilterASTNode, transformation: TransformASTNode, abstraction):
         """
         Returns whether the output of the filter, transform pair matches the expected output
@@ -250,26 +115,29 @@ class Task:
                 error += 1
         if error == 0:
             return True
-        print("The solution found predicted {} out of {} pixels incorrectly".format(error, len(self.test_output[0].graph.nodes())))
+        print("The solution found predicted {} out of {} pixels incorrectly".format(
+            error, len(self.test_output[0].graph.nodes())))
         return False
 
     def transform_values(self, filter: FilterASTNode, transformations: list):
         """
         Returns the values of the transformed grid
         """
-        self.input_abstracted_graphs_original[self.abstraction] = [getattr(input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
-
-        if transformations == None:
-            return self.input_abstracted_graphs_original[self.abstraction]
+        self.input_abstracted_graphs_original[self.abstraction] = [getattr(
+            input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
 
         if not isinstance(transformations, list):
             transformations = [transformations]
         transformed_values = []
+
+        # TODO: some issue here for na, mcccg
         for train_input, input_abstracted_graph in zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction]):
             for transformation in transformations:
                 input_abstracted_graph.apply_all(filter, transformation)
-            reconstructed = train_input.undo_abstraction(input_abstracted_graph)
-            transformed_values.append(reconstructed.graph.nodes(data=True))
+            reconstructed = train_input.undo_abstraction(
+                input_abstracted_graph)
+            transformed_values.append(
+                {node: data['color'] for node, data in reconstructed.graph.nodes(data=True)})
         return transformed_values
 
     def filter_values(self, filter: FilterASTNode):
@@ -284,15 +152,47 @@ class Task:
             filtered_nodes.append(filtered_nodes_i)
         return filtered_nodes
 
-    def extract_color_matrix(self, data):
-        #if len(data) != 100:
-            #raise ValueError("Data does not represent a 10x10 matrix.")
-        expected_coords = {(i, j) for i in range(10) for j in range(10)}
-        provided_coords = {item[0] for item in data}
-        if expected_coords != provided_coords:
-            raise ValueError("Coordinates do not cover the complete 10x10 matrix.")
-        matrix = [[0] * 10 for _ in range(10)]
-        for coord, properties in data:
-            x, y = coord
-            matrix[x][y] = properties['color']
-        return matrix
+    def var_transform_values(self, filter: FilterASTNode, transformations: list):
+        """
+        Returns the values of the transformed grid with different possibilities for variable transformation
+        """
+        self.input_abstracted_graphs_original[self.abstraction] = [getattr(
+            input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
+        self.output_abstracted_graphs_original[self.abstraction] = [getattr(
+            input, Image.abstraction_ops[self.abstraction])() for input in self.train_output]
+        if not isinstance(transformations, list):
+            transformations = [transformations]
+
+        def generate_cartesian_product(input_graph, output_graph):
+            in_dict = input_graph.graph.nodes(data=True)
+            out_dict = {node[0]: node[1]
+                        for node in output_graph.graph.nodes(data=True)}
+            matching_nodes = [node[0] for node in in_dict if node[0]
+                              in out_dict and node[1]['color'] == out_dict[node[0]]['color']]
+            # extract all colors from the input graph
+            colors = set(item[1]['color'] for item in in_dict)
+            # all possible valuations of color assignments for nodes which undergo change
+            cartesian_product = (combo for combo in product(colors, repeat=len(
+                in_dict) - len(matching_nodes)) if len(set(combo)) > 1)
+
+            diff_nodes = set(input_graph.graph.nodes) - set(matching_nodes)
+            # Generator that yields dictionaries for each combination of colors
+
+            def combo_dicts_generator():
+                for combo in cartesian_product:
+                    yield {node: color for node, color in zip(diff_nodes, combo)}
+            return combo_dicts_generator()
+
+        transformed_values = []
+        for train_input, input_graph, output_graph in zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction], self.output_abstracted_graphs_original[self.abstraction]):
+            color_combo = generate_cartesian_product(input_graph, output_graph)
+            temp_transformed_values = []
+            for color in color_combo:
+                for transformation in transformations:
+                    input_graph.varcolor_apply_all(
+                        color, filter, transformation)
+                reconstructed = train_input.undo_abstraction(input_graph)
+                temp_transformed_values.append(
+                    {node: data['color'] for node, data in reconstructed.graph.nodes(data=True)})
+            transformed_values.append(temp_transformed_values)
+        return list(product(*transformed_values))
