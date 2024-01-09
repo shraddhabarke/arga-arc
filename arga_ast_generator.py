@@ -181,55 +181,68 @@ class FilterByNeighborDegree(_Filter_Op):
 
 
 class ToAst(Transformer):
-    def do_operation(self, rule_list):
+    def do_operation(self, rule_list) -> DoOperation:
         return DoOperation(rule_list=rule_list)
 
     @v_args(inline=True)
-    def rule_list(self, *rules):
+    def rule_list(self, *rules) -> RuleList:
         return RuleList(rules=list(rules))
 
-    def rule(self, args):
+    def rule(self, args) -> _Rule:
         filter_op, transforms = args[0], args[1] if len(args) > 1 else []
-        return _Rule(filter_op=filter_op, transforms=Transforms(transforms))
+        return _Rule(filter_op=filter_op, transforms=transforms)
 
-    def transforms(self, transforms):
+    def transforms(self, transforms) -> Transforms:
         return Transforms(transforms=transforms)
 
     @v_args(inline=True)
-    def color(self, color_token):
+    def color(self, color_token) -> Color:
         return Color(value=str(color_token))
 
     @v_args(inline=True)
-    def direction(self, direction_token):
+    def direction(self, direction_token) -> Direction:
         return Direction(value=str(direction_token))
 
     @v_args(inline=True)
-    def size(self, size_token):
+    def size(self, size_token) -> Size:
         return Size(value=str(size_token))
 
     @v_args(inline=True)
-    def degree(self, degree_token):
+    def degree(self, degree_token) -> Degree:
         return Degree(value=str(degree_token))
 
     @v_args(inline=True)
-    def symmetry_axis(self, axis_token):
+    def symmetry_axis(self, axis_token) -> Symmetry_Axis:
         return Symmetry_Axis(value=str(axis_token))
 
     @v_args(inline=True)
-    def rotation_angle(self, angle_token):
+    def rotation_angle(self, angle_token) -> Rotation_Angle:
         return Rotation_Angle(value=str(angle_token))
 
-    def mirror_params(self, params):
+    def mirror_params(self, params) -> Mirror:
         axis1, axis2 = params
         x = None if axis1 == "null" else int(axis1)
         y = None if axis2 == "null" else int(axis2)
         return Mirror(axis_point=(x, y))
 
     @v_args(inline=True)
-    def bool_expr(self, value):
+    def bool_expr(self, value) -> bool:
         return bool(value)
 
-    def transform(self, operator):
+    def transform(
+        self, operator
+    ) -> (
+        UpdateColor
+        | MoveNode
+        | ExtendNode
+        | MoveNodeMax
+        | AddBorder
+        | FillRectangle
+        | HollowRectangle
+        | RotateNode
+        | Mirror
+        | Flip
+    ):
         if operator[0] == "update_color":
             return UpdateColor(color=self.color(operator[1]))
         elif operator[0] == "move_node":
@@ -258,7 +271,19 @@ class ToAst(Transformer):
         else:
             raise ValueError(f"Unknown operation: {operator}")
 
-    def filter_op(self, operator):
+    def filter_op(
+        self, operator
+    ) -> (
+        FilterByColor
+        | FilterByNeighborColor
+        | FilterBySize
+        | FilterByNeighborSize
+        | FilterByDegree
+        | FilterByNeighborDegree
+        | Not
+        | And
+        | Or
+    ):
         if operator[0] == "filter_by_color":
             return FilterByColor(color=self.color(operator[1]))
         elif operator[0] == "filter_by_neighbor_color":
