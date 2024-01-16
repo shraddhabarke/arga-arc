@@ -10,6 +10,9 @@ class Types(Enum):
     ROTATION_ANGLE = "Rotation_Angle"
     MIRROR_AXIS = "Mirror_Axis"
     SYMMETRY_AXIS = "Symmetry_Axis"
+    IMAGE_POINTS = "ImagePoints"
+    RELATIVE_POSITION = "RelativePosition"
+    OBJECT_ID = "ObjectId"
     NO_OP = "No_Op"
     VARIABLE = "Variable"
 
@@ -55,7 +58,6 @@ class Color(TransformASTNode, Enum):
     orange = "A"
     cyan = "C"
     brown = "W"
-    nodeType = Types.COLOR
 
     def __init__(self, value=None):
         super().__init__(Types.COLOR)
@@ -69,6 +71,11 @@ class Color(TransformASTNode, Enum):
     @property
     def arity(cls):
         return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.COLOR
 
     def apply(self, task, children=None, filter=None):
         return self
@@ -87,7 +94,6 @@ class Dir(TransformASTNode, Enum):
     UP_RIGHT = "UR"
     DOWN_LEFT = "DL"
     DOWN_RIGHT = "DR"
-    nodeType = Types.DIRECTION
 
     def __init__(self, value):
         super().__init__(Types.DIRECTION)
@@ -102,6 +108,11 @@ class Dir(TransformASTNode, Enum):
     def arity(cls):
         return 0
 
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.DIRECTION
+
     def apply(self, task, children=None, filter=None):
         return self
 
@@ -113,7 +124,6 @@ class Dir(TransformASTNode, Enum):
 class Overlap(TransformASTNode, Enum):
     TRUE = True
     FALSE = False
-    nodeType = Types.OVERLAP
 
     def __init__(self, value):
         super().__init__(Types.OVERLAP)
@@ -132,6 +142,11 @@ class Overlap(TransformASTNode, Enum):
         return self
 
     @classmethod
+    @property
+    def nodeType(cls):
+        return Types.OVERLAP
+
+    @classmethod
     def get_all_values(cls):
         return list(cls.__members__.values())
 
@@ -140,7 +155,6 @@ class Rotation_Angle(TransformASTNode, Enum):
     CCW = "90"
     CW = "270"
     CW2 = "180"
-    nodeType = Types.ROTATION_ANGLE
 
     def __init__(self, value):
         super().__init__(Types.ROTATION_ANGLE)
@@ -155,6 +169,11 @@ class Rotation_Angle(TransformASTNode, Enum):
     def arity(cls):
         return 0
 
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.ROTATION_ANGLE
+
     def apply(self, task, children=None, filter=None):
         return self
 
@@ -168,7 +187,6 @@ class Symmetry_Axis(TransformASTNode, Enum):
     HORIZONTAL = "HORIZONTAL"
     DIAGONAL_LEFT = "DIAGONAL_LEFT"
     DIAGONAL_RIGHT = "DIAGONAL_RIGHT"
-    nodeType = Types.SYMMETRY_AXIS
 
     def __init__(self, value):
         super().__init__(Types.SYMMETRY_AXIS)
@@ -183,6 +201,11 @@ class Symmetry_Axis(TransformASTNode, Enum):
     def arity(cls):
         return 0
 
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.SYMMETRY_AXIS
+
     def apply(self, task, children=None, filter=None):
         return self
 
@@ -194,7 +217,6 @@ class Symmetry_Axis(TransformASTNode, Enum):
 class Mirror_Axis(TransformASTNode, Enum):  # TODO: fix the semantics of Mirror_Axis
     X_AXIS = "X_AXIS"
     Y_AXIS = "Y_AXIS"
-    nodeType = Types.MIRROR_AXIS
 
     def __init__(self, value):
         super().__init__(Types.MIRROR_AXIS)
@@ -208,6 +230,11 @@ class Mirror_Axis(TransformASTNode, Enum):  # TODO: fix the semantics of Mirror_
     def arity(cls):
         return 0
 
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.MIRROR_AXIS
+
     def apply(self, task, children=None, filter=None):
         return self
 
@@ -216,10 +243,122 @@ class Mirror_Axis(TransformASTNode, Enum):  # TODO: fix the semantics of Mirror_
         return list(cls.__members__.values())
 
 
+class ImagePoints(TransformASTNode, Enum):
+    TOP = "TOP"
+    BOTTOM = "BOTTOM"
+    LEFT = "LEFT"
+    RIGHT = "RIGHT"
+    TOP_LEFT = "TOP_LEFT"
+    TOP_RIGHT = "TOP_RIGHT"
+    BOTTOM_LEFT = "BOTTOM_LEFT"
+    BOTTOM_RIGHT = "BOTTOM_RIGHT"
+
+    def __init__(self, value):
+        super().__init__(Types.IMAGE_POINTS)
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+        self.nodeType = Types.IMAGE_POINTS
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.IMAGE_POINTS
+
+    def apply(self, task, children=None, filter=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
+
+
+class RelativePosition(TransformASTNode, Enum):
+    SOURCE = "SOURCE"
+    TARGET = "TARGET"
+    MIDDLE = "MIDDLE"
+
+    def __init__(self, value):
+        super().__init__(Types.RELATIVE_POSITION)
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+        self.nodeType = Types.RELATIVE_POSITION
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.RELATIVE_POSITION
+
+    def apply(self, task, children=None, filter=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
+
+
+class ObjectIdValue:
+    arity = 0
+
+    def __init__(self, enum_value):
+        self.value = enum_value.value
+        self.nodeType = Types.OBJECT_ID
+        self.code = f"OBJECT_ID.{enum_value.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    def apply(cls, task, children=None, filter=None):
+        return cls
+
+
+class ObjectId(TransformASTNode):
+    _all_values = set()
+    arity = 0
+    nodeType = Types.OBJECT_ID
+
+    def __new__(cls, enum_value):
+        instance = ObjectIdValue(enum_value)
+        cls._all_values.add(instance)
+        return instance
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls._enum_members)
+
+
+def setup_objectids(task):
+    task_ids = [id for id in range(len(task.static_objects_for_insertion[task.abstraction]))] + [
+        -1]
+    _id_additional = {f'{item}': int(item) for item in task_ids}
+    IdEnum = Enum("IdEnum", {**_id_additional})
+
+    _ids = []
+
+    for name, member in IdEnum.__members__.items():
+        setattr(ObjectId, name, ObjectIdValue(member))
+        _ids.append(ObjectId(member))
+    ObjectId._enum_members = _ids
+
+
 class NoOp(TransformASTNode):
     _instance = None  # Single instance storage
     arity = 0
     nodeType = Types.NO_OP
+    childTypes = []
 
     def __new__(cls):
         if cls._instance is None:
@@ -239,6 +378,7 @@ class NoOp(TransformASTNode):
             self.size = 1
             self.children = []
             self.values = []
+            self.childTypes = []
             self.initialized = True
 
     @classmethod
@@ -274,6 +414,7 @@ class Transforms(TransformASTNode):
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0], children[1])
+        # TODO: for [UpdateColor, UpdateColorVar]
         values = task.transform_values(filter, [children[0], children[1]])
         instance.values = values
         return instance
@@ -384,7 +525,7 @@ class ExtendNodeVar(Transforms):
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0], children[1])
-        values = task.transform_values(filter, instance)  # TODO
+        values = task.var_transform_values(filter, instance)  # TODO
         instance.values = values
         return instance
 
@@ -428,7 +569,7 @@ class MoveNodeMaxVar(Transforms):
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
-        values = task.transform_values(filter, instance)  # TODO
+        values = task.var_transform_values(filter, instance)  # TODO
         instance.values = values
         return instance
 
@@ -544,6 +685,29 @@ class Mirror(Transforms):
         return instance
 
 
+class MirrorVar(Transforms):
+    arity = 1
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.VARIABLE]
+    default_size = 1
+
+    def __init__(self, mirror_axis: Variable):
+        super().__init__()
+        self.nodeType = Types.TRANSFORMS
+        self.children = [mirror_axis]
+        self.size = self.default_size + mirror_axis.size
+        self.code = f"mirrorVar({mirror_axis.code})"
+        self.childTypes = [Types.VARIABLE]
+        self.arity = 1
+
+    @classmethod
+    def apply(cls, task, children, filter):
+        instance = cls(children[0])
+        values = task.var_transform_values(filter, instance)
+        instance.values = values
+        return instance
+
+
 class Flip(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
@@ -562,6 +726,30 @@ class Flip(Transforms):
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
+        values = task.transform_values(filter, instance)
+        instance.values = values
+        return instance
+
+
+class Insert(Transforms):
+    arity = 3
+    nodeType = Types.TRANSFORMS
+    childTypes = [Types.OBJECT_ID, Types.IMAGE_POINTS, Types.RELATIVE_POSITION]
+    default_size = 1
+
+    def __init__(self, object_id: ObjectId, image_points: ImagePoints, relative_pos: RelativePosition):
+        super().__init__()
+        self.nodeType = Types.TRANSFORMS
+        self.children = [object_id, image_points, relative_pos]
+        self.childTypes = [Types.OBJECT_ID,
+                           Types.IMAGE_POINTS, Types.RELATIVE_POSITION]
+        self.size = self.default_size + \
+            sum(child.size for child in self.children)
+        self.code = f"insert({object_id.code, image_points.code, relative_pos.code})"
+
+    @classmethod
+    def apply(cls, task, children, filter):
+        instance = cls(children[0], children[1], children[2])
         values = task.transform_values(filter, instance)
         instance.values = values
         return instance

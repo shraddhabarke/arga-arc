@@ -53,6 +53,7 @@ class DegreeValue:
 class Size(FilterASTNode):
     _all_values = set()
     arity = 0
+    nodeType = FilterTypes.SIZE
 
     def __new__(cls, enum_value):
         instance = SizeValue(enum_value)
@@ -67,6 +68,7 @@ class Size(FilterASTNode):
 class Degree(FilterASTNode):
     _all_values = set()
     arity = 0
+    nodeType = FilterTypes.DEGREE
 
     def __new__(cls, enum_value):
         instance = DegreeValue(enum_value)
@@ -125,6 +127,11 @@ class FColor(FilterASTNode, Enum):
     @property
     def arity(cls):
         return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.COLOR
 
     def execute(cls, task, children):
         return cls
