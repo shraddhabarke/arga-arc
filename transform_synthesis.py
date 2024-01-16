@@ -44,15 +44,14 @@ class TSizeEnumerator:
         if not self.currIter.hasNext():
             return False
         self.rootMaker = self.currIter.next()
-        if self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
+        if self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
+            self.childrenIterator = LookaheadIterator(iter([None]))
+        elif self.rootMaker.arity == 0 and self.rootMaker.nodeType == Types.TRANSFORMS:
+            self.childrenIterator = LookaheadIterator(iter([None]))
+        elif self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
             childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(
                 self.rootMaker.childTypes, childrenCost, self.bank)
-
-        elif self.rootMaker.arity == 0 and self.rootMaker.nodeType == Types.TRANSFORMS:
-            self.childrenIterator = LookaheadIterator(iter([None]))
-        elif self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
-            self.childrenIterator = LookaheadIterator(iter([None]))
         elif self.rootMaker.arity > 0:  # TODO: Cost-based enumeration
             childrenCost = self.costLevel - self.rootMaker.default_size
             self.childrenIterator = ChildrenIterator(
@@ -63,7 +62,7 @@ class TSizeEnumerator:
 
     def changeLevel(self) -> bool:
         self.costLevel += 1
-        if self.costLevel > self.maxterminals + 1:
+        if self.costLevel > self.maxterminals + 2:
             self.currIter = LookaheadIterator(iter([Transforms]))
         else:
             self.currIter = LookaheadIterator(iter(self.vocab.nonLeaves()))
@@ -85,9 +84,10 @@ class TSizeEnumerator:
                         self.task, children, self.filter)
                     if children is None:
                         res = prog
+                    elif "Var" in prog.code: # always add variable programs
+                        res = prog
                     elif self.oeManager.is_representative(prog.values):
                         res = prog
-                    # print(res.code)
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None
