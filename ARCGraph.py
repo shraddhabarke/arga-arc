@@ -283,7 +283,7 @@ class ARCGraph:
                                 size=len(non_border_pixels))
         return self
 
-    def Mirror(self, node, mirror_axis: Mirror_Axis):
+    def Mirror(self, node, mirror_axis):
         """
         mirroring a node with respect to the given axis.
         mirror_axis takes the form of (y, x) where one of y, x equals None to

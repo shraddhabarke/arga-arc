@@ -386,8 +386,8 @@ class NoOp(TransformASTNode):
         original_graph = task.input_abstracted_graphs_original[task.abstraction]
         self.code = "NoOp"
         self.size = 1
-        self.values = [[{node: data['color'] for node, data in task.train_input[iter].undo_abstraction(original_graph[iter]).graph.nodes(data=True)}
-                        for iter in range(len(task.input_abstracted_graphs_original[task.abstraction]))]]
+        self.values = [{node: data['color'] for node, data in task.train_input[iter].undo_abstraction(original_graph[iter]).graph.nodes(data=True)}
+                        for iter in range(len(task.input_abstracted_graphs_original[task.abstraction]))]
         return self
 
     @classmethod

@@ -152,7 +152,7 @@ class Task:
             filtered_nodes.append(filtered_nodes_i)
         return filtered_nodes
 
-    def var_transform_values(self, filter: FilterASTNode, transformations: list):
+    def var_transform_values(self, filter: FilterASTNode, transformation: TransformASTNode):
         """
         Returns the values of the transformed grid with different possibilities for variable transformation
         """
@@ -160,39 +160,62 @@ class Task:
             input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
         self.output_abstracted_graphs_original[self.abstraction] = [getattr(
             input, Image.abstraction_ops[self.abstraction])() for input in self.train_output]
-        if not isinstance(transformations, list):
-            transformations = [transformations]
 
         def generate_cartesian_product(input_graph, output_graph):
             in_dict = input_graph.graph.nodes(data=True)
             out_dict = {node[0]: node[1]
                         for node in output_graph.graph.nodes(data=True)}
-            matching_nodes = [node[0] for node in in_dict if node[0]
-                              in out_dict and node[1]['color'] == out_dict[node[0]]['color']]
-            # extract all colors from the input graph
-            colors = set(item[1]['color'] for item in in_dict)
-            # all possible valuations of color assignments for nodes which undergo change
-            cartesian_product = (combo for combo in product(colors, repeat=len(
-                in_dict) - len(matching_nodes)) if len(set(combo)) > 1)
+            matching_nodes = [
+                in_node for in_node, in_props in in_dict
+                if any(in_props['color'] == out_props['color'] and
+                       in_props['nodes'] == out_props['nodes'] and
+                       in_props['size'] == out_props['size']
+                       for _, out_props in out_dict.items())
+            ]
 
             diff_nodes = set(input_graph.graph.nodes) - set(matching_nodes)
-            # Generator that yields dictionaries for each combination of colors
 
+            # extract all directions (relative) from the input graph
+            if "extendNode" in transformation.code:
+                params = set([input_graph.get_relative_pos(
+                    node, neighbor) for node in diff_nodes for neighbor in input_graph.graph.neighbors(node)])
+            elif "moveNodeMax" in transformation.code:
+                #params = [Dir.RIGHT, Dir.DOWN, Dir.UP, Dir.LEFT]
+                params = set([input_graph.get_relative_pos(
+                    node, neighbor) for node in diff_nodes for neighbor in input_graph.graph.neighbors(node)])
+                print(params)
+            elif "updateColor" in transformation.code:
+                params = set(item[1]['color'] for item in in_dict)
+            elif "mirror" in transformation.code:
+                params = set([input_graph.get_mirror_axis(
+                    node, neighbor) for node in diff_nodes for neighbor in input_graph.graph.neighbors(node)])
+            # all possible valuations of assignments for nodes which undergo change
+            cartesian_product = (combo for combo in product(
+                params, repeat=len(diff_nodes)))
+
+            # TODO: if len(set(combo)) > 1, do we need to take cartesian product here, one-to-one mapping would be faster
+            # Generator that yields dictionaries for each combination of parameters
             def combo_dicts_generator():
                 for combo in cartesian_product:
                     yield {node: color for node, color in zip(diff_nodes, combo)}
             return combo_dicts_generator()
 
-        transformed_values = []
-        for train_input, input_graph, output_graph in zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction], self.output_abstracted_graphs_original[self.abstraction]):
+        movenodemax = [[{(7, 1): Dir.UP, (3, 1): Dir.UP, (7, 0): Dir.RIGHT, (7, 3): Dir.DOWN, (3, 0): Dir.RIGHT, (3, 3): Dir.LEFT, (7, 2): Dir.LEFT, (3, 2): Dir.DOWN}],
+                       [{(7, 1): Dir.UP, (3, 1): Dir.UP, (7, 0): Dir.LEFT, (7, 3): Dir.RIGHT, (3, 0): Dir.RIGHT, (7, 2): Dir.DOWN}],
+                       [{(7, 1): Dir.UP, (3, 1): Dir.LEFT, (7, 0): Dir.RIGHT, (3, 0): Dir.UP, (3, 2): Dir.DOWN}]]
+        import copy, itertools
+
+        def generate_transformed_values(train_input, input_graph, output_graph):
             color_combo = generate_cartesian_product(input_graph, output_graph)
-            temp_transformed_values = []
             for color in color_combo:
-                for transformation in transformations:
-                    input_graph.varcolor_apply_all(
-                        color, filter, transformation)
-                reconstructed = train_input.undo_abstraction(input_graph)
-                temp_transformed_values.append(
-                    {node: data['color'] for node, data in reconstructed.graph.nodes(data=True)})
-            transformed_values.append(temp_transformed_values)
-        return list(product(*transformed_values))
+                input_graph_copy = copy.deepcopy(input_graph)
+                input_graph_copy.var_apply_all(
+                    color, filter, transformation)
+                reconstructed = train_input.undo_abstraction(
+                    input_graph_copy)
+                yield {node: data['color'] for node, data in reconstructed.graph.nodes(data=True)}
+
+        generators = [generate_transformed_values(train_input, input_graph, output_graph)
+                      for train_input, input_graph, output_graph in
+                      zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction], self.output_abstracted_graphs_original[self.abstraction])]
+        return (combination for combination in itertools.product(*generators))

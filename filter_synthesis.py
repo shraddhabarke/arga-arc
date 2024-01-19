@@ -34,8 +34,6 @@ class FSizeEnumerator:
         res = self.nextProgram
         self.nextProgram = None
         return res
-    # TODO: can_see from the list of selected nodes
-    # TODO: then synthesize filters for those!
 
     def advanceRoot(self) -> bool:
         if not self.currIter.hasNext():
@@ -61,7 +59,7 @@ class FSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 50:
+            if self.costLevel > 35: # TODO: parallelize filter and transform synthesis
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
