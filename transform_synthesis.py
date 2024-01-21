@@ -23,6 +23,8 @@ class TSizeEnumerator:
         self.currIter = LookaheadIterator(iter(vocab.leaves()))
         self.rootMaker = self.currIter.next()
         self.childrenIterator = LookaheadIterator(iter([None]))
+        self.childrenIterators = []
+        self.currentChildIteratorIndex = 0
         self.maxterminals = max(
             [nonleaf.default_size + nonleaf.arity for nonleaf in vocab.nonLeaves()])
 
@@ -56,6 +58,10 @@ class TSizeEnumerator:
             childrenCost = self.costLevel - self.rootMaker.default_size
             self.childrenIterator = ChildrenIterator(
                 self.rootMaker.childTypes, childrenCost, self.bank)
+            self.childrenIterators = [ChildrenIterator(
+                childType, childrenCost, self.bank) for childType in self.rootMaker.childTypes]
+            self.currentChildIteratorIndex = 0  # Keep track of which iterator is current
+            self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
         else:
             self.childrenIterator = LookaheadIterator(iter([]))
         return True
@@ -78,16 +84,20 @@ class TSizeEnumerator:
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
-                if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
-                                                                        all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
+                if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children)
+                                                                        and all(child.nodeType == child_type for child, child_type
+                                                                                in zip(children, self.rootMaker.childTypes[self.currentChildIteratorIndex]))):
                     prog = self.rootMaker.apply(
                         self.task, children, self.filter)
                     if children is None:
                         res = prog
-                    elif "Var" in prog.code: # always add variable programs
-                        res = prog
                     elif self.oeManager.is_representative(prog.values):
                         res = prog
+            elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
+                self.currentChildIteratorIndex += 1
+                self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
+                return self.getNextProgram()
+
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None
