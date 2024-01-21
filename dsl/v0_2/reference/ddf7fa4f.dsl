@@ -11,7 +11,7 @@
             )
         )
         (apply
-            (recolor this (color y))
+            (updatecolor this (color y))
         )
     )
 )

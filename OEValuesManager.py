@@ -20,11 +20,14 @@ class ValuesManager(OEValuesManager):
 
     def is_representative(self, values) -> bool:
         def process_element(element):
-            if isinstance(element, dict):
-                return '-'.join([f"({k[0]}, {k[1]})-{v}" for k, v in sorted(element.items())])
-            elif isinstance(element, tuple):
-                return ' | '.join(process_element(d) for d in element)
-        results = ' | '.join(process_element(e) for e in values)
+            key, data = element
+            return f"{key}-{';'.join([f'{k}:{v}' for k, v in sorted(data.items())])}"
+
+        def process_inner_list(inner_list):
+            return ' | '.join(process_element(e) for e in inner_list)
+
+        results = ' || '.join(process_inner_list(inner)
+                              for inner in values)  # Processing each inner list
         if results == "":
             return False
         if results in self.class_values:

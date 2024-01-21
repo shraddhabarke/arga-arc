@@ -388,7 +388,7 @@ class NoOp(TransformASTNode):
         original_graph = task.input_abstracted_graphs_original[task.abstraction]
         self.code = "NoOp"
         self.size = 1
-        self.values = [{node: data['color'] for node, data in task.train_input[iter].undo_abstraction(original_graph[iter]).graph.nodes(data=True)}
+        self.values = [original_graph[iter].graph.nodes(data=True)
                        for iter in range(len(task.input_abstracted_graphs_original[task.abstraction]))]
         return self
 
@@ -432,16 +432,18 @@ class UpdateColor(Transforms):
         self.children = [color]
         self.size = self.default_size + \
             sum(child.size for child in self.children)
+        if isinstance(dir, Color):
+            self.code = f"updateColor({color.code})"
+        elif isinstance(dir, Variable):
+            self.code = f"updateColor({color.code}.color)"
 
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
         if isinstance(children[0], Color):
             instance.values = task.transform_values(filter, instance)
-            instance.code = f"updateColor({children[0].code})"
         elif isinstance(children[0], Variable):
             instance.values = task.var_transform_values(filter, instance)
-            instance.code = f"updateColor({children[0].code}.color)"
         return instance
 
 
@@ -455,16 +457,18 @@ class MoveNode(Transforms):
         super().__init__()
         self.children = [dir]
         self.size = self.default_size + dir.size
+        if isinstance(dir, Dir):
+            self.code = f"moveNode({dir.code})"
+        elif isinstance(dir, Variable):
+            self.code = f"moveNode({dir.code}.direction)"
 
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
         if isinstance(children[0], Dir):
             instance.values = task.transform_values(filter, instance)
-            instance.code = f"moveNode({children[0].code})"
         elif isinstance(children[0], Variable):
             instance.values = task.var_transform_values(filter, instance)
-            instance.code = f"moveNode({children[0].code}.direction)"
         return instance
 
 
@@ -479,16 +483,18 @@ class ExtendNode(Transforms):
         super().__init__()
         self.children = [dir, overlap]
         self.size = self.default_size + overlap.size + dir.size
+        if isinstance(dir, Dir):
+            self.code = f"extendNode({dir.code}, {overlap.code})"
+        elif isinstance(dir, Variable):
+            self.code = f"extendNode({dir.code}.direction, {overlap.code})"
 
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
         if isinstance(children[0], Dir):
             instance.values = task.transform_values(filter, instance)
-            instance.code = f"extendNode({children[0].code}, {children[1].code})"
         elif isinstance(children[0], Variable):
             instance.values = task.var_transform_values(filter, instance)
-            instance.code = f"extendNode({children[0].code}.direction, {children[1].code})"
         return instance
 
 
@@ -502,16 +508,18 @@ class MoveNodeMax(Transforms):
         super().__init__()
         self.children = [dir]
         self.size = self.default_size + dir.size
+        if isinstance(dir, Dir):
+            self.code = f"moveNodeMax({dir.code})"
+        elif isinstance(dir, Variable):
+            self.code = f"moveNodeMax({dir.code}.direction)"
 
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
         if isinstance(children[0], Dir):
             instance.values = task.transform_values(filter, instance)
-            instance.code = f"moveNodeMax({children[0].code})"
         elif isinstance(children[0], Variable):
             instance.values = task.var_transform_values(filter, instance)
-            instance.code = f"moveNodeMax({children[0].code}.direction, {children[1].code})"
         return instance
 
 
@@ -605,17 +613,18 @@ class Mirror(Transforms):
         super().__init__()
         self.children = [mirror_axis]
         self.size = self.default_size + mirror_axis.size
-        self.arity = 1
+        if isinstance(dir, Dir):
+            self.code = f"mirror({mirror_axis.code})"
+        elif isinstance(dir, Variable):
+            self.code = f"mirror({mirror_axis.code}.mirror_axis)"
 
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
         if isinstance(children[0], Mirror_Axis):
             instance.values = task.transform_values(filter, instance)
-            instance.code = f"mirror({children[0].code})"
         elif isinstance(children[0], Variable):
             instance.values = task.var_transform_values(filter, instance)
-            instance.code = f"mirror({children[0].code}.mirror_axis)"
         return instance
 
 

@@ -101,13 +101,12 @@ def sort_filter_makers(filter_makers, filter_probs):
 
 # Transform Vocab
 tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, Mirror_Axis, RelativePosition, ImagePoints,
-                ObjectId, Symmetry_Axis, Variable("Var"), Insert, MoveNode, Transforms]
-t_vocabMakers = [ExtendNodeVar]
+                Symmetry_Axis, ObjectId, Variable("Var"), MoveNode, MoveNodeMax]
 # UpdateColor, MoveNode, RotateNode, AddBorder, FillRectangle, HollowRectangle, ExtendNode, MoveNodeMax, FillRectangle, Transforms
 # AddBorder, ExtendNodeVar, RotateNode, FillRectangle, HollowRectangle, ExtendNode, MoveNodeMax, FillRectangle, Transform
-expected_nodes = []
 # "d43fd935" #"ae3edfdc" #"05f2a901" #"ddf7fa4f" #"d43fd935" "b27ca6d3", "67a3c6ac"
-taskNumber = "3618c87e"
+
+taskNumber = "25ff71a9"
 abstraction = "nbccg"
 task = Task("ARC/data/training/" + taskNumber + ".json")
 task.abstraction = abstraction
@@ -120,13 +119,6 @@ task.get_static_object_attributes(task.abstraction)
 setup_objectids(task)
 setup_size_and_degree_based_on_task(task)
 transform_vocab = VocabFactory.create(tleaf_makers)
-
-# Compute Expected Solution
-for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
-    local_data = []
-    for node, data in input_abstracted_graphs.graph.nodes(data=True):
-        local_data.extend(data['nodes'])
-    expected_nodes.append(local_data)
 # Filter Vocab
 f_vocabMakers = [FColor, Degree, Size, FilterByColor, FilterBySize, FilterByDegree,
                  FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, Or, And]
@@ -164,47 +156,19 @@ if pcfg:
 # ----------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def filter_matches(matches, expected):
-    filtered_matches = []
-    for match_list, expected_list in zip(matches, expected):
-        filtered_list = [
-            match for match in match_list if match in expected_list]
-        filtered_matches.append(filtered_list)
-    return filtered_matches
-
-
-def compare_graphs(transformed_nodes, true_output_graph):
-    errors = 0
-    correct_matches, mismatch, all_nodes = [], [], []
-
-    for iter in range(len(true_output_graph)):
-        local_correct, local_mismatch, all = [], [], []
-        expected = true_output_graph[iter]
-        reconstructed_expected = task.train_input[iter].undo_abstraction(
-            expected)
-        expected_nodes = {node: data['color'] for node,
-                          data in reconstructed_expected.graph.nodes(data=True)}
-        assert len(dict(transformed_nodes[iter]).keys()) == len(
-            expected_nodes.keys())
-        for node, transformed_color in dict(transformed_nodes[iter]).items():
-            expected_color = expected_nodes.get(node)
-            if expected_color is not None:
-                if transformed_color != expected_color:
-                    # print(f"Mismatch at node {node}: Transformed color {transformed_color}, Expected color {expected_color}")
-                    errors += 1
-                    local_mismatch.append(node)
-                    all.append(node)
-                else:
-                    local_correct.append(node)
-                    all.append(node)
-            else:
-                # print(f"Node {node} not found in expected graph")
-                errors += 1
-
-        mismatch.append(local_mismatch)
-        correct_matches.append(local_correct)
-        all_nodes.append(all)
-    return errors, correct_matches, mismatch, all_nodes
+def compare_abstracted_graphs(actual_graphs, expected_graphs):
+    correct_matches = []
+    for input_graph, output_graph in zip(actual_graphs, expected_graphs):
+        out_dict = output_graph.graph.nodes(data=True)
+        matches = [
+            in_node for in_node, in_props in input_graph
+            if any(in_props['color'] == out_props['color'] and
+                   set(in_props['nodes']) == set(out_props['nodes']) and
+                   in_props['size'] == out_props['size']
+                   for _, out_props in out_dict)
+        ]  # nodes which are correct
+        correct_matches.append(matches)
+    return correct_matches
 
 
 def get_valid_nodes(transformed_values, pixels):
@@ -237,115 +201,51 @@ def get_valid_nodes(transformed_values, pixels):
                        for sublist in can_see_nodes for inner_list in sublist])
     return can_see
 
-# TODO: break up this function
 
-
-def synthesize():
+def synthesize_new():
     enumerator = TSizeEnumerator(task, transform_vocab, ValuesManager())
-    partial_solutions = {}
-    # Set to track programs from previous iterations
-    previous_programs = set()
-    counter, filter_counter = 0, 0
-    new_programs = set()
+    counter, filter_counter, correct_table = 0, 0, [{node: None for node in input_graph.graph.nodes()}
+                                                    for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+    program_counts = {}  # Global state to maintain program counts
+    output_graphs = task.output_abstracted_graphs_original[task.abstraction]
+
     while enumerator.hasNext():
         program = enumerator.next()
-        print(program.code)
-        print(program.values)
+        print("program enumerated:", program.code)
+        print("program values:", program.values)
         counter += 1
         if program.values == []:
             continue
-        new_programs.add(program)
-        output_graph = task.output_abstracted_graphs_original[task.abstraction]
-        if "Var" not in program.code:
-            program.values = [program.values]
-        for transformed_values in program.values:
-            errors, matches, mismatches, total_pixels = compare_graphs(
-                transformed_values, output_graph)
-            if program.nodeType == Types.NO_OP:
-                changed_pixels = mismatches
-                partial_solutions[program] = [list(match) for match in matches]
 
-            if errors == 0:  # Found a complete solution!
-                # print("All node colors match correctly.")
-                print("Transformation Solution:", program.code)
-                print("Transformation Count:", counter)
+        correct = compare_abstracted_graphs(program.values, output_graphs)
+        if all(not sublist for sublist in correct):
+            continue
+        correct_sets = list(map(set, correct))
 
-                # Synthesizing filters...
-                filtered_matches = filter_matches(matches, expected_nodes)
-                _, filter_counter = synthesize_filter(filtered_matches)
-                print("Filter Count:", filter_counter)
-                if Types.VARIABLE in program.childTypes:
-                    var_nodes = get_valid_nodes(
-                        transformed_values, filtered_matches)
-                    print("Synthesizing variable filters:")
-                    filters = synthesize_filter(var_nodes)
-                return {program: matches}
+        for dict_, correct_set in zip(correct_table, correct_sets):  # per-task
+            for key in correct_set:
+                if dict_.get(key) is None or len(correct_set) > program_counts.get(dict_.get(key), 0):
+                    dict_[key] = program.code
+                    program_counts[program.code] = program_counts.get(
+                        program.code, 0) + 1
 
-            # TODO: change this logic to look at objects covered instead of pixels
-            elif matches:   # Optimization: Ignore partial programs that cover same subset of objects correctly
-                if [list(match) for match in matches] not in partial_solutions.values() and \
-                        all(any(m in c for m in match_sublist) for match_sublist, c in zip(matches, changed_pixels)):   # TODO: check why this is not sound for aabf363d.json
-                    # Optimization: Check if in the pixels that are correct, at least one pixel is in pixels that are supposed to change
-                    partial_solutions[program] = [
-                        list(match) for match in matches]
+        if all(value is not None for dict_ in correct_table for value in dict_.values()):
+            # all objects are covered, synthesizing filters...
 
-                # Check combinations of partial solutions for complete coverage
-                current_programs = set(partial_solutions.keys())
-                # Optimization: Only consider subsets from newly added programs
-                new_programs = current_programs - previous_programs
+            transforms_data, all_filters_found = {}, True
+            for dict_ in correct_table:
+                for key, program in dict_.items():
+                    transforms_data.setdefault(program, []).append([key])
+            for _, objects in transforms_data.items():
+                filters = synthesize_filter(objects)
+                if not filters:
+                    all_filters_found = False
+                    break
 
-                for num in range(2, len(partial_solutions) + 1):
-                    for subset in combinations(partial_solutions.keys(), num):
-                        # TODO: how would this change for variable programs
-                        # if not any(program in new_programs for program in subset):
-                        # continue
-                        solution_sets = [list(partial_solutions[program])
-                                         for program in subset]
-
-                        print("subset considered:", [
-                            program.code for program in subset])
-                        combined_solutions = [
-                            sorted(list(set().union(*tuples))) for tuples in zip(*solution_sets)]
-
-                        if all(sol == exp for sol, exp in zip(combined_solutions, total_pixels)):
-                            print(
-                                "Collective solution found with subset of partial solutions.")
-                            # Consider different rule orderings
-                            # for permuted_subset in permutations(subset):
-                            solution = {
-                                program: partial_solutions[program] for program in subset}
-                            print("Solution considered", [
-                                sub.code for sub in solution])
-                            # TODO: do not search for filters of the same subset with different orderings
-                            # Synthesizing filters...
-                            all_filters_found = True
-                            pixels = [filter_matches(
-                                value, expected_nodes) for key, value in solution.items()]
-
-                            for idx, (prog_key, prog_value) in enumerate(solution.items()):
-                                filters = synthesize_filter(pixels[idx])
-                                if Types.VARIABLE in prog_key.childTypes:
-                                    var_nodes = get_valid_nodes(
-                                        transformed_values, pixels[idx])
-                                    print("Synthesizing variable filters:")
-                                    filters = synthesize_filter(var_nodes)
-
-                                if not filters:  # Filter not found so keep searching for transforms further
-                                    all_filters_found = False
-                                    break
-                                else:
-                                    filter_counter += filters[1]
-
-                            if all_filters_found:
-                                # print("Filter solutions found for all programs")
-                                print("Transformation Counter:", counter)
-                                print("Filter Counter:", filter_counter)
-                                print("Transformation Solution:", [
-                                    program.code for program in solution])
-                                return solution
-                            # Synthesizing filters...
-
-                    previous_programs = current_programs  # Update for the next iteration
+            if all_filters_found:
+                print("Transformation Solution:", [
+                    program for program in transforms_data.keys()])
+                return
 
 
 def synthesize_filter(subset, timeout: int = 0):
@@ -364,7 +264,7 @@ def synthesize_filter(subset, timeout: int = 0):
 
 
 start_time = time.time()
-synthesize()
+synthesize_new()
 print(f"Problem {taskNumber}: --- {(time.time() - start_time)} seconds ---")
 
 test_problems = \
