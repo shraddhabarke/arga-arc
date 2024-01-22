@@ -223,8 +223,8 @@ class Not(FilterASTNode):
         # TODO: Optimize
         for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
             local_data = []
-            for node, data in input_abstracted_graphs.graph.nodes(data=True):
-                local_data.extend(data['nodes'])
+            for node, _ in input_abstracted_graphs.graph.nodes(data=True):
+                local_data.append(node)
             nodes_with_data.append(local_data)
         result = [[item for item in sublist1 if item not in sublist2]
                   for sublist1, sublist2 in zip(nodes_with_data, values)]

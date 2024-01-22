@@ -50,10 +50,6 @@ class TSizeEnumerator:
             self.childrenIterator = LookaheadIterator(iter([None]))
         elif self.rootMaker.arity == 0 and self.rootMaker.nodeType == Types.TRANSFORMS:
             self.childrenIterator = LookaheadIterator(iter([None]))
-        elif self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
-            childrenCost = self.costLevel - 1
-            self.childrenIterator = ChildrenIterator(
-                self.rootMaker.childTypes, childrenCost, self.bank)
         elif self.rootMaker.arity > 0:  # TODO: Cost-based enumeration
             childrenCost = self.costLevel - self.rootMaker.default_size
             self.childrenIterator = ChildrenIterator(
@@ -62,6 +58,10 @@ class TSizeEnumerator:
                 childType, childrenCost, self.bank) for childType in self.rootMaker.childTypes]
             self.currentChildIteratorIndex = 0  # Keep track of which iterator is current
             self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
+        elif self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
+            childrenCost = self.costLevel - 1
+            self.childrenIterator = ChildrenIterator(
+                self.rootMaker.childTypes, childrenCost, self.bank)
         else:
             self.childrenIterator = LookaheadIterator(iter([]))
         return True
@@ -93,11 +93,10 @@ class TSizeEnumerator:
                         res = prog
                     elif self.oeManager.is_representative(prog.values):
                         res = prog
+
             elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
                 self.currentChildIteratorIndex += 1
                 self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
-                return self.getNextProgram()
-
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None

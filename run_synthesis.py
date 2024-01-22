@@ -101,12 +101,19 @@ def sort_filter_makers(filter_makers, filter_probs):
 
 # Transform Vocab
 tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, Mirror_Axis, RelativePosition, ImagePoints,
-                Symmetry_Axis, ObjectId, Variable("Var"), MoveNode, MoveNodeMax]
-# UpdateColor, MoveNode, RotateNode, AddBorder, FillRectangle, HollowRectangle, ExtendNode, MoveNodeMax, FillRectangle, Transforms
-# AddBorder, ExtendNodeVar, RotateNode, FillRectangle, HollowRectangle, ExtendNode, MoveNodeMax, FillRectangle, Transform
+                Symmetry_Axis, ObjectId, Variable(
+                    "Var"), UpdateColor, MoveNode, MoveNodeMax, FillRectangle, AddBorder, ExtendNode, RotateNode,
+                HollowRectangle, Mirror, Transforms]
 # "d43fd935" #"ae3edfdc" #"05f2a901" #"ddf7fa4f" #"d43fd935" "b27ca6d3", "67a3c6ac"
+test_problems = [("08ed6ac7", "nbccg"), ("bb43febb", "nbccg"), ("25ff71a9", "nbccg"), ("3906de3d", "nbvcg"), ("4258a5f9", "nbccg"), ("50cb2852", "nbccg"),
+                 ("6455b5f5", "ccg"), ("d2abd087",
+                                       "nbccg"), ("c8f0f002", "nbccg"), ("67385a82", "nbccg"),
+                 ("dc1df850", "nbccg"), ("b27ca6d3", "nbccg"), ("6e82a1ae",
+                                                                "nbccg"), ("aedd82e4", "nbccg"), ("b1948b0a", "nbccg"),
+                 ("ea32f347", "nbccg"), ("7f4411dc", "lrg"), ("a79310a0", "nbccg")]
 
-taskNumber = "25ff71a9"
+
+taskNumber = "ddf7fa4f"
 abstraction = "nbccg"
 task = Task("ARC/data/training/" + taskNumber + ".json")
 task.abstraction = abstraction
@@ -127,7 +134,6 @@ filter_vocab = VocabFactory.create(f_vocabMakers)
 pcfg = False  # toggle this
 if pcfg:
     transform_probabilities = laplace_smoothing()
-    # TODO: check filter synthesis for ea32f347
     filter_probabilites = laplace_smoothing_for_filters()
     f_vocabMakers = [FilterByColor, FilterBySize, FilterByDegree,
                      FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, Or, And]
@@ -157,95 +163,94 @@ if pcfg:
 
 
 def compare_abstracted_graphs(actual_graphs, expected_graphs):
-    correct_matches = []
+    correct_out_matches, correct_in_matches = [], []
     for input_graph, output_graph in zip(actual_graphs, expected_graphs):
         out_dict = output_graph.graph.nodes(data=True)
-        matches = [
-            in_node for in_node, in_props in input_graph
-            if any(in_props['color'] == out_props['color'] and
-                   set(in_props['nodes']) == set(out_props['nodes']) and
-                   in_props['size'] == out_props['size']
-                   for _, out_props in out_dict)
-        ]  # nodes which are correct
-        correct_matches.append(matches)
-    return correct_matches
-
-
-def get_valid_nodes(transformed_values, pixels):
-    def get_transformed_values_for_satisfied_nodes(satisfied_nodes, all_nodes, transformed_values):
-        result = []
-        for node in satisfied_nodes:
-            nodes_list = next(value['nodes']
-                              for key, value in all_nodes if key == node)
-            values = [transformed_values[coord] for coord in nodes_list]
-            if len(set(values)) == 1:
-                result.append(values[0])
-        return result
-
-    can_see = []
-    for input_graph, pixel, transform_val in zip(task.input_abstracted_graphs_original[task.abstraction], pixels, transformed_values):
-        satisfied_nodes = [tup[0] for tup in input_graph.graph.nodes(
-            data=True) if any(node in pixel for node in tup[1]['nodes'])]
-        neighbors = [[neighbor for neighbor in input_graph.graph.neighbors(
-            node) if neighbor not in satisfied_nodes] for node in satisfied_nodes]
-        neighbors = [item for sublist in neighbors for item in sublist]
-        neighbors_colors = [input_graph.get_color(
-            node) for node in neighbors]  # todo: generalize
-        print("color-2:", neighbors_colors)
-        print("transform:", transformed_values)
-        print(get_transformed_values_for_satisfied_nodes(
-            satisfied_nodes, input_graph.graph.nodes(data=True), transform_val))
-        can_see_nodes = [value['nodes'] for key_to_find in neighbors for key,
-                         value in input_graph.graph.nodes(data=True) if key == key_to_find]
-        can_see.append([inner_list
-                       for sublist in can_see_nodes for inner_list in sublist])
-    return can_see
+        in_matches, out_matches = [], []
+        for out_node, out_props in out_dict:
+            for in_node, in_props in input_graph:
+                if in_props['color'] == out_props['color'] and \
+                   set(in_props['nodes']) == set(out_props['nodes']) and \
+                   in_props['size'] == out_props['size']:
+                    out_matches.append(out_node)
+                    in_matches.append(in_node)
+                    break
+        correct_out_matches.append(out_matches)
+        correct_in_matches.append(in_matches)
+    return correct_out_matches, correct_in_matches
 
 
 def synthesize_new():
+    inputs = [input_graph.graph.nodes(
+    ) for input_graph in task.input_abstracted_graphs_original[task.abstraction]]  # input-nodes
     enumerator = TSizeEnumerator(task, transform_vocab, ValuesManager())
-    counter, filter_counter, correct_table = 0, 0, [{node: None for node in input_graph.graph.nodes()}
-                                                    for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
-    program_counts = {}  # Global state to maintain program counts
-    output_graphs = task.output_abstracted_graphs_original[task.abstraction]
+    input_graphs, output_graphs = task.input_abstracted_graphs_original[
+        task.abstraction], task.output_abstracted_graphs_original[task.abstraction]
+    counter, correct_table, program_counts = 0, [
+        {node: None for node in output_graph.graph.nodes()} for output_graph in output_graphs], {}
+    all_correct_out_nodes = [[] for _ in range(
+        len(task.output_abstracted_graphs_original[task.abstraction]))]
+    all_correct_in_nodes = [[] for _ in range(
+        len(task.input_abstracted_graphs_original[task.abstraction]))]
 
+    # need to make sure all objects in the output graphs have a transform
     while enumerator.hasNext():
+        correct_table_updated = False  # Track changes to correct_table
         program = enumerator.next()
-        print("program enumerated:", program.code)
-        print("program values:", program.values)
         counter += 1
-        if program.values == []:
+        if not program.values:
             continue
 
-        correct = compare_abstracted_graphs(program.values, output_graphs)
-        if all(not sublist for sublist in correct):
+        correct_out_nodes, correct_in_nodes = compare_abstracted_graphs(
+            program.values, output_graphs)
+        for idx, (out_nodes, in_nodes) in enumerate(zip(correct_out_nodes, correct_in_nodes)):
+            all_correct_out_nodes[idx].extend(out_nodes)
+            all_correct_in_nodes[idx].extend(in_nodes)
+
+        correct_sets = [set(correct) for correct in correct_out_nodes]
+        if all(not correct_set for correct_set in correct_sets):
             continue
-        correct_sets = list(map(set, correct))
 
         for dict_, correct_set in zip(correct_table, correct_sets):  # per-task
             for key in correct_set:
-                if dict_.get(key) is None or len(correct_set) > program_counts.get(dict_.get(key), 0):
+                if dict_.get(key) is None or sum(len(set_) for set_ in correct_sets) > program_counts.get(dict_.get(key), 0):
                     dict_[key] = program.code
                     program_counts[program.code] = program_counts.get(
                         program.code, 0) + 1
+                    correct_table_updated = True  # Set to True if any changes are made
 
-        if all(value is not None for dict_ in correct_table for value in dict_.values()):
+        if correct_table_updated and all(value for dict_ in correct_table for value in dict_.values()):
+            print("correct-table:", correct_table)
+            updated_correct_table = []
+            for table, old_key_set, new_key_set in zip(correct_table, all_correct_out_nodes, all_correct_in_nodes):
+                key_map = dict(zip(old_key_set, new_key_set))
+                updated_table = {key_map.get(
+                    key, key): value for key, value in table.items()}
+                updated_correct_table.append(updated_table)
+
+            transforms_data = {program: [] for program in set().union(
+                *[d.values() for d in updated_correct_table])}
+            for program in transforms_data:
+                for idx, dict_ in enumerate(updated_correct_table):
+                    transforms_data[program].append(
+                        [key for key, prog in dict_.items() if prog == program])
+
             # all objects are covered, synthesizing filters...
-
-            transforms_data, all_filters_found = {}, True
-            for dict_ in correct_table:
-                for key, program in dict_.items():
-                    transforms_data.setdefault(program, []).append([key])
+            all_filters_found, filters_sol = True, []
             for _, objects in transforms_data.items():
-                filters = synthesize_filter(objects)
+                # need to remove extra added objects in case of addBorder, hollowRectangle etc
+                filters = synthesize_filter([[obj for obj in object_lst if obj in set(
+                    input_lst)] for input_lst, object_lst in zip(inputs, objects)])
                 if not filters:
                     all_filters_found = False
                     break
-
+                filters_sol.append(filters[0])
             if all_filters_found:
                 print("Transformation Solution:", [
                     program for program in transforms_data.keys()])
-                return
+                print("Filter Solution", [
+                      program.code for program in filters_sol])
+                break
 
 
 def synthesize_filter(subset, timeout: int = 0):
@@ -266,11 +271,3 @@ def synthesize_filter(subset, timeout: int = 0):
 start_time = time.time()
 synthesize_new()
 print(f"Problem {taskNumber}: --- {(time.time() - start_time)} seconds ---")
-
-test_problems = \
-    [("08ed6ac7", "nbccg"), ("bb43febb", "nbccg"), ("25ff71a9", "nbccg"), ("3906de3d", "nbvcg"), ("4258a5f9", "nbccg"),
-     ("50cb2852", "nbccg"), ("6455b5f5", "ccg"), ("d2abd087",
-                                                  "nbccg"), ("c8f0f002", "nbccg"), ("67385a82", "nbccg"),
-        ("dc1df850", "nbccg"), ("b27ca6d3", "nbccg"), ("6e82a1ae",
-                                                       "nbccg"), ("aedd82e4", "nbccg"), ("b1948b0a", "nbccg"),
-        ("ea32f347", "nbccg"), ("7f4411dc", "lrg"), ("a79310a0", "nbccg")]

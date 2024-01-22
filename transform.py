@@ -432,9 +432,9 @@ class UpdateColor(Transforms):
         self.children = [color]
         self.size = self.default_size + \
             sum(child.size for child in self.children)
-        if isinstance(dir, Color):
+        if isinstance(color, Color):
             self.code = f"updateColor({color.code})"
-        elif isinstance(dir, Variable):
+        elif isinstance(color, Variable):
             self.code = f"updateColor({color.code}.color)"
 
     @classmethod
@@ -490,7 +490,7 @@ class ExtendNode(Transforms):
 
     @classmethod
     def apply(cls, task, children, filter):
-        instance = cls(children[0])
+        instance = cls(children[0], children[1])
         if isinstance(children[0], Dir):
             instance.values = task.transform_values(filter, instance)
         elif isinstance(children[0], Variable):
@@ -526,7 +526,7 @@ class MoveNodeMax(Transforms):
 class RotateNode(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.ROTATION_ANGLE]
+    childTypes = [[Types.ROTATION_ANGLE]]
     default_size = 1
 
     def __init__(self, rotation_angle: Rotation_Angle):
@@ -546,7 +546,7 @@ class RotateNode(Transforms):
 class AddBorder(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.COLOR]
+    childTypes = [[Types.COLOR]]
     default_size = 1
 
     def __init__(self, color: Color):
@@ -566,7 +566,7 @@ class AddBorder(Transforms):
 class FillRectangle(Transforms):
     arity = 2
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.COLOR, Types.OVERLAP]
+    childTypes = [[Types.COLOR, Types.OVERLAP]]
     default_size = 1
 
     def __init__(self, color: Color, overlap: Overlap):
@@ -586,7 +586,7 @@ class FillRectangle(Transforms):
 class HollowRectangle(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.COLOR]
+    childTypes = [[Types.COLOR]]
     default_size = 1
 
     def __init__(self, color: Color):
@@ -631,7 +631,7 @@ class Mirror(Transforms):
 class Flip(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.SYMMETRY_AXIS]
+    childTypes = [[Types.SYMMETRY_AXIS]]
     default_size = 1
 
     def __init__(self, mirror_direction: Symmetry_Axis):
