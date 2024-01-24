@@ -23,7 +23,7 @@ class TestFSizeEnumerator(unittest.TestCase):
         task.get_static_inserted_objects()
         task.get_static_object_attributes(task.abstraction)
         setup_size_and_degree_based_on_task(task)
-        vocabMakers = [Size, FColor, Relation, FilterByColor, And]
+        vocabMakers = [Size, FColor, Relation, FilterBySize, FilterByRelation]
         vocab = VocabFactory.create(vocabMakers)
         self.enumerator = FSizeEnumerator(task, vocab, ValuesManager())
 
@@ -54,16 +54,22 @@ class TestFSizeEnumerator(unittest.TestCase):
         self.assertEqual("FColor.brown", self.enumerator.next().code)
         self.assertTrue(self.enumerator.hasNext())
         self.assertEqual("Relation.neighbor", self.enumerator.next().code)
-        self.assertEqual("FilterByColor(FColor.black)",
+        self.assertEqual([[(2, 0), (6, 0), (8, 0)], [(1, 0), (4, 0), (7, 0)], [(1, 0), (6, 0), (7, 0)]], self.enumerator.next().values)
+        self.assertEqual("FilterBySize(SIZE.MAX)",
                          self.enumerator.next().code)
-        self.assertEqual("FilterByColor(FColor.blue)",
+        self.assertEqual("FilterBySize(SIZE.ODD)",
                          self.enumerator.next().code)
-        self.assertEqual("FilterByColor(FColor.red)",
+        self.assertEqual("FilterBySize(SIZE.6)",
                          self.enumerator.next().code)
-        self.assertEqual("FilterByColor(FColor.yellow)",
-                         self.enumerator.next().code)
+        for i in range(4):
+            self.enumerator.next()
+        self.assertEqual("FilterBySize(SIZE.16)", self.enumerator.next().code)
+        # it is not taking in filterbyrelation because there is a match so OE eliminates it!
+        self.assertEqual("∃y s.t y.(FilterBySize(SIZE.MIN))", self.enumerator.next().code)
+        #self.assertEqual("", self.enumerator.next().code)
+        #self.assertEqual("", self.enumerator.next().code)
+        #self.assertEqual("", self.enumerator.next().code)
 
-        # self.assertFalse(self.enumerator.hasNext())
         # self.assertEqual("FilterByColor(FColor.C0)", self.enumerator.next().code)
         # self.assertEqual("FilterByColor(FColor.C1, Exclude.TRUE)", self.enumerator.next().code)
         # self.assertEqual("FilterByColor(FColor.C1, Exclude.FALSE)", self.enumerator.next().code)

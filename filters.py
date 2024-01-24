@@ -44,11 +44,22 @@ class Relation(FilterASTNode, Enum):
 
     def execute(self, task, children):
         if self.name == 'neighbor':
-            self.values = [
-                [[neighbor for neighbor in input_graph.graph.neighbors(node)]
-                 for node in input_graph.graph.nodes()]
-                for input_graph in task.input_abstracted_graphs_original[task.abstraction]
-            ]
+            self.values = [{
+                node: [
+                    neighbor for neighbor in input_graph.graph.neighbors(node)]
+                for node in input_graph.graph.nodes()} for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+            self.values = [{(5, 0): [(6, 0)],
+                            (5, 1): [(2, 0)],
+                            (5, 2): [(8, 0)]},
+
+                           {(5, 0): [(1, 0)],
+                            (5, 1): [(7, 0)],
+                            (5, 2): [(4, 0)]},
+
+                           {(5, 0): [(1, 0)],
+                            (5, 1): [(7, 0)],
+                            (5, 2): [(6, 0)]}]
+            # todo: testing
         return self
 
     @classmethod
@@ -396,20 +407,25 @@ class FilterByNeighborDegree(Filters):
 
 
 class FilterByRelation(Filters):
-    arity = 2  # todo: check sanity
+    arity = 2
     childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
     default_size = 1
 
     def __init__(self, relation: Relation, filter: Filters):
-        super().__init__(FilterTypes.RELATION, FilterTypes.FILTERS)
+        super().__init__()
         self.children = [relation, filter]
-        self.code = ""  # todo: something like there exists
-        self.size = self.default_size + relation + filter.size
+        self.code = f"∃y s.t y.({filter.code})"
+        self.size = self.default_size + relation.size + filter.size
         self.childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
+        # todo: need to compute the subsets, all subsets need not have filters
 
+    # check if the filter node satisfies any of the relational nodes
     @classmethod
     def execute(cls, task, children):
         instance = cls(children[0], children[1])
-        values = []  # todo: task.filter_values(instance)
-        instance.values = values
+        relation_instance, filter_instance = children
+        total_value_dict = [
+        {key: [val for val in value if val in filter_set] for key, value in rel_dict.items()}
+        for filter_set, rel_dict in zip(filter_instance.values, relation_instance.values)]
+        instance.values = [total_value_dict]
         return instance
