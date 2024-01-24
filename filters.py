@@ -414,7 +414,7 @@ class FilterByRelation(Filters):
     def __init__(self, relation: Relation, filter: Filters):
         super().__init__()
         self.children = [relation, filter]
-        self.code = f"∃y s.t y.({filter.code})"
+        self.code = f"∃y s.t ({relation.code}) y.({filter.code})"
         self.size = self.default_size + relation.size + filter.size
         self.childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
         # todo: need to compute the subsets, all subsets need not have filters

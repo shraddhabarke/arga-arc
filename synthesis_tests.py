@@ -64,8 +64,7 @@ class TestFSizeEnumerator(unittest.TestCase):
         for i in range(4):
             self.enumerator.next()
         self.assertEqual("FilterBySize(SIZE.16)", self.enumerator.next().code)
-        # it is not taking in filterbyrelation because there is a match so OE eliminates it!
-        self.assertEqual("∃y s.t y.(FilterBySize(SIZE.MIN))", self.enumerator.next().code)
+        self.assertEqual("∃y s.t (Relation.neighbor) y.(FilterBySize(SIZE.MIN))", self.enumerator.next().code)
         #self.assertEqual("", self.enumerator.next().code)
         #self.assertEqual("", self.enumerator.next().code)
         #self.assertEqual("", self.enumerator.next().code)
