@@ -124,27 +124,39 @@ class Task:
             for node, degree in abs_graph.graph.degree():
                 self.object_degrees[abstraction].add(degree)
 
+    def evaluate_program(
+        self,
+        program: t.List[t.Tuple[FilterASTNode, t.List[TransformASTNode]]],
+        abstraction: str,
+    ) -> t.List[ARCGraph]:
+        self.abstraction = abstraction
+        test_inputs = self.test_input
+        transformed_inputs = []
+        for idx, test_input in enumerate(test_inputs):
+            test_abstracted_graph: ARCGraph = getattr(
+                test_input, Image.abstraction_ops[abstraction]
+            )()
+            for filter, transformations in program:
+                for transformation in transformations:
+                    test_abstracted_graph.apply_all(filter, transformation)
+            reconstructed = test_input.undo_abstraction(test_abstracted_graph)
+
+            transformed_inputs.append(reconstructed)
+        return transformed_inputs
+
     def test_program(
         self,
         program: t.List[t.Tuple[FilterASTNode, TransformASTNode]],
         abstraction: str,
     ) -> bool:
         """applies all filters and transformations to the test set and checks if the output matches the expected output"""
-        self.abstraction = abstraction
-        test_inputs = self.test_input
-        for idx, test_input in enumerate(test_inputs):
-            test_abstracted_graph = getattr(
-                test_input, Image.abstraction_ops[abstraction]
-            )()
-            for filter, transformation in program:
-                test_abstracted_graph.apply_all(filter, transformation)
-            reconstructed = test_input.undo_abstraction(test_abstracted_graph)
-
-            error = self.__graph_diff_px(reconstructed, self.test_output[0])
+        transformed_inputs = self.evaluate_program(program, abstraction)
+        for idx, transformed_input in enumerate(transformed_inputs):
+            error = self.__graph_diff_px(transformed_input, self.test_output[idx])
             if error != 0:
-                print(
-                    f"Test failed for {self.task_id} test {idx + 1} with error {error}"
-                )
+                # print(
+                #     f"Test failed for {self.task_id} test {idx + 1} with error {error}"
+                # )
                 return False
         return True
 
@@ -179,7 +191,9 @@ class Task:
                 error += 1
         return error
 
-    def transform_values(self, filter: FilterASTNode, transformations: list):
+    def transform_values(
+        self, filter: FilterASTNode, transformations: t.List[TransformASTNode]
+    ):
         """
         Returns the values of the transformed grid
         """
@@ -191,21 +205,17 @@ class Task:
         if not isinstance(transformations, list):
             transformations = [transformations]
         transformed_values = []
-
         # TODO: some issue here for na, mcccg
-        for train_input, input_abstracted_graph in zip(
-            self.train_input, self.input_abstracted_graphs_original[self.abstraction]
-        ):
+        for input_abstracted_graph in self.input_abstracted_graphs_original[
+            self.abstraction
+        ]:
             for transformation in transformations:
                 input_abstracted_graph.apply_all(filter, transformation)
-            reconstructed = train_input.undo_abstraction(input_abstracted_graph)
-            transformed_values.append(
-                {
-                    node: data["color"]
-                    for node, data in reconstructed.graph.nodes(data=True)
-                }
-            )
-        return transformed_values
+            transformed_values.append(input_abstracted_graph.graph.nodes(data=True))
+        return [
+            [(key, value) for key, value in dict(node_data_view).items()]
+            for node_data_view in transformed_values
+        ]
 
     def filter_values(self, filter: FilterASTNode):
         filtered_nodes = []
