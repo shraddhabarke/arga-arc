@@ -20,8 +20,10 @@ class VocabFactory:
     def create(cls, vocabMakers: List[Union[TransformASTNode, FilterASTNode]]):
         leavesMakers, nodeMakers = [], []
         for maker in vocabMakers:
-            if maker.arity == 0:
+            if maker.arity == 0 and maker.nodeType != Types.VARIABLE:
                 leavesMakers.extend(maker.get_all_values())
+            elif maker.nodeType == Types.VARIABLE:
+                leavesMakers.append(maker)
             else:
                 nodeMakers.append(maker)
         return cls(leavesMakers, nodeMakers)

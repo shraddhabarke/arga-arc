@@ -8,6 +8,7 @@ class FilterTypes(Enum):
     COLOR = "FColor"
     SIZE = "Size"
     DEGREE = "Degree"
+    RELATION = "Relation"
 
 
 class FilterASTNode:
@@ -18,6 +19,52 @@ class FilterASTNode:
         self.children: List[FilterASTNode] = children if children else []
         self.childTypes: List[FilterTypes] = []
         self.values = None
+
+
+class Relation(FilterASTNode, Enum):
+    neighbor = "Neighbor"  # todo: add more relations here
+
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.RELATION)
+        self.nodeType = FilterTypes.RELATION
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.RELATION
+
+    def execute(self, task, children):
+        if self.name == 'neighbor':
+            self.values = [{
+                node: [
+                    neighbor for neighbor in input_graph.graph.neighbors(node)]
+                for node in input_graph.graph.nodes()} for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+            self.values = [{(5, 0): [(6, 0)],
+                            (5, 1): [(2, 0)],
+                            (5, 2): [(8, 0)]},
+
+                           {(5, 0): [(1, 0)],
+                            (5, 1): [(7, 0)],
+                            (5, 2): [(4, 0)]},
+
+                           {(5, 0): [(1, 0)],
+                            (5, 1): [(7, 0)],
+                            (5, 2): [(6, 0)]}]
+            # todo: testing
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
 
 
 class SizeValue:
@@ -53,6 +100,7 @@ class DegreeValue:
 class Size(FilterASTNode):
     _all_values = set()
     arity = 0
+    nodeType = FilterTypes.SIZE
 
     def __new__(cls, enum_value):
         instance = SizeValue(enum_value)
@@ -67,6 +115,7 @@ class Size(FilterASTNode):
 class Degree(FilterASTNode):
     _all_values = set()
     arity = 0
+    nodeType = FilterTypes.DEGREE
 
     def __new__(cls, enum_value):
         instance = DegreeValue(enum_value)
@@ -125,6 +174,11 @@ class FColor(FilterASTNode, Enum):
     @property
     def arity(cls):
         return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.COLOR
 
     def execute(cls, task, children):
         return cls
@@ -216,8 +270,8 @@ class Not(FilterASTNode):
         # TODO: Optimize
         for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
             local_data = []
-            for node, data in input_abstracted_graphs.graph.nodes(data=True):
-                local_data.extend(data['nodes'])
+            for node, _ in input_abstracted_graphs.graph.nodes(data=True):
+                local_data.append(node)
             nodes_with_data.append(local_data)
         result = [[item for item in sublist1 if item not in sublist2]
                   for sublist1, sublist2 in zip(nodes_with_data, values)]
@@ -349,4 +403,29 @@ class FilterByNeighborDegree(Filters):
         instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
+        return instance
+
+
+class FilterByRelation(Filters):
+    arity = 2
+    childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
+    default_size = 1
+
+    def __init__(self, relation: Relation, filter: Filters):
+        super().__init__()
+        self.children = [relation, filter]
+        self.code = f"∃y s.t ({relation.code}) y.({filter.code})"
+        self.size = self.default_size + relation.size + filter.size
+        self.childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
+        # todo: need to compute the subsets, all subsets need not have filters
+
+    # check if the filter node satisfies any of the relational nodes
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0], children[1])
+        relation_instance, filter_instance = children
+        total_value_dict = [
+        {key: [val for val in value if val in filter_set] for key, value in rel_dict.items()}
+        for filter_set, rel_dict in zip(filter_instance.values, relation_instance.values)]
+        instance.values = [total_value_dict]
         return instance

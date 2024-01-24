@@ -103,13 +103,13 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == "UL" or direction == "UR":
+        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
             delta_y = -1
-        elif direction == "D" or direction == "DL" or direction == "DR":
+        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
             delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL":
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
             delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR":
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
             sub_node_y = sub_node[0]
@@ -142,9 +142,9 @@ class ARCGraph:
             delta_y = -1
         elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
             delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or Dir.DOWN_LEFT:
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
             delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.DOWN_RIGHT or direction == Dir.UP_RIGHT:
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         max_allowed = 1000
         for foo in range(max_allowed):
@@ -283,7 +283,7 @@ class ARCGraph:
                                 size=len(non_border_pixels))
         return self
 
-    def Mirror(self, node, mirror_axis: Mirror_Axis):
+    def Mirror(self, node, mirror_axis):
         """
         mirroring a node with respect to the given axis.
         mirror_axis takes the form of (y, x) where one of y, x equals None to
@@ -375,21 +375,21 @@ class ARCGraph:
         """
         node_centroid = self.get_centroid(node)
         if not isinstance(point, tuple):
-            if point == "TOP":
+            if point == "TOP" or point == ImagePoints.TOP:
                 point = (0, node_centroid[1])
-            elif point == "BOTTOM":
+            elif point == "BOTTOM" or point == ImagePoints.BOTTOM:
                 point = (self.image.height - 1, node_centroid[1])
-            elif point == "LEFT":
+            elif point == "LEFT" or point == ImagePoints.LEFT:
                 point = (node_centroid[0], 0)
-            elif point == "RIGHT":
+            elif point == "RIGHT" or point == ImagePoints.RIGHT:
                 point = (node_centroid[0], self.image.width - 1)
-            elif point == "TOP_LEFT":
+            elif point == "TOP_LEFT" or point == ImagePoints.TOP_LEFT:
                 point = (0, 0)
-            elif point == "TOP_RIGHT":
+            elif point == "TOP_RIGHT" or point == ImagePoints.TOP_RIGHT:
                 point = (0, self.image.width - 1)
-            elif point == "BOTTOM_LEFT":
+            elif point == "BOTTOM_LEFT" or point == ImagePoints.BOTTOM_LEFT:
                 point = (self.image.height - 1, 0)
-            elif point == "BOTTOM_RIGHT":
+            elif point == "BOTTOM_RIGHT" or point == ImagePoints.BOTTOM_RIGHT:
                 point = (self.image.height - 1, self.image.width - 1)
         if object_id == -1:
             # special id for dynamic objects, which uses the given nodes as objects
@@ -628,11 +628,11 @@ class ARCGraph:
         relative_point: the centroid of the target node, or static point such as (0,0)
         relative_pos: the relative position of the filtered_point to the relative_point
         """
-        if relative_pos == RelativePosition.SOURCE:
+        if relative_pos == "SOURCE" or relative_pos == RelativePosition.SOURCE:
             return filtered_point
-        elif relative_pos == RelativePosition.TARGET:
+        elif relative_pos == RelativePosition.TARGET or relative_pos == "TARGET":
             return relative_point
-        elif relative_pos == RelativePosition.MIDDLE:
+        elif relative_pos == RelativePosition.MIDDLE or relative_pos == "MIDDLE":
             y = (filtered_point[0] + relative_point[0]) // 2
             x = (filtered_point[1] + relative_point[1]) // 2
             return (y, x)

@@ -23,6 +23,8 @@ class TSizeEnumerator:
         self.currIter = LookaheadIterator(iter(vocab.leaves()))
         self.rootMaker = self.currIter.next()
         self.childrenIterator = LookaheadIterator(iter([None]))
+        self.childrenIterators = []
+        self.currentChildIteratorIndex = 0
         self.maxterminals = max(
             [nonleaf.default_size + nonleaf.arity for nonleaf in vocab.nonLeaves()])
 
@@ -44,17 +46,20 @@ class TSizeEnumerator:
         if not self.currIter.hasNext():
             return False
         self.rootMaker = self.currIter.next()
-        if self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
-            childrenCost = self.costLevel - 1
-            self.childrenIterator = ChildrenIterator(
-                self.rootMaker.childTypes, childrenCost, self.bank)
-
-        elif self.rootMaker.arity == 0 and self.rootMaker.nodeType == Types.TRANSFORMS:
+        if self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
             self.childrenIterator = LookaheadIterator(iter([None]))
-        elif self.rootMaker.arity == 0 and self.rootMaker.size == self.costLevel:
+        elif self.rootMaker.arity == 0 and self.rootMaker.nodeType == Types.TRANSFORMS:
             self.childrenIterator = LookaheadIterator(iter([None]))
         elif self.rootMaker.arity > 0:  # TODO: Cost-based enumeration
             childrenCost = self.costLevel - self.rootMaker.default_size
+            self.childrenIterator = ChildrenIterator(
+                self.rootMaker.childTypes, childrenCost, self.bank)
+            self.childrenIterators = [ChildrenIterator(
+                childType, childrenCost, self.bank) for childType in self.rootMaker.childTypes]
+            self.currentChildIteratorIndex = 0  # Keep track of which iterator is current
+            self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
+        elif self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
+            childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(
                 self.rootMaker.childTypes, childrenCost, self.bank)
         else:
@@ -63,7 +68,7 @@ class TSizeEnumerator:
 
     def changeLevel(self) -> bool:
         self.costLevel += 1
-        if self.costLevel > self.maxterminals + 1:
+        if self.costLevel > self.maxterminals + 2:
             self.currIter = LookaheadIterator(iter([Transforms]))
         else:
             self.currIter = LookaheadIterator(iter(self.vocab.nonLeaves()))
@@ -75,19 +80,23 @@ class TSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 25: # TODO: test transform sequence
+            if self.costLevel > 25:  # TODO: test transform sequence
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
-                if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
-                                                                        all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
+                if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children)
+                                                                        and all(child.nodeType == child_type for child, child_type
+                                                                                in zip(children, self.rootMaker.childTypes[self.currentChildIteratorIndex]))):
                     prog = self.rootMaker.apply(
                         self.task, children, self.filter)
                     if children is None:
                         res = prog
                     elif self.oeManager.is_representative(prog.values):
                         res = prog
-                    # print(res.code)
+
+            elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
+                self.currentChildIteratorIndex += 1
+                self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None

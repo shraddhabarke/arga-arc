@@ -1,5 +1,5 @@
 import json
-import os
+import copy
 from inspect import signature
 from itertools import product
 
@@ -129,16 +129,14 @@ class Task:
         if not isinstance(transformations, list):
             transformations = [transformations]
         transformed_values = []
-
         # TODO: some issue here for na, mcccg
-        for train_input, input_abstracted_graph in zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction]):
+        for input_abstracted_graph in self.input_abstracted_graphs_original[self.abstraction]:
             for transformation in transformations:
                 input_abstracted_graph.apply_all(filter, transformation)
-            reconstructed = train_input.undo_abstraction(
-                input_abstracted_graph)
             transformed_values.append(
-                {node: data['color'] for node, data in reconstructed.graph.nodes(data=True)})
-        return transformed_values
+                input_abstracted_graph.graph.nodes(data=True))
+        return [[(key, value) for key, value in dict(node_data_view).items()]
+                for node_data_view in transformed_values]
 
     def filter_values(self, filter: FilterASTNode):
         filtered_nodes = []
@@ -148,51 +146,46 @@ class Task:
             filtered_nodes_i = []
             for node in input_abstracted_graph.graph.nodes(data=True):
                 if input_abstracted_graph.apply_filters(node[0], filter):
-                    filtered_nodes_i.extend(node[1]['nodes'])
+                    filtered_nodes_i.append(node[0])
             filtered_nodes.append(filtered_nodes_i)
         return filtered_nodes
 
-    def var_transform_values(self, filter: FilterASTNode, transformations: list):
+    def var_transform_values(self, filter: FilterASTNode, transformation: TransformASTNode):
         """
         Returns the values of the transformed grid with different possibilities for variable transformation
         """
-        self.input_abstracted_graphs_original[self.abstraction] = [getattr(
+        input_abstraction = [getattr(
             input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
-        self.output_abstracted_graphs_original[self.abstraction] = [getattr(
-            input, Image.abstraction_ops[self.abstraction])() for input in self.train_output]
-        if not isinstance(transformations, list):
-            transformations = [transformations]
-
-        def generate_cartesian_product(input_graph, output_graph):
-            in_dict = input_graph.graph.nodes(data=True)
-            out_dict = {node[0]: node[1]
-                        for node in output_graph.graph.nodes(data=True)}
-            matching_nodes = [node[0] for node in in_dict if node[0]
-                              in out_dict and node[1]['color'] == out_dict[node[0]]['color']]
-            # extract all colors from the input graph
-            colors = set(item[1]['color'] for item in in_dict)
-            # all possible valuations of color assignments for nodes which undergo change
-            cartesian_product = (combo for combo in product(colors, repeat=len(
-                in_dict) - len(matching_nodes)) if len(set(combo)) > 1)
-
-            diff_nodes = set(input_graph.graph.nodes) - set(matching_nodes)
-            # Generator that yields dictionaries for each combination of colors
-
-            def combo_dicts_generator():
-                for combo in cartesian_product:
-                    yield {node: color for node, color in zip(diff_nodes, combo)}
-            return combo_dicts_generator()
+        output_abstraction = [getattr(output, Image.abstraction_ops[self.abstraction])(
+        ) for output in self.train_output]
 
         transformed_values = []
-        for train_input, input_graph, output_graph in zip(self.train_input, self.input_abstracted_graphs_original[self.abstraction], self.output_abstracted_graphs_original[self.abstraction]):
-            color_combo = generate_cartesian_product(input_graph, output_graph)
-            temp_transformed_values = []
-            for color in color_combo:
-                for transformation in transformations:
-                    input_graph.varcolor_apply_all(
-                        color, filter, transformation)
-                reconstructed = train_input.undo_abstraction(input_graph)
-                temp_transformed_values.append(
-                    {node: data['color'] for node, data in reconstructed.graph.nodes(data=True)})
-            transformed_values.append(temp_transformed_values)
-        return list(product(*transformed_values))
+        for input_graph, output_graph in zip(input_abstraction, output_abstraction):
+            output_objects = output_graph.graph.nodes(data=True)
+            output_nodes_set = {
+                tuple(out_props['nodes']): out_props for _, out_props in output_objects}
+
+            per_task = []
+            for object in input_graph.graph.nodes():  # iterate over all objects # todo: optimize the params acquisition
+                if "extendNode" in transformation.code or "moveNode" in transformation.code or "moveNodeMax" in transformation.code:
+                    object_params = [input_graph.get_relative_pos(
+                        object, neighbor) for neighbor in input_graph.graph.nodes() if object != neighbor]
+                elif "updateColor" in transformation.code:
+                    object_params = set([input_graph.get_color(obj)
+                                        for obj in input_graph.graph.nodes()])
+                else:
+                    object_params = [None]  # Default case if none of the above
+                for param in object_params:
+                    if param is not None:
+                        input_graph_copy = copy.deepcopy(input_graph)
+                        input_graph_copy.var_apply_all(
+                            dict({object: param}), filter, transformation)
+                        new_object_data = input_graph_copy.graph.nodes[object]
+                        new_object_nodes = tuple(
+                            input_graph_copy.graph.nodes[object]['nodes'])
+                        # todo: collect the spec here
+                        if output_nodes_set.get(new_object_nodes, {}).get('color') == new_object_data['color'] \
+                                and output_nodes_set[new_object_nodes].get('size') == new_object_data['size']:
+                            per_task.append((object, new_object_data))
+            transformed_values.append(per_task)
+        return transformed_values
