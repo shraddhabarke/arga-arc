@@ -37,7 +37,9 @@ class ValuesManager(OEValuesManager):
         return True
 
     def is_frepresentative(self, program: Union[FilterASTNode, TransformASTNode]) -> bool:
-        results = tuple(tuple(inner_list) for inner_list in program.values)
+        # results = tuple(tuple(inner_list) for inner_list in program.values)
+        results = tuple(tuple(tuple(neighbor) for neighbor in node_neighbors)
+                        for node_neighbors in program.values)
         if results in self.class_values:
             return False
         self.class_values.add(results)

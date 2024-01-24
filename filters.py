@@ -8,6 +8,7 @@ class FilterTypes(Enum):
     COLOR = "FColor"
     SIZE = "Size"
     DEGREE = "Degree"
+    RELATION = "Relation"
 
 
 class FilterASTNode:
@@ -18,6 +19,41 @@ class FilterASTNode:
         self.children: List[FilterASTNode] = children if children else []
         self.childTypes: List[FilterTypes] = []
         self.values = None
+
+
+class Relation(FilterASTNode, Enum):
+    neighbor = "Neighbor"  # todo: add more relations here
+
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.RELATION)
+        self.nodeType = FilterTypes.RELATION
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.RELATION
+
+    def execute(self, task, children):
+        if self.name == 'neighbor':
+            self.values = [
+                [[neighbor for neighbor in input_graph.graph.neighbors(node)]
+                 for node in input_graph.graph.nodes()]
+                for input_graph in task.input_abstracted_graphs_original[task.abstraction]
+            ]
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
 
 
 class SizeValue:
@@ -355,5 +391,25 @@ class FilterByNeighborDegree(Filters):
     def execute(cls, task, children):
         instance = cls(children[0])
         values = task.filter_values(instance)
+        instance.values = values
+        return instance
+
+
+class FilterByRelation(Filters):
+    arity = 2  # todo: check sanity
+    childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
+    default_size = 1
+
+    def __init__(self, relation: Relation, filter: Filters):
+        super().__init__(FilterTypes.RELATION, FilterTypes.FILTERS)
+        self.children = [relation, filter]
+        self.code = ""  # todo: something like there exists
+        self.size = self.default_size + relation + filter.size
+        self.childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
+
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0], children[1])
+        values = []  # todo: task.filter_values(instance)
         instance.values = values
         return instance
