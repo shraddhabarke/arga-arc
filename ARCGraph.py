@@ -114,41 +114,13 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if (
-            direction == "U"
-            or direction == "UL"
-            or direction == "UR"
-            or direction == Dir.UP
-            or direction == Dir.UP_LEFT
-            or direction == Dir.UP_RIGHT
-        ):
+        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
             delta_y = -1
-        elif (
-            direction == "D"
-            or direction == "DL"
-            or direction == "DR"
-            or direction == Dir.DOWN
-            or direction == Dir.DOWN_LEFT
-            or direction == Dir.DOWN_RIGHT
-        ):
+        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
             delta_y = 1
-        if (
-            direction == "L"
-            or direction == "UL"
-            or direction == "DL"
-            or direction == Dir.LEFT
-            or direction == Dir.UP_LEFT
-            or direction == Dir.DOWN_LEFT
-        ):
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
             delta_x = -1
-        elif (
-            direction == "R"
-            or direction == "UR"
-            or direction == "DR"
-            or direction == Dir.RIGHT
-            or direction == Dir.UP_RIGHT
-            or direction == Dir.DOWN_RIGHT
-        ):
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
             sub_node_y = sub_node[0]
@@ -197,23 +169,9 @@ class ARCGraph:
             or direction == Dir.DOWN_RIGHT
         ):
             delta_y = 1
-        if (
-            direction == "L"
-            or direction == "UL"
-            or direction == "DL"
-            or direction == Dir.LEFT
-            or direction == Dir.UP_LEFT
-            or direction == Dir.DOWN_LEFT
-        ):
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
             delta_x = -1
-        elif (
-            direction == "R"
-            or direction == "UR"
-            or direction == "DR"
-            or direction == Dir.RIGHT
-            or direction == Dir.UP_RIGHT
-            or direction == Dir.DOWN_RIGHT
-        ):
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         max_allowed = 1000
         for foo in range(max_allowed):

@@ -149,7 +149,7 @@ def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filte
 transform_operations = {'UpdateColor', 'HollowRectangle', 'FillRectangle', 'AddBorder', 'MoveNode',
                         'ExtendNode', 'MoveNodeMax', 'Mirror', 'Flip', 'RotateNode', 'NoOp'}
 filter_operations = {'FilterByColor', 'FilterBySize', 'FilterByDegree', 'FilterByNeighborColor',
-                     'FilterByNeighborSize', 'FilterByNeighborDegree', 'Or', 'And', 'Not'}
+                    'FilterByNeighborSize', 'FilterByNeighborDegree', 'Or', 'And', 'Not'}
 
 t_extract_rules_from_ast(ast_program, transform_rules_count, t_token_rules_count)
 f_extract_rules_from_ast(ast_program, filter_rules_count, f_token_rules_count)
