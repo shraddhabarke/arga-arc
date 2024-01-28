@@ -43,22 +43,21 @@ class Relation(FilterASTNode, Enum):
         return FilterTypes.RELATION
 
     def execute(self, task, children):
-        if self.name == 'neighbor':
-            self.values = [{
-                node: [
-                    neighbor for neighbor in input_graph.graph.neighbors(node)]
-                for node in input_graph.graph.nodes()} for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
-            self.values = [{(5, 0): [(6, 0)],
-                            (5, 1): [(2, 0)],
-                            (5, 2): [(8, 0)]},
-
-                           {(5, 0): [(1, 0)],
-                            (5, 1): [(7, 0)],
-                            (5, 2): [(4, 0)]},
-
-                           {(5, 0): [(1, 0)],
-                            (5, 1): [(7, 0)],
-                            (5, 2): [(6, 0)]}]
+        if self.name == "neighbor":
+            self.values = [
+                {
+                    node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
+                    for node in input_graph.graph.nodes()
+                }
+                for input_graph in task.input_abstracted_graphs_original[
+                    task.abstraction
+                ]
+            ]
+            self.values = [
+                {(5, 0): [(6, 0)], (5, 1): [(2, 0)], (5, 2): [(8, 0)]},
+                {(5, 0): [(1, 0)], (5, 1): [(7, 0)], (5, 2): [(4, 0)]},
+                {(5, 0): [(1, 0)], (5, 1): [(7, 0)], (5, 2): [(6, 0)]},
+            ]
             # todo: testing
         return self
 
@@ -129,14 +128,16 @@ class Degree(FilterASTNode):
 
 def setup_size_and_degree_based_on_task(task):
     task_sizes = [w for w in task.object_sizes[task.abstraction]]
-    _size_additional = {f'{item}': int(item) for item in task_sizes}
+    _size_additional = {f"{item}": int(item) for item in task_sizes}
     SizeEnum = Enum(
-        "SizeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_size_additional})
+        "SizeEnum", {"MIN": "MIN", "MAX": "MAX", "ODD": "ODD", **_size_additional}
+    )
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
-    _degree_additional = {f'{item}': int(item) for item in task_degrees}
+    _degree_additional = {f"{item}": int(item) for item in task_degrees}
     DegreeEnum = Enum(
-        "DegreeEnum", {'MIN': "MIN", 'MAX': "MAX", 'ODD': "ODD", **_degree_additional})
+        "DegreeEnum", {"MIN": "MIN", "MAX": "MAX", "ODD": "ODD", **_degree_additional}
+    )
     _degrees, _sizes = [], []
 
     for name, member in SizeEnum.__members__.items():
@@ -193,10 +194,10 @@ class Filters(FilterASTNode):
     nodeType = FilterTypes.FILTERS
     childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
-    def __init__(self, filters: Union['And', 'Or', 'Filters'] = None):
+    def __init__(self, filters: Union["And", "Or", "Filters"] = None):
         super().__init__(FilterTypes.FILTERS)
         self.children = [filters] if filters else []
-        self.code = filters.code if filters else ''
+        self.code = filters.code if filters else ""
         self.size = filters.size if filters else 0
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
@@ -218,8 +219,10 @@ class And(FilterASTNode):
     def execute(cls, task, children):
         values1 = children[0].values
         values2 = children[1].values
-        intersected_values = [list(set(v1).intersection(set(v2))) if set(
-            v1).intersection(set(v2)) else [] for v1, v2 in zip(values1, values2)]
+        intersected_values = [
+            list(set(v1).intersection(set(v2))) if set(v1).intersection(set(v2)) else []
+            for v1, v2 in zip(values1, values2)
+        ]
         new_instance = cls(children[0], children[1])
         new_instance.values = intersected_values
         return new_instance
@@ -242,8 +245,9 @@ class Or(FilterASTNode):
     def execute(cls, task, children):
         values1 = children[0].values
         values2 = children[1].values
-        unioned_values = [list(set(v1).union(set(v2)))
-                          for v1, v2 in zip(values1, values2)]
+        unioned_values = [
+            list(set(v1).union(set(v2))) for v1, v2 in zip(values1, values2)
+        ]
         new_instance = cls(children[0], children[1])
         new_instance.values = unioned_values
 
@@ -268,13 +272,17 @@ class Not(FilterASTNode):
         values = children[0].values
         nodes_with_data = []
         # TODO: Optimize
-        for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
+        for input_abstracted_graphs in task.input_abstracted_graphs_original[
+            task.abstraction
+        ]:
             local_data = []
             for node, _ in input_abstracted_graphs.graph.nodes(data=True):
                 local_data.append(node)
             nodes_with_data.append(local_data)
-        result = [[item for item in sublist1 if item not in sublist2]
-                  for sublist1, sublist2 in zip(nodes_with_data, values)]
+        result = [
+            [item for item in sublist1 if item not in sublist2]
+            for sublist1, sublist2 in zip(nodes_with_data, values)
+        ]
         new_instance = cls(children[0])
         new_instance.values = result
         return new_instance
@@ -425,7 +433,13 @@ class FilterByRelation(Filters):
         instance = cls(children[0], children[1])
         relation_instance, filter_instance = children
         total_value_dict = [
-        {key: [val for val in value if val in filter_set] for key, value in rel_dict.items()}
-        for filter_set, rel_dict in zip(filter_instance.values, relation_instance.values)]
+            {
+                key: [val for val in value if val in filter_set]
+                for key, value in rel_dict.items()
+            }
+            for filter_set, rel_dict in zip(
+                filter_instance.values, relation_instance.values
+            )
+        ]
         instance.values = [total_value_dict]
         return instance
