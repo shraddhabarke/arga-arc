@@ -125,7 +125,6 @@ class Task:
         """
         self.input_abstracted_graphs_original[self.abstraction] = [getattr(
             input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
-
         if not isinstance(transformations, list):
             transformations = [transformations]
         transformed_values = []
@@ -154,6 +153,8 @@ class Task:
         """
         Returns the values of the transformed grid with different possibilities for variable transformation
         """
+        if self.abstraction == "na":  # todo: does it sense to do variable for the na abstraction?
+            return []
         input_abstraction = [getattr(
             input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
         output_abstraction = [getattr(output, Image.abstraction_ops[self.abstraction])(

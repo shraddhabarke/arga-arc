@@ -102,34 +102,11 @@ def sort_filter_makers(filter_makers, filter_probs):
 # Transform Vocab
 tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, Mirror_Axis, RelativePosition, ImagePoints,
                 Symmetry_Axis, ObjectId, Variable(
-                    "Var"), UpdateColor, MoveNode, MoveNodeMax, FillRectangle, AddBorder, ExtendNode, RotateNode,
-                HollowRectangle, Mirror, Transforms]
+                    "Var"), UpdateColor, MoveNode, MoveNodeMax, FillRectangle,
+                AddBorder, ExtendNode, RotateNode, HollowRectangle, Flip, Mirror, Transforms]
 # "d43fd935" #"ae3edfdc" #"05f2a901" #"ddf7fa4f" #"d43fd935" "b27ca6d3", "67a3c6ac"
-test_problems = [("08ed6ac7", "nbccg"), ("bb43febb", "nbccg"), ("25ff71a9", "nbccg"), ("3906de3d", "nbvcg"), ("4258a5f9", "nbccg"), ("50cb2852", "nbccg"),
-                 ("6455b5f5", "ccg"), ("d2abd087",
-                                       "nbccg"), ("c8f0f002", "nbccg"), ("67385a82", "nbccg"),
-                 ("dc1df850", "nbccg"), ("b27ca6d3", "nbccg"), ("6e82a1ae",
-                                                                "nbccg"), ("aedd82e4", "nbccg"), ("b1948b0a", "nbccg"),
-                 ("ea32f347", "nbccg"), ("7f4411dc", "lrg"), ("a79310a0", "nbccg")]
-
-
-taskNumber = "ddf7fa4f"
-abstraction = "nbccg"
-task = Task("ARC/data/training/" + taskNumber + ".json")
-task.abstraction = abstraction
-task.input_abstracted_graphs_original[task.abstraction] = [getattr(
-    input, Image.abstraction_ops[task.abstraction])() for input in task.train_input]
-task.output_abstracted_graphs_original[task.abstraction] = [getattr(
-    output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
-task.get_static_inserted_objects()
-task.get_static_object_attributes(task.abstraction)
-setup_objectids(task)
-setup_size_and_degree_based_on_task(task)
-transform_vocab = VocabFactory.create(tleaf_makers)
-# Filter Vocab
-f_vocabMakers = [FColor, Degree, Size, FilterByColor, FilterBySize, FilterByDegree,
-                 FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, Or, And]
-filter_vocab = VocabFactory.create(f_vocabMakers)
+f_vocabMakers = [FColor, Degree, Size, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize,
+                 FilterByNeighborDegree, Not, Or, And]
 
 pcfg = False  # toggle this
 if pcfg:
@@ -168,28 +145,78 @@ def compare_abstracted_graphs(actual_graphs, expected_graphs):
         out_dict = output_graph.graph.nodes(data=True)
         in_matches, out_matches = [], []
         for out_node, out_props in out_dict:
+            temp_keys, temp_vals = [], []
             for in_node, in_props in input_graph:
-                if in_props['color'] == out_props['color'] and \
-                   set(in_props['nodes']) == set(out_props['nodes']) and \
-                   in_props['size'] == out_props['size']:
-                    out_matches.append(out_node)
-                    in_matches.append(in_node)
+                if isinstance(in_props['color'], int) and isinstance(out_props['color'], int):
+                    if in_props['color'] == out_props['color'] and \
+                            set(in_props['nodes']).issubset(set(out_props['nodes'])):
+                        temp_vals.append(in_props['nodes'])
+                        temp_keys.append(in_node)
+                        if (len(set(in_props['nodes'])) == len(set(out_props['nodes']))
+                                and in_props['size'] == out_props['size']):
+                            out_matches.append(out_node)
+                            in_matches.append(in_node)
+                            break
+                        elif len(set(out_props['nodes'])) == len([item for sublist in temp_vals for item in sublist]):
+                            out_matches.append(out_node)
+                            in_matches.append(tuple(temp_keys))
+                            break
+                        else:
+                            continue
+                # for the na abstraction the entire graph is treated as one with a list of colors instead of one color
+                elif len(in_props['color']) == len(out_props['color']) and len(out_props['color']) != 1 \
+                        or len(in_props['color']) != 1:
+                    in_dictionary = dict(
+                        zip(in_props['nodes'], in_props['color']))
+                    out_dictionary = dict(
+                        zip(out_props['nodes'], out_props['color']))
+                    if out_dictionary == in_dictionary:
+                        out_matches.append(out_node)
+                        in_matches.append(in_node)
+                else:
                     break
         correct_out_matches.append(out_matches)
         correct_in_matches.append(in_matches)
     return correct_out_matches, correct_in_matches
 
 
-def synthesize_new():
+def run_synthesis(taskNumber, abstraction):
+    task = Task("ARC/data/training/" + taskNumber + ".json")
+    task.abstraction = abstraction
+    task.input_abstracted_graphs_original[task.abstraction] = [getattr(
+        input, Image.abstraction_ops[task.abstraction])() for input in task.train_input]
+    task.output_abstracted_graphs_original[task.abstraction] = [getattr(
+        output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
+    task.get_static_inserted_objects()
+    task.get_static_object_attributes(task.abstraction)
+    setup_objectids(task)
+    setup_size_and_degree_based_on_task(task)
+
+    def synthesize_filter(subset, timeout: int = 0):
+        filter_vocab = VocabFactory.create(f_vocabMakers)
+        enumerator = FSizeEnumerator(task, filter_vocab, ValuesManager())
+        i = 0
+        while enumerator.hasNext():
+            program = enumerator.next()
+            i += 1
+            results = program.values
+            # print(f"Program: {program.code}: {results, program.size}")
+            check = [sorted(sub1) == sorted(sub2)
+                     for sub1, sub2 in zip(results, subset)]
+            if check != [] and all(check):
+                print("Filter Solution!", program.code, program.size)
+                return program, i
+
+    transform_vocab = VocabFactory.create(tleaf_makers)
     inputs = [input_graph.graph.nodes(
     ) for input_graph in task.input_abstracted_graphs_original[task.abstraction]]  # input-nodes
     enumerator = TSizeEnumerator(task, transform_vocab, ValuesManager())
-    input_graphs, output_graphs = task.input_abstracted_graphs_original[
-        task.abstraction], task.output_abstracted_graphs_original[task.abstraction]
+    output_graphs = task.output_abstracted_graphs_original[task.abstraction]
+    print("outs:", [output_graph.graph.nodes(data=True) for output_graph in output_graphs])
     counter, correct_table, program_counts = 0, [
         {node: None for node in output_graph.graph.nodes()} for output_graph in output_graphs], {}
     all_correct_out_nodes = [[] for _ in range(
-        len(task.output_abstracted_graphs_original[task.abstraction]))]
+        len(output_graphs))]
     all_correct_in_nodes = [[] for _ in range(
         len(task.input_abstracted_graphs_original[task.abstraction]))]
 
@@ -197,6 +224,8 @@ def synthesize_new():
     while enumerator.hasNext():
         correct_table_updated = False  # Track changes to correct_table
         program = enumerator.next()
+        print("enumerator:", program.code)
+        print("enumerator-vals:", program.values)
         counter += 1
         if not program.values:
             continue
@@ -220,7 +249,7 @@ def synthesize_new():
                     correct_table_updated = True  # Set to True if any changes are made
 
         if correct_table_updated and all(value for dict_ in correct_table for value in dict_.values()):
-            print("correct-table:", correct_table)
+            # print("correct-table:", correct_table)
             updated_correct_table = []
             for table, old_key_set, new_key_set in zip(correct_table, all_correct_out_nodes, all_correct_in_nodes):
                 key_map = dict(zip(old_key_set, new_key_set))
@@ -253,21 +282,20 @@ def synthesize_new():
                 break
 
 
-def synthesize_filter(subset, timeout: int = 0):
-    enumerator = FSizeEnumerator(task, filter_vocab, ValuesManager())
-    i = 0
-    while enumerator.hasNext():
-        program = enumerator.next()
-        i += 1
-        results = program.values
-        # print(f"Program: {program.code}: {results, program.size}")
-        check = [sorted(sub1) == sorted(sub2)
-                 for sub1, sub2 in zip(results, subset)]
-        if check != [] and all(check):
-            print("Filter Solution!", program.code, program.size)
-            return program, i
+test_problems = [("7f4411dc", "lrg"), ("a79310a0", "nbccg")]
 
+evaluation = {"08ed6ac7": "nbccg", "25ff71a9": "nbccg", "3906de3d": "nbvcg", "4258a5f9": "nbccg", "50cb2852": "nbccg",
+              "6455b5f5": "ccg", "67385a82": "nbccg", "694f12f3": "nbccg", "6e82a1ae": "nbccg", "aedd82e4": "nbccg",
+              "b1948b0a": "nbccg", "b27ca6d3": "nbccg", "bb43febb": "nbccg", "c8f0f002": "nbccg", "d2abd087": "nbccg",
+              "dc1df850": "nbccg", "ea32f347": "nbccg", "00d62c1b": "ccgbr", "9565186b": "nbccg", "810b9b61": "ccgbr",
+              "a5313dff": "ccgbr", "b230c067": "nbccg", "d5d6de2d": "ccg", "67a3c6ac": "na", "3c9b0459": "na",
+              "9dfd6313": "na", "ed36ccf7": "na", "6150a2bd": "na",  "68b16354": "na"
+              }
 
-start_time = time.time()
-synthesize_new()
-print(f"Problem {taskNumber}: --- {(time.time() - start_time)} seconds ---")
+evals = {"a79310a0": "nbccg"}
+# "6d75e8bb" - "nbccg"
+for task, abstraction in evals.items():
+    start_time = time.time()
+    print("taskNumber:", task)
+    run_synthesis(task, abstraction)
+    print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")

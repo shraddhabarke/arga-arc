@@ -37,7 +37,6 @@ class ARCGraph:
         self.width = max([node[1] for node in self.image.graph.nodes()]) + 1
         self.height = max([node[0] for node in self.image.graph.nodes()]) + 1
         self.task_id = name.split("_")[0]
-        # self.save_dir = self.img_dir + "/" + self.task_id
 
     # ------------------------------------------ transformations ------------------------------------------
     def NoOp(self, node):
@@ -192,20 +191,20 @@ class ARCGraph:
         """
         delta = [-1, 0, 1]
         border_pixels = []
-
         for sub_node in self.graph.nodes[node]["nodes"]:
             for x in delta:
                 for y in delta:
                     border_pixel = (sub_node[0] + y, sub_node[1] + x)
-                    if border_pixel not in border_pixels and not self.check_pixel_occupied(border_pixel):
+                    if border_pixel not in border_pixels and not self.check_pixel_occupied(border_pixel) and \
+                            self.height > sub_node[0] + y >= 0 and self.width > sub_node[1] + x >= 0:
                         border_pixels.append(border_pixel)
         color_map = {"O": 0, "B": 1, "R": 2, "G": 3,
                      "Y": 4, "X": 5, "F": 6, "A": 7, "C": 8, "W": 9}
         border_color = color_map[border_color]
         new_node_id = self.generate_node_id(border_color)
         if self.is_multicolor:
-            self.graph.add_node(new_node_id, nodes=list(border_pixels), color=[border_color for j in border_pixels],
-                                size=len(border_pixels))
+            self.graph.add_node(new_node_id, nodes=list(border_pixels), color=[
+                                border_color for j in border_pixels], size=len(border_pixels))
         else:
             self.graph.add_node(new_node_id, nodes=list(
                 border_pixels), color=border_color, size=len(border_pixels))
@@ -796,26 +795,6 @@ class ARCGraph:
         return (color, max_id + 1)
 
     import itertools
-
-    def get_all_subsets(input_abstracted_graphs_original):
-        """
-        Compute all possible subsets of graph nodes along with their data.
-        :param input_abstracted_graphs_original: List of abstracted graph nodes.
-        :return: List of subsets, where each subset is represented as a dictionary.
-        """
-        all_subsets = []
-        nodes_with_data = {}
-
-        # Iterate over the nodes and their data to fill the dictionary
-        for graph in input_abstracted_graphs_original.graph.nodes(data=True):
-            node, data = graph[0], graph[1]
-            nodes_with_data[node] = data
-
-        for size in range(1, len(nodes_with_data) + 1):
-            for subset in itertools.combinations(nodes_with_data.items(), size):
-                subset_dict = dict(subset)
-                all_subsets.append(subset_dict)
-        return all_subsets
 
     def undo_abstraction(self):
         """
