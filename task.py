@@ -9,6 +9,7 @@ from ARCGraph import ARCGraph
 from transform import *
 from filters import *
 from transform import *
+from collections import defaultdict
 
 
 class Task:
@@ -39,10 +40,11 @@ class Task:
         )
         # static objects used for the "insert" transformation
         self.static_objects_for_insertion = dict()
-        self.object_sizes = dict()  # object sizes to use for filters
-        self.object_degrees = dict()  # object degrees to use for filters
+        self.object_sizes = dict()  # node_object sizes to use for filters
+        self.object_degrees = dict()  # node_object degrees to use for filters
         self.load_task_from_file(filepath)
-        self.spec = []  # for variable filter synthesis
+        self.spec = dict()  # for variable filter synthesis
+        self.current_spec = []
 
     def load_task_from_file(self, filepath):
         """
@@ -223,11 +225,12 @@ class Task:
         ]
 
     def filter_values(self, filter: FilterASTNode):
-        filtered_nodes = []
+        filtered_nodes, filtered_nodes_dict_list = [], []
         self.input_abstracted_graphs_original[self.abstraction] = [
             getattr(input, Image.abstraction_ops[self.abstraction])()
             for input in self.train_input
         ]
+
         for input_abstracted_graph in self.input_abstracted_graphs_original[
             self.abstraction
         ]:
@@ -236,7 +239,14 @@ class Task:
                 if input_abstracted_graph.apply_filters(node[0], filter):
                     filtered_nodes_i.append(node[0])
             filtered_nodes.append(filtered_nodes_i)
-        return filtered_nodes
+        for i, spec_dict in enumerate(self.current_spec):
+            filtered_nodes_dict = {
+                k: filtered_nodes[i] for k in spec_dict.keys()}
+            filtered_nodes_dict_list.append(filtered_nodes_dict)
+        if self.current_spec:
+            return filtered_nodes_dict_list
+        else:
+            return filtered_nodes
 
     def var_transform_values(
         self, filter: FilterASTNode, transformation: TransformASTNode
@@ -251,15 +261,12 @@ class Task:
         output_abstraction = [getattr(output, Image.abstraction_ops[self.abstraction])(
         ) for output in self.train_output]
 
-        transformed_values = []
+        transformed_values, spec = [], []
 
         for input_graph, output_graph in zip(input_abstraction, output_abstraction):
-            per_task_spec = dict()
-            output_objects = output_graph.graph.nodes(data=True)
-            output_nodes_set = {
-                tuple(out_props["nodes"]): {**out_props, 'actual_node': out_node}
-                for out_node, out_props in output_objects
-            }
+            per_task_spec = {}
+            output_nodes_set = {tuple(out_props["nodes"]): out_props
+                                for _, out_props in output_graph.graph.nodes(data=True)}
             matching_nodes = [
                 in_node for in_node, in_props in input_graph.graph.nodes(data=True)
                 if any(in_props['color'] == out_props['color'] and
@@ -271,46 +278,48 @@ class Task:
             diff_nodes = set(input_graph.graph.nodes) - \
                 set(matching_nodes)  # only nodes that change
             per_task = []
-            # iterate over all objects # todo: optimize the params acquisition
-            for (object) in (diff_nodes):
-                if (
-                    "extendNode" in transformation.code
-                    or "moveNode" in transformation.code
-                    or "moveNodeMax" in transformation.code
-                ):
-                    object_params = [
-                        input_graph.get_relative_pos(object, neighbor)
-                        for neighbor in input_graph.graph.nodes()
-                        if object != neighbor
-                    ]
-                elif "updateColor" in transformation.code:
-                    object_params = set(
-                        [
-                            input_graph.get_color(obj)
-                            for obj in input_graph.graph.nodes()
-                        ]
-                    )
-                else:
-                    object_params = [None]  # Default case if none of the above
+            object_params_dict, object_params = defaultdict(list), []
+            if "updateColor" in transformation.code:
+                object_params = set([input_graph.get_color(obj)
+                                     for obj in input_graph.graph.nodes()])
+                for node_obj in input_graph.graph.nodes():
+                    for neighbor in input_graph.graph.neighbors(node_obj):
+                        object_params_dict[(node_obj, input_graph.get_color(neighbor))].append(
+                            neighbor)
+            elif "extendNode" in transformation.code or "moveNode" in transformation.code \
+                    or "moveNodeMax" in transformation.code:
+                for node_obj in diff_nodes:
+                    for neighbor in input_graph.graph.neighbors(node_obj):
+                        if node_obj != neighbor:
+                            relative_pos = input_graph.get_relative_pos(
+                                node_obj, neighbor)
+                            object_params.append(relative_pos)
+                            if relative_pos is not None:
+                                object_params_dict[(node_obj, relative_pos)].append(
+                                    (neighbor))
+
+            for node_object in diff_nodes:
                 for param in object_params:
                     if param is not None:
                         input_graph_copy = copy.deepcopy(input_graph)
                         input_graph_copy.var_apply_all(
-                            dict({object: param}), filter, transformation
+                            dict({node_object: param}), filter, transformation
                         )
-                        new_object_data = input_graph_copy.graph.nodes[object]
+                        new_object_data = input_graph_copy.graph.nodes[node_object]
                         new_object_nodes = tuple(
-                            input_graph_copy.graph.nodes[object]["nodes"])
-                        # todo: collect the spec here
+                            input_graph_copy.graph.nodes[node_object]["nodes"])
                         if (
-                            output_nodes_set[new_object_nodes].get("color")
+                            output_nodes_set.get(
+                                new_object_nodes, {}).get("color")
                             == new_object_data["color"]
                             and output_nodes_set[new_object_nodes].get("size")
                             == new_object_data["size"]
                         ):
-                            per_task.append((object, new_object_data))
+                            per_task.append((node_object, new_object_data))
                             per_task_spec.update(
-                                {object: output_nodes_set[new_object_nodes].get("actual_node")})
-            self.spec.append(per_task_spec)
+                                {node_object: object_params_dict[(node_object, param)]})
+
+            spec.append(per_task_spec)
             transformed_values.append(per_task)
+        self.spec.update({transformation.code: spec})
         return transformed_values
