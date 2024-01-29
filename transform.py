@@ -50,6 +50,8 @@ class Variable(TransformASTNode):
 
 
 class Color(TransformASTNode, Enum):
+    most = "most"
+    least = "least"
     black = "O"
     blue = "B"
     red = "R"

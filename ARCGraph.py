@@ -61,6 +61,8 @@ class ARCGraph:
             "A": 7,
             "C": 8,
             "W": 9,
+            "most": self.most_common_color,
+            "least": self.least_common_color
         }
         if self.is_multicolor:
             if not isinstance(color, int):
@@ -245,6 +247,8 @@ class ARCGraph:
             "A": 7,
             "C": 8,
             "W": 9,
+            "most": self.most_common_color,
+            "least": self.least_common_color
         }
         border_color = color_map[border_color]
         new_node_id = self.generate_node_id(border_color)
@@ -283,6 +287,8 @@ class ARCGraph:
             "A": 7,
             "C": 8,
             "W": 9,
+            "most": self.most_common_color,
+            "least": self.least_common_color
         }
         color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
@@ -337,6 +343,8 @@ class ARCGraph:
             "A": 7,
             "C": 8,
             "W": 9,
+            "most": self.most_common_color,
+            "least": self.least_common_color
         }
         if self.is_multicolor:
             if not isinstance(color, int):

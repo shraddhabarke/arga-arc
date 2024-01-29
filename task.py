@@ -42,6 +42,7 @@ class Task:
         self.object_sizes = dict()  # object sizes to use for filters
         self.object_degrees = dict()  # object degrees to use for filters
         self.load_task_from_file(filepath)
+        self.spec = []  # for variable filter synthesis
 
     def load_task_from_file(self, filepath):
         """
@@ -98,8 +99,10 @@ class Task:
             for abstracted_node, data in output_abstracted_graph.graph.nodes(data=True):
                 if abstracted_node not in input_abstracted_nodes:
                     new_object = data.copy()
-                    min_x = min([subnode[1] for subnode in new_object["nodes"]])
-                    min_y = min([subnode[0] for subnode in new_object["nodes"]])
+                    min_x = min([subnode[1]
+                                for subnode in new_object["nodes"]])
+                    min_y = min([subnode[0]
+                                for subnode in new_object["nodes"]])
                     adjusted_subnodes = []
                     for subnode in new_object["nodes"]:
                         adjusted_subnodes.append(
@@ -152,7 +155,8 @@ class Task:
         """applies all filters and transformations to the test set and checks if the output matches the expected output"""
         transformed_inputs = self.evaluate_program(program, abstraction)
         for idx, transformed_input in enumerate(transformed_inputs):
-            error = self.__graph_diff_px(transformed_input, self.test_output[idx])
+            error = self.__graph_diff_px(
+                transformed_input, self.test_output[idx])
             if error != 0:
                 # print(
                 #     f"Test failed for {self.task_id} test {idx + 1} with error {error}"
@@ -211,7 +215,8 @@ class Task:
         ]:
             for transformation in transformations:
                 input_abstracted_graph.apply_all(filter, transformation)
-            transformed_values.append(input_abstracted_graph.graph.nodes(data=True))
+            transformed_values.append(
+                input_abstracted_graph.graph.nodes(data=True))
         return [
             [(key, value) for key, value in dict(node_data_view).items()]
             for node_data_view in transformed_values
@@ -247,18 +252,27 @@ class Task:
         ) for output in self.train_output]
 
         transformed_values = []
+
         for input_graph, output_graph in zip(input_abstraction, output_abstraction):
+            per_task_spec = dict()
             output_objects = output_graph.graph.nodes(data=True)
             output_nodes_set = {
-                tuple(out_props["nodes"]): out_props for _, out_props in output_objects
+                tuple(out_props["nodes"]): {**out_props, 'actual_node': out_node}
+                for out_node, out_props in output_objects
             }
+            matching_nodes = [
+                in_node for in_node, in_props in input_graph.graph.nodes(data=True)
+                if any(in_props['color'] == out_props['color'] and
+                       in_props['nodes'] == out_props['nodes'] and
+                       in_props['size'] == out_props['size']
+                       for _, out_props in output_graph.graph.nodes(data=True))
+            ]
 
+            diff_nodes = set(input_graph.graph.nodes) - \
+                set(matching_nodes)  # only nodes that change
             per_task = []
-            for (
-                object
-            ) in (
-                input_graph.graph.nodes()
-            ):  # iterate over all objects # todo: optimize the params acquisition
+            # iterate over all objects # todo: optimize the params acquisition
+            for (object) in (diff_nodes):
                 if (
                     "extendNode" in transformation.code
                     or "moveNode" in transformation.code
@@ -286,15 +300,17 @@ class Task:
                         )
                         new_object_data = input_graph_copy.graph.nodes[object]
                         new_object_nodes = tuple(
-                            input_graph_copy.graph.nodes[object]["nodes"]
-                        )
+                            input_graph_copy.graph.nodes[object]["nodes"])
                         # todo: collect the spec here
                         if (
-                            output_nodes_set.get(new_object_nodes, {}).get("color")
+                            output_nodes_set[new_object_nodes].get("color")
                             == new_object_data["color"]
                             and output_nodes_set[new_object_nodes].get("size")
                             == new_object_data["size"]
                         ):
                             per_task.append((object, new_object_data))
+                            per_task_spec.update(
+                                {object: output_nodes_set[new_object_nodes].get("actual_node")})
+            self.spec.append(per_task_spec)
             transformed_values.append(per_task)
         return transformed_values
