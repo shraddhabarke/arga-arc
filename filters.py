@@ -22,11 +22,11 @@ class FilterASTNode:
 
 
 class Relation(FilterASTNode, Enum):
-    neighbor = "Neighbor"  # todo: add more relations here
+    neighbor = "Neighbor"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.RELATION)
-        self.nodeType = FilterTypes.RELATION
+        self.nodeType = FilterTypes.FILTERS
         self.code = f"{self.__class__.__name__}.{self.name}"
         self.size = 1
         self.children = []
@@ -40,7 +40,7 @@ class Relation(FilterASTNode, Enum):
     @classmethod
     @property
     def nodeType(cls):
-        return FilterTypes.RELATION
+        return FilterTypes.FILTERS
 
     def execute(self, task, children):
         if self.name == "neighbor":
@@ -53,12 +53,6 @@ class Relation(FilterASTNode, Enum):
                     task.abstraction
                 ]
             ]
-            self.values = [
-                {(5, 0): [(6, 0)], (5, 1): [(2, 0)], (5, 2): [(8, 0)]},
-                {(5, 0): [(1, 0)], (5, 1): [(7, 0)], (5, 2): [(4, 0)]},
-                {(5, 0): [(1, 0)], (5, 1): [(7, 0)], (5, 2): [(6, 0)]},
-            ]
-            # todo: testing
         return self
 
     @classmethod
@@ -223,6 +217,11 @@ class And(FilterASTNode):
             list(set(v1).intersection(set(v2))) if set(v1).intersection(set(v2)) else []
             for v1, v2 in zip(values1, values2)
         ]
+
+        if task.current_spec:
+            intersected_values = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
+            for key in dict_a if key in dict_b}
+            for dict_a, dict_b in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
         new_instance.values = intersected_values
         return new_instance
@@ -248,6 +247,10 @@ class Or(FilterASTNode):
         unioned_values = [
             list(set(v1).union(set(v2))) for v1, v2 in zip(values1, values2)
         ]
+        if task.current_spec:
+            unioned_values = [{key: list(set(dict_a[key]).union(set(dict_b[key])))
+            for key in dict_a if key in dict_b}
+            for dict_a, dict_b in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
         new_instance.values = unioned_values
 
@@ -270,11 +273,9 @@ class Not(FilterASTNode):
     @classmethod
     def execute(cls, task, children):
         values = children[0].values
-        nodes_with_data = []
+        nodes_with_data, values_dict = [], []
         # TODO: Optimize
-        for input_abstracted_graphs in task.input_abstracted_graphs_original[
-            task.abstraction
-        ]:
+        for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
             local_data = []
             for node, _ in input_abstracted_graphs.graph.nodes(data=True):
                 local_data.append(node)
@@ -283,6 +284,11 @@ class Not(FilterASTNode):
             [item for item in sublist1 if item not in sublist2]
             for sublist1, sublist2 in zip(nodes_with_data, values)
         ]
+        if task.current_spec:
+            for i, spec_dict in enumerate(task.current_spec):
+                filtered_nodes_dict = {k: result[i] for k in spec_dict.keys()}
+                values_dict.append(filtered_nodes_dict)
+            result = values_dict
         new_instance = cls(children[0])
         new_instance.values = result
         return new_instance
@@ -411,35 +417,4 @@ class FilterByNeighborDegree(Filters):
         instance = cls(children[0])
         values = task.filter_values(instance)
         instance.values = values
-        return instance
-
-
-class FilterByRelation(Filters):
-    arity = 2
-    childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
-    default_size = 1
-
-    def __init__(self, relation: Relation, filter: Filters):
-        super().__init__()
-        self.children = [relation, filter]
-        self.code = f"∃y s.t ({relation.code}) y.({filter.code})"
-        self.size = self.default_size + relation.size + filter.size
-        self.childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
-        # todo: need to compute the subsets, all subsets need not have filters
-
-    # check if the filter node satisfies any of the relational nodes
-    @classmethod
-    def execute(cls, task, children):
-        instance = cls(children[0], children[1])
-        relation_instance, filter_instance = children
-        total_value_dict = [
-            {
-                key: [val for val in value if val in filter_set]
-                for key, value in rel_dict.items()
-            }
-            for filter_set, rel_dict in zip(
-                filter_instance.values, relation_instance.values
-            )
-        ]
-        instance.values = [total_value_dict]
         return instance
