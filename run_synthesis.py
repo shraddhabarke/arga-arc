@@ -7,7 +7,7 @@ from inspect import signature
 from transform import *
 from filters import *
 from typing import *
-from pcfg.pcfg_compute import *
+# from pcfg.pcfg_compute import *
 from OEValuesManager import *
 from VocabMaker import *
 from filter_synthesis import FSizeEnumerator
@@ -102,11 +102,10 @@ def sort_filter_makers(filter_makers, filter_probs):
 # Transform Vocab
 tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, Mirror_Axis, RelativePosition, ImagePoints,
                 Symmetry_Axis, ObjectId, Variable(
-                    "Var"), UpdateColor, MoveNode, MoveNodeMax, FillRectangle,
-                AddBorder, ExtendNode, RotateNode, HollowRectangle, Flip, Mirror, Transforms]
-# "d43fd935" #"ae3edfdc" #"05f2a901" #"ddf7fa4f" #"d43fd935" "b27ca6d3", "67a3c6ac"
-f_vocabMakers = [FColor, Degree, Size, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize,
-                 FilterByNeighborDegree, Not, Or, And]
+                    "Var"), UpdateColor, MoveNode, MoveNodeMax, ExtendNode]  # FillRectangle,
+# AddBorder, ExtendNode, RotateNode, HollowRectangle, Flip, Mirror, Transforms]
+f_vocabMakers = [FColor, Degree, Size, Relation, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize,
+                 FilterByNeighborDegree, Not, And, Or]
 
 pcfg = False  # toggle this
 if pcfg:
@@ -163,6 +162,7 @@ def compare_abstracted_graphs(actual_graphs, expected_graphs):
                             break
                         else:
                             continue
+
                 # for the na abstraction the entire graph is treated as one with a list of colors instead of one color
                 elif len(in_props['color']) == len(out_props['color']) and len(out_props['color']) != 1 \
                         or len(in_props['color']) != 1:
@@ -201,18 +201,29 @@ def run_synthesis(taskNumber, abstraction):
             i += 1
             results = program.values
             # print(f"Program: {program.code}: {results, program.size}")
-            check = [sorted(sub1) == sorted(sub2)
-                     for sub1, sub2 in zip(results, subset)]
-            if check != [] and all(check):
-                print("Filter Solution!", program.code, program.size)
-                return program, i
+
+            if not task.current_spec:
+                check = [sorted(sub1) == sorted(sub2)
+                         for sub1, sub2 in zip(results, subset)]
+                if check != [] and all(check):
+                    print("Filter Solution!", program.code,
+                          program.size, program.values)
+                    return program, i
+            else:
+                are_equal = all(sorted(sub1.items()) == sorted(sub2.items())
+                                for sub1, sub2 in zip(subset, results))
+                are_equal = (len(subset) == len(results)) and \
+                    all(sorted(sub1.items()) == sorted(sub2.items()) for sub1, sub2
+                        in zip(subset, results))
+                if are_equal:
+                    return program, i
 
     transform_vocab = VocabFactory.create(tleaf_makers)
     inputs = [input_graph.graph.nodes(
     ) for input_graph in task.input_abstracted_graphs_original[task.abstraction]]  # input-nodes
+
     enumerator = TSizeEnumerator(task, transform_vocab, ValuesManager())
     output_graphs = task.output_abstracted_graphs_original[task.abstraction]
-    print("outs:", [output_graph.graph.nodes(data=True) for output_graph in output_graphs])
     counter, correct_table, program_counts = 0, [
         {node: None for node in output_graph.graph.nodes()} for output_graph in output_graphs], {}
     all_correct_out_nodes = [[] for _ in range(
@@ -224,8 +235,8 @@ def run_synthesis(taskNumber, abstraction):
     while enumerator.hasNext():
         correct_table_updated = False  # Track changes to correct_table
         program = enumerator.next()
-        print("enumerator:", program.code)
-        print("enumerator-vals:", program.values)
+        # print("enumerator:", program.code)
+        # print("enumerator-vals:", program.values)
         counter += 1
         if not program.values:
             continue
@@ -249,12 +260,11 @@ def run_synthesis(taskNumber, abstraction):
                     correct_table_updated = True  # Set to True if any changes are made
 
         if correct_table_updated and all(value for dict_ in correct_table for value in dict_.values()):
-            # print("correct-table:", correct_table)
             updated_correct_table = []
             for table, old_key_set, new_key_set in zip(correct_table, all_correct_out_nodes, all_correct_in_nodes):
                 key_map = dict(zip(old_key_set, new_key_set))
                 updated_table = {key_map.get(
-                    key, key): value for key, value in table.items()}
+                    key, None): value for key, value in table.items()}
                 updated_correct_table.append(updated_table)
 
             transforms_data = {program: [] for program in set().union(
@@ -263,17 +273,31 @@ def run_synthesis(taskNumber, abstraction):
                 for idx, dict_ in enumerate(updated_correct_table):
                     transforms_data[program].append(
                         [key for key, prog in dict_.items() if prog == program])
-
             # all objects are covered, synthesizing filters...
             all_filters_found, filters_sol = True, []
-            for _, objects in transforms_data.items():
-                # need to remove extra added objects in case of addBorder, hollowRectangle etc
+
+            for program, objects in transforms_data.items():
+                print("Enumerating filters:", program, objects)
+                task.current_spec = []
                 filters = synthesize_filter([[obj for obj in object_lst if obj in set(
-                    input_lst)] for input_lst, object_lst in zip(inputs, objects)])
-                if not filters:
+                    input_lst)] for input_lst, object_lst in zip(inputs, objects)])  # todo: fix!
+                # filters = synthesize_filter([obj[0] for obj in objects])
+
+                if filters:
+                    if program not in task.spec.keys():
+                        filters_sol.append(filters[0])
+                        continue
+                    # it is a variable program so synthesizing filters for that!
+                    if task.spec[program]:
+                        task.current_spec = task.spec[program]
+                        variable_filters = synthesize_filter(task.current_spec)
+                        if not variable_filters:
+                            all_filters_found = False
+                            break
+                else:
                     all_filters_found = False
                     break
-                filters_sol.append(filters[0])
+
             if all_filters_found:
                 print("Transformation Solution:", [
                     program for program in transforms_data.keys()])
@@ -289,11 +313,13 @@ evaluation = {"08ed6ac7": "nbccg", "25ff71a9": "nbccg", "3906de3d": "nbvcg", "42
               "b1948b0a": "nbccg", "b27ca6d3": "nbccg", "bb43febb": "nbccg", "c8f0f002": "nbccg", "d2abd087": "nbccg",
               "dc1df850": "nbccg", "ea32f347": "nbccg", "00d62c1b": "ccgbr", "9565186b": "nbccg", "810b9b61": "ccgbr",
               "a5313dff": "ccgbr", "b230c067": "nbccg", "d5d6de2d": "ccg", "67a3c6ac": "na", "3c9b0459": "na",
-              "9dfd6313": "na", "ed36ccf7": "na", "6150a2bd": "na",  "68b16354": "na"
+              "9dfd6313": "na", "ed36ccf7": "na", "6150a2bd": "na",  "68b16354": "na", "5582e5ca": "ccg", "05f2a901": "nbccg"
               }
+# "ddf7fa4f": "nbccg", "d43fd935": "nbccg", "ae3edfdc": "nbccg", "dc433765": nbccg? moveNode(Variable)
 
-evals = {"a79310a0": "nbccg"}
-# "6d75e8bb" - "nbccg"
+# todo: add evaluation over test problem
+evals = {"d43fd935": "nbccg"}
+more_problems = {"a48eeaf7": "nbccg", "dc433765": "nbccg"}
 for task, abstraction in evals.items():
     start_time = time.time()
     print("taskNumber:", task)

@@ -111,7 +111,6 @@ class ARCGraph:
         if overlap is false, stop extending before it overlaps with another node
         """
         assert direction is not None
-
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
@@ -142,7 +141,6 @@ class ARCGraph:
                     break
         self.graph.nodes[node]["nodes"] = list(set(updated_sub_nodes))
         self.graph.nodes[node]["size"] = len(updated_sub_nodes)
-
         return self
 
     def MoveNodeMax(self, node, direction: Dir):
