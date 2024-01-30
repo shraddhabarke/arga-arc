@@ -89,16 +89,17 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == "UL" or direction == "UR":
+        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
             delta_y = -1
-        elif direction == "D" or direction == "DL" or direction == "DR":
+        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
             delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL":
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
             delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR":
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
-            updated_sub_nodes.append((sub_node[0] + delta_y, sub_node[1] + delta_x))
+            updated_sub_nodes.append(
+                (sub_node[0] + delta_y, sub_node[1] + delta_x))
         self.graph.nodes[node]["nodes"] = updated_sub_nodes
         self.graph.nodes[node]["size"] = len(updated_sub_nodes)
 
@@ -176,7 +177,8 @@ class ARCGraph:
         for foo in range(max_allowed):
             updated_nodes = []
             for sub_node in self.graph.nodes[node]["nodes"]:
-                updated_nodes.append((sub_node[0] + delta_y, sub_node[1] + delta_x))
+                updated_nodes.append(
+                    (sub_node[0] + delta_y, sub_node[1] + delta_x))
             if self.check_collision(node, updated_nodes) or not self.check_inbound(
                 updated_nodes
             ):
@@ -291,7 +293,8 @@ class ARCGraph:
         color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
-        min_x, min_y, max_x, max_y = min(all_x), min(all_y), max(all_x), max(all_y)
+        min_x, min_y, max_x, max_y = min(all_x), min(
+            all_y), max(all_x), max(all_y)
         unfilled_pixels = []
         for x in range(min_x, max_x + 1):
             for y in range(min_y, max_y + 1):
@@ -406,8 +409,10 @@ class ARCGraph:
         flips the given node given direction horizontal, vertical, diagonal left/right
         """
         if mirror_direction == "VERTICAL":
-            max_y = max([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
-            min_y = min([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
+            max_y = max([subnode[0]
+                        for subnode in self.graph.nodes[node]["nodes"]])
+            min_y = min([subnode[0]
+                        for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
                 new_y = max_y - (subnode[0] - min_y)
@@ -416,8 +421,10 @@ class ARCGraph:
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
         elif mirror_direction == "HORIZONTAL":
-            max_x = max([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
-            min_x = min([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
+            max_x = max([subnode[1]
+                        for subnode in self.graph.nodes[node]["nodes"]])
+            min_x = min([subnode[1]
+                        for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
                 new_y = subnode[0]
@@ -426,8 +433,10 @@ class ARCGraph:
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
         elif mirror_direction == "DIAGONAL_LEFT":  # \
-            min_x = min([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
-            min_y = min([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
+            min_x = min([subnode[1]
+                        for subnode in self.graph.nodes[node]["nodes"]])
+            min_y = min([subnode[0]
+                        for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
                 new_subnode = (subnode[0] - min_y, subnode[1] - min_x)
@@ -437,8 +446,10 @@ class ARCGraph:
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
         elif mirror_direction == "DIAGONAL_RIGHT":  # /
-            max_x = max([subnode[1] for subnode in self.graph.nodes[node]["nodes"]])
-            min_y = min([subnode[0] for subnode in self.graph.nodes[node]["nodes"]])
+            max_x = max([subnode[1]
+                        for subnode in self.graph.nodes[node]["nodes"]])
+            min_y = min([subnode[0]
+                        for subnode in self.graph.nodes[node]["nodes"]])
             new_subnodes = []
             for subnode in self.graph.nodes[node]["nodes"]:
                 new_subnode = (subnode[0] - min_y, subnode[1] - max_x)
@@ -707,6 +718,7 @@ class ARCGraph:
         """
         for sub_node_1 in self.graph.nodes[node1]["nodes"]:
             for sub_node_2 in self.graph.nodes[node2]["nodes"]:
+                print("compare--", sub_node_1, sub_node_2)
                 if sub_node_1[0] == sub_node_2[0]:
                     if sub_node_1[1] < sub_node_2[1]:
                         return Dir.RIGHT
@@ -717,6 +729,16 @@ class ARCGraph:
                         return Dir.DOWN
                     elif sub_node_1[0] > sub_node_2[0]:
                         return Dir.UP
+                elif sub_node_1[0] < sub_node_2[0]:  # DOWN
+                    if sub_node_1[1] < sub_node_2[1]:
+                        return Dir.DOWN_RIGHT
+                    elif sub_node_1[1] > sub_node_2[1]:
+                        return Dir.DOWN_LEFT
+                elif sub_node_1[0] > sub_node_2[0]:  # UP
+                    if sub_node_1[1] < sub_node_2[1]:
+                        return Dir.UP_RIGHT
+                    elif sub_node_1[1] > sub_node_2[1]:
+                        return Dir.UP_LEFT
         return None
 
     def get_mirror_axis(self, node1, node2):
@@ -795,7 +817,8 @@ class ARCGraph:
             getattr(self, function_name)(node, *args)  # apply transformation
         except AttributeError:
             function_name_var = function_name.replace("Var", "")
-            getattr(self, function_name_var)(node, *args)  # apply var transformation
+            getattr(self, function_name_var)(
+                node, *args)  # apply var transformation
 
     def apply_transform(self, transformation: TransformASTNode):
         """
@@ -803,7 +826,8 @@ class ARCGraph:
         """
         transformed_nodes = {}
         for node in self.graph.nodes():
-            transformed_nodes[node] = [child.value for child in transformation.children]
+            transformed_nodes[node] = [
+                child.value for child in transformation.children]
         for node, params in transformed_nodes.items():
             self.apply_transform_inner(node, transformation, params)
 
@@ -848,7 +872,8 @@ class ARCGraph:
             if len(nodes) > 1:
                 for node_1, node_2 in combinations(nodes, 2):
                     if not self.graph.has_edge(node_1, node_2):
-                        self.graph.add_edge(node_1, node_2, direction="overlapping")
+                        self.graph.add_edge(
+                            node_1, node_2, direction="overlapping")
 
         for node1, node2 in combinations(self.graph.nodes, 2):
             if node1 == node2 or (
@@ -968,7 +993,8 @@ class ARCGraph:
             reconstructed = self
         else:
             reconstructed = self.undo_abstraction()
-        grid = np.zeros((reconstructed.height, reconstructed.width), dtype=np.int32)
+        grid = np.zeros(
+            (reconstructed.height, reconstructed.width), dtype=np.int32)
         for node, data in reconstructed.graph.nodes(data=True):
             x, y = node
             grid[x, y] = data["color"]
@@ -994,7 +1020,8 @@ class ARCGraph:
                 for x, y in self.graph.nodes()
             ]
 
-            nx.draw(self.graph, ax=ax, pos=pos, node_color=color, node_size=600)
+            nx.draw(self.graph, ax=ax, pos=pos,
+                    node_color=color, node_size=600)
             nx.draw_networkx_labels(
                 self.graph, ax=ax, font_color="#676767", pos=pos, font_size=8
             )
@@ -1006,13 +1033,15 @@ class ARCGraph:
                 pos[node] = (centroid[1], -centroid[0])
 
             if self.abstraction == "mcccg":
-                color = [self.colors[0] for node, data in self.graph.nodes(data=True)]
+                color = [self.colors[0]
+                         for node, data in self.graph.nodes(data=True)]
             else:
                 color = [
                     self.colors[data["color"]]
                     for node, data in self.graph.nodes(data=True)
                 ]
-            size = [300 * data["size"] for node, data in self.graph.nodes(data=True)]
+            size = [300 * data["size"]
+                    for node, data in self.graph.nodes(data=True)]
 
             nx.draw(self.graph, pos=pos, node_color=color, node_size=size)
             nx.draw_networkx_labels(
@@ -1020,7 +1049,8 @@ class ARCGraph:
             )
 
             edge_labels = nx.get_edge_attributes(self.graph, "direction")
-            nx.draw_networkx_edge_labels(self.graph, pos=pos, edge_labels=edge_labels)
+            nx.draw_networkx_edge_labels(
+                self.graph, pos=pos, edge_labels=edge_labels)
 
         if save_fig:
             if file_name is not None:
