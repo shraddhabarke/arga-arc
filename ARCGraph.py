@@ -713,33 +713,45 @@ class ARCGraph:
         return (center_y, center_x)
 
     def get_relative_pos(self, node1, node2):
-        """
-        direction of where node 2 is relative to node 1, ie what is the direction going from 1 to 2
-        """
-        for sub_node_1 in self.graph.nodes[node1]["nodes"]:
-            for sub_node_2 in self.graph.nodes[node2]["nodes"]:
-                print("compare--", sub_node_1, sub_node_2)
-                if sub_node_1[0] == sub_node_2[0]:
-                    if sub_node_1[1] < sub_node_2[1]:
-                        return Dir.RIGHT
-                    elif sub_node_1[1] > sub_node_2[1]:
-                        return Dir.LEFT
-                elif sub_node_1[1] == sub_node_2[1]:
-                    if sub_node_1[0] < sub_node_2[0]:
-                        return Dir.DOWN
-                    elif sub_node_1[0] > sub_node_2[0]:
-                        return Dir.UP
-                elif sub_node_1[0] < sub_node_2[0]:  # DOWN
-                    if sub_node_1[1] < sub_node_2[1]:
-                        return Dir.DOWN_RIGHT
-                    elif sub_node_1[1] > sub_node_2[1]:
-                        return Dir.DOWN_LEFT
-                elif sub_node_1[0] > sub_node_2[0]:  # UP
-                    if sub_node_1[1] < sub_node_2[1]:
-                        return Dir.UP_RIGHT
-                    elif sub_node_1[1] > sub_node_2[1]:
-                        return Dir.UP_LEFT
-        return None
+        # Determine min and max for x and y for both nodes to find edges
+        min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(
+            node[0] for node in self.graph.nodes[node1]["nodes"])
+        min_x_node1, max_x_node1 = min(node[1] for node in self.graph.nodes[node1]["nodes"]), max(
+            node[1] for node in self.graph.nodes[node1]["nodes"])
+
+        min_y_node2, max_y_node2 = min(node[0] for node in self.graph.nodes[node2]["nodes"]), max(
+            node[0] for node in self.graph.nodes[node2]["nodes"])
+        min_x_node2, max_x_node2 = min(node[1] for node in self.graph.nodes[node2]["nodes"]), max(
+            node[1] for node in self.graph.nodes[node2]["nodes"])
+
+        if min_x_node2 <= min_x_node1 and max_x_node1 <= max_x_node2:  # node-1 is within range
+            if max_y_node1 < max_x_node2:
+                return Dir.DOWN
+            elif max_y_node1 > max_x_node2:
+                return Dir.UP
+        elif min_y_node2 <= min_y_node1 and max_y_node1 <= max_y_node2:  # node-1 is within range
+            if max_x_node1 > max_x_node2:
+                return Dir.LEFT
+            elif max_x_node1 < max_x_node2:
+                return Dir.RIGHT
+
+        elif max_x_node2 < min_x_node1 and max_y_node1 < min_y_node2 and\
+                abs(max_x_node2 - min_x_node1) == abs(min_y_node2 - max_y_node1):
+            return Dir.DOWN_LEFT
+
+        elif max_x_node1 < min_x_node2 and max_y_node1 < min_y_node2 and \
+                abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
+            return Dir.DOWN_RIGHT
+
+        elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
+                abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
+            return Dir.UP_RIGHT
+
+        elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
+                abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
+            return Dir.UP_LEFT
+        else:
+            return None
 
     def get_mirror_axis(self, node1, node2):
         """
