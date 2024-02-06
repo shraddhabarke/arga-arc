@@ -50,8 +50,6 @@ class Variable(TransformASTNode):
 
 
 class Color(TransformASTNode, Enum):
-    most = "most"
-    least = "least"
     black = "O"
     blue = "B"
     red = "R"
@@ -62,6 +60,8 @@ class Color(TransformASTNode, Enum):
     orange = "A"
     cyan = "C"
     brown = "W"
+    most = "most"
+    least = "least"
 
     def __init__(self, value=None):
         super().__init__(Types.COLOR)
@@ -436,8 +436,10 @@ class UpdateColor(Transforms):
             sum(child.size for child in self.children)
         if isinstance(color, Color):
             self.code = f"updateColor({color.code})"
+            self.childTypes = [Types.COLOR]
         elif isinstance(color, Variable):
             self.code = f"updateColor({color.code}.color)"
+            self.childTypes = [Types.VARIABLE]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -461,8 +463,10 @@ class MoveNode(Transforms):
         self.size = self.default_size + dir.size
         if isinstance(dir, Dir):
             self.code = f"moveNode({dir.code})"
+            self.childTypes = [Types.DIRECTION]
         elif isinstance(dir, Variable):
             self.code = f"moveNode({dir.code}.direction)"
+            self.childTypes = [Types.VARIABLE]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -487,8 +491,10 @@ class ExtendNode(Transforms):
         self.size = self.default_size + overlap.size + dir.size
         if isinstance(dir, Dir):
             self.code = f"extendNode({dir.code}, {overlap.code})"
+            self.childTypes = [Types.DIRECTION, Types.OVERLAP]
         elif isinstance(dir, Variable):
             self.code = f"extendNode({dir.code}.direction, {overlap.code})"
+            self.childTypes = [Types.VARIABLE, Types.OVERLAP]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -512,8 +518,10 @@ class MoveNodeMax(Transforms):
         self.size = self.default_size + dir.size
         if isinstance(dir, Dir):
             self.code = f"moveNodeMax({dir.code})"
+            self.childTypes = [Types.DIRECTION]
         elif isinstance(dir, Variable):
             self.code = f"moveNodeMax({dir.code}.direction)"
+            self.childTypes = [Types.VARIABLE]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -536,6 +544,7 @@ class RotateNode(Transforms):
         self.children = [rotation_angle]
         self.size = self.default_size + rotation_angle.size
         self.code = f"rotateNode({rotation_angle.code})"
+        self.childTypes = [Types.ROTATION_ANGLE]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -556,6 +565,7 @@ class AddBorder(Transforms):
         self.children = [color]
         self.size = self.default_size + color.size
         self.code = f"addBorder({color.code})"
+        self.childTypes = [Types.COLOR]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -576,6 +586,7 @@ class FillRectangle(Transforms):
         self.children = [color, overlap]
         self.size = self.default_size + color.size + overlap.size
         self.code = f"fillRectangle({color.code}, {overlap.code})"
+        self.childTypes = [Types.COLOR, Types.OVERLAP]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -596,6 +607,7 @@ class HollowRectangle(Transforms):
         self.children = [color]
         self.size = self.default_size + color.size
         self.code = f"hollowRectangle({color.code})"
+        self.childTypes = [Types.COLOR]
 
     @classmethod
     def apply(cls, task, children, filter):
@@ -617,8 +629,10 @@ class Mirror(Transforms):
         self.size = self.default_size + mirror_axis.size
         if isinstance(dir, Dir):
             self.code = f"mirror({mirror_axis.code})"
+            self.childTypes = [Types.MIRROR_AXIS]
         elif isinstance(dir, Variable):
             self.code = f"mirror({mirror_axis.code}.mirror_axis)"
+            self.childTypes = [Types.VARIABLE]
 
     @classmethod
     def apply(cls, task, children, filter):
