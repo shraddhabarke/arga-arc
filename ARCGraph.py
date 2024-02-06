@@ -408,7 +408,7 @@ class ARCGraph:
         """
         flips the given node given direction horizontal, vertical, diagonal left/right
         """
-        if mirror_direction == "VERTICAL":
+        if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL:
             max_y = max([subnode[0]
                         for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0]
@@ -420,7 +420,7 @@ class ARCGraph:
                 new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_direction == "HORIZONTAL":
+        elif mirror_direction == "HORIZONTAL" or mirror_direction == Symmetry_Axis.HORIZONTAL:
             max_x = max([subnode[1]
                         for subnode in self.graph.nodes[node]["nodes"]])
             min_x = min([subnode[1]
@@ -432,7 +432,7 @@ class ARCGraph:
                 new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_direction == "DIAGONAL_LEFT":  # \
+        elif mirror_direction == "DIAGONAL_LEFT" or mirror_direction == Symmetry_Axis.DIAGONAL_LEFT:  # \
             min_x = min([subnode[1]
                         for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0]
@@ -445,7 +445,7 @@ class ARCGraph:
                 new_subnodes.append(new_subnode)
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
-        elif mirror_direction == "DIAGONAL_RIGHT":  # /
+        elif mirror_direction == "DIAGONAL_RIGHT" or mirror_direction == Symmetry_Axis.DIAGONAL_RIGHT:  # /
             max_x = max([subnode[1]
                         for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0]
