@@ -201,6 +201,10 @@ class ARCGraph:
             rotate_times = 2
             mul = -1
 
+        # Check if the node size is zero or the nodes list is empty to prevent division by zero
+        if self.graph.nodes[node]["size"] == 0 or not self.graph.nodes[node]["nodes"]:
+            print("Cannot rotate node due to zero size or no subnodes.")
+            return self  # Exit the function early
         for t in range(rotate_times):
             center_point = (
                 sum([n[0] for n in self.graph.nodes[node]["nodes"]])
@@ -293,6 +297,10 @@ class ARCGraph:
         color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
+
+        if not all_x or not all_y:  # Check if either list is empty
+            print("Cannot fill rectangle as node has no subnodes.")
+            return  # Exit the function early if there are no subnodes
         min_x, min_y, max_x, max_y = min(all_x), min(
             all_y), max(all_x), max(all_y)
         unfilled_pixels = []
@@ -326,7 +334,9 @@ class ARCGraph:
         """
         hollowing the rectangle containing the given node with the given color.
         """
-
+        if not self.graph.nodes[node]["nodes"]:  # Checks if the list of subnodes is empty
+            print("Node has no subnodes")
+            return
         all_y = [n[0] for n in self.graph.nodes[node]["nodes"]]
         all_x = [n[1] for n in self.graph.nodes[node]["nodes"]]
         border_y = [min(all_y), max(all_y)]
@@ -408,6 +418,10 @@ class ARCGraph:
         """
         flips the given node given direction horizontal, vertical, diagonal left/right
         """
+        if not self.graph.nodes[node]["nodes"]:  # Checks if the list is empty
+            print("No subnodes to flip")
+            return self  # Exit the function as there's nothing to flip
+
         if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL:
             max_y = max([subnode[0]
                         for subnode in self.graph.nodes[node]["nodes"]])
@@ -507,8 +521,8 @@ class ARCGraph:
                 (target_point[0] + delta_y, target_point[1] + delta_x)
             )
         new_node_id = self.generate_node_id(object["color"])
-        self.graph.add_node(
-            new_node_id,
+        self.graph.add_node( # todo: side-effects
+            node,
             nodes=list(subnodes_coords),
             color=object["color"],
             size=len(list(subnodes_coords)),
