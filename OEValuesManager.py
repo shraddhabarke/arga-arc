@@ -25,9 +25,11 @@ class ValuesManager(OEValuesManager):
 
         def process_inner_list(inner_list):
             return ' | '.join(process_element(e) for e in inner_list)
-
-        results = ' || '.join(process_inner_list(inner)
-                              for inner in values)  # Processing each inner list
+        if values is None:
+            results == ""
+        else:
+            results = ' || '.join(process_inner_list(inner.graph.nodes(data=True))
+                            for inner in values)  # Processing each inner list
         if results == "":
             return False
         if results in self.class_values:

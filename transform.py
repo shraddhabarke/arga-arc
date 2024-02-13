@@ -8,7 +8,6 @@ class Types(Enum):
     DIRECTION = "Dir"
     OVERLAP = "Overlap"
     ROTATION_ANGLE = "Rotation_Angle"
-    MIRROR_AXIS = "Mirror_Axis"
     SYMMETRY_AXIS = "Symmetry_Axis"
     IMAGE_POINTS = "ImagePoints"
     RELATIVE_POSITION = "RelativePosition"
@@ -50,6 +49,8 @@ class Variable(TransformASTNode):
 
 
 class Color(TransformASTNode, Enum):
+    most = "most"
+    least = "least"
     black = "O"
     blue = "B"
     red = "R"
@@ -60,8 +61,6 @@ class Color(TransformASTNode, Enum):
     orange = "A"
     cyan = "C"
     brown = "W"
-    most = "most"
-    least = "least"
 
     def __init__(self, value=None):
         super().__init__(Types.COLOR)
@@ -218,35 +217,6 @@ class Symmetry_Axis(TransformASTNode, Enum):
         return list(cls.__members__.values())
 
 
-class Mirror_Axis(TransformASTNode, Enum):  # TODO: fix the semantics of Mirror_Axis
-    X_AXIS = "X_AXIS"
-    Y_AXIS = "Y_AXIS"
-
-    def __init__(self, value):
-        super().__init__(Types.MIRROR_AXIS)
-        self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
-        self.children = []
-        self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    @classmethod
-    @property
-    def nodeType(cls):
-        return Types.MIRROR_AXIS
-
-    def apply(self, task, children=None, filter=None):
-        return self
-
-    @classmethod
-    def get_all_values(cls):
-        return list(cls.__members__.values())
-
-
 class ImagePoints(TransformASTNode, Enum):
     TOP = "TOP"
     BOTTOM = "BOTTOM"
@@ -390,8 +360,7 @@ class NoOp(TransformASTNode):
         original_graph = task.input_abstracted_graphs_original[task.abstraction]
         self.code = "NoOp"
         self.size = 1
-        self.values = [original_graph[iter].graph.nodes(data=True)
-                       for iter in range(len(task.input_abstracted_graphs_original[task.abstraction]))]
+        self.values = task.input_abstracted_graphs_original[task.abstraction]
         return self
 
     @classmethod
@@ -418,7 +387,8 @@ class Transforms(TransformASTNode):
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0], children[1])
-        values = task.transform_values(filter, [children[0], children[1]])
+        values = task.sequence_transform_values(
+            filter, [children[0], children[1]])
         instance.values = values
         return instance
 
@@ -620,26 +590,21 @@ class HollowRectangle(Transforms):
 class Mirror(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [[Types.MIRROR_AXIS], [Types.VARIABLE]]
+    childTypes = [[Types.VARIABLE]]
     default_size = 1
 
-    def __init__(self, mirror_axis: Union[Mirror_Axis, Variable]):
+    def __init__(self, mirror_axis: Variable):
         super().__init__()
         self.children = [mirror_axis]
         self.size = self.default_size + mirror_axis.size
-        if isinstance(dir, Dir):
-            self.code = f"mirror({mirror_axis.code})"
-            self.childTypes = [Types.MIRROR_AXIS]
-        elif isinstance(dir, Variable):
+        if isinstance(dir, Variable):
             self.code = f"mirror({mirror_axis.code}.mirror_axis)"
             self.childTypes = [Types.VARIABLE]
 
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0])
-        if isinstance(children[0], Mirror_Axis):
-            instance.values = task.transform_values(filter, instance)
-        elif isinstance(children[0], Variable):
+        if isinstance(children[0], Variable):
             instance.values = task.var_transform_values(filter, instance)
         return instance
 
@@ -670,7 +635,9 @@ class Flip(Transforms):
 class Insert(Transforms):
     arity = 3
     nodeType = Types.TRANSFORMS
-    childTypes = [Types.OBJECT_ID, Types.IMAGE_POINTS, Types.RELATIVE_POSITION]
+    childTypes = [
+        [Types.OBJECT_ID, Types.IMAGE_POINTS, Types.RELATIVE_POSITION],
+        [Types.OBJECT_ID, Types.VARIABLE, Types.RELATIVE_POSITION]]
     default_size = 1
 
     def __init__(self, object_id: ObjectId, image_points: ImagePoints, relative_pos: RelativePosition):
@@ -681,6 +648,7 @@ class Insert(Transforms):
                            Types.IMAGE_POINTS, Types.RELATIVE_POSITION]
         self.size = self.default_size + \
             sum(child.size for child in self.children)
+        self.arity = 3
         self.code = f"insert({object_id.code, image_points.code, relative_pos.code})"
 
     @classmethod

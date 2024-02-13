@@ -18,6 +18,7 @@ class ARCGraph:
     def __init__(self, graph, name, image, abstraction=None):
         self.graph = graph
         self.image = image
+        self.grid_size = self.image.image_size[0] * self.image.image_size[1]
         self.abstraction = abstraction
         if abstraction is None:
             self.name = name
@@ -98,8 +99,11 @@ class ARCGraph:
         elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         for sub_node in self.graph.nodes[node]["nodes"]:
-            updated_sub_nodes.append(
-                (sub_node[0] + delta_y, sub_node[1] + delta_x))
+            if sub_node[0] + delta_y == self.width or sub_node[1] + delta_x == self.height:
+                updated_sub_nodes.append((sub_node[0], sub_node[1]))
+            if self.check_inbound((sub_node[0] + delta_y, sub_node[1] + delta_x)):
+                updated_sub_nodes.append(
+                    (sub_node[0] + delta_y, sub_node[1] + delta_x))
         self.graph.nodes[node]["nodes"] = updated_sub_nodes
         self.graph.nodes[node]["size"] = len(updated_sub_nodes)
 
@@ -219,11 +223,13 @@ class ARCGraph:
                     sub_node[1] - center_point[1],
                 )
                 new_sub_node = (-new_sub_node[1] * mul, new_sub_node[0] * mul)
+
                 new_sub_node = (
                     new_sub_node[0] + center_point[0],
                     new_sub_node[1] + center_point[1],
                 )
-                new_nodes.append(new_sub_node)
+                if self.check_inbound(new_sub_node):
+                    new_nodes.append(new_sub_node)
             self.graph.nodes[node]["nodes"] = new_nodes
         return self
 
@@ -258,14 +264,14 @@ class ARCGraph:
         new_node_id = self.generate_node_id(border_color)
         if self.is_multicolor:
             self.graph.add_node(
-                new_node_id,
+                (node[0], node[1], 0),
                 nodes=list(border_pixels),
                 color=[border_color for j in border_pixels],
                 size=len(border_pixels),
             )
         else:
             self.graph.add_node(
-                new_node_id,
+                (node[0], node[1], 0),
                 nodes=list(border_pixels),
                 color=border_color,
                 size=len(border_pixels),
@@ -297,7 +303,12 @@ class ARCGraph:
         color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
-
+        self.graph.add_node(
+            (node[0], node[1], 0),
+            nodes=list(self.graph.nodes[node]["nodes"]),
+            color=self.graph.nodes[node]["color"],
+            size=len(list(self.graph.nodes[node]["nodes"]))
+        )
         if not all_x or not all_y:  # Check if either list is empty
             print("Cannot fill rectangle as node has no subnodes.")
             return  # Exit the function early if there are no subnodes
@@ -316,14 +327,14 @@ class ARCGraph:
             new_node_id = self.generate_node_id(color)
             if self.is_multicolor:
                 self.graph.add_node(
-                    new_node_id,
+                    (node[0], node[1], 0),
                     nodes=list(unfilled_pixels),
                     color=[color for j in unfilled_pixels],
                     size=len(unfilled_pixels),
                 )
             else:
                 self.graph.add_node(
-                    new_node_id,
+                    (node[0], node[1], 0),
                     nodes=list(unfilled_pixels),
                     color=color,
                     size=len(unfilled_pixels),
@@ -381,7 +392,7 @@ class ARCGraph:
         if color != self.image.background_color:
             new_node_id = self.generate_node_id(color)
             self.graph.add_node(
-                new_node_id,
+                (node[0], node[1], 0),
                 nodes=list(non_border_pixels),
                 color=color,
                 size=len(non_border_pixels),
@@ -431,7 +442,8 @@ class ARCGraph:
             for subnode in self.graph.nodes[node]["nodes"]:
                 new_y = max_y - (subnode[0] - min_y)
                 new_x = subnode[1]
-                new_subnodes.append((new_y, new_x))
+                if self.check_inbound((new_x, new_y)):
+                    new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
         elif mirror_direction == "HORIZONTAL" or mirror_direction == Symmetry_Axis.HORIZONTAL:
@@ -443,7 +455,8 @@ class ARCGraph:
             for subnode in self.graph.nodes[node]["nodes"]:
                 new_y = subnode[0]
                 new_x = max_x - (subnode[1] - min_x)
-                new_subnodes.append((new_y, new_x))
+                if self.check_inbound((new_x, new_y)):
+                    new_subnodes.append((new_y, new_x))
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
         elif mirror_direction == "DIAGONAL_LEFT" or mirror_direction == Symmetry_Axis.DIAGONAL_LEFT:  # \
@@ -456,7 +469,8 @@ class ARCGraph:
                 new_subnode = (subnode[0] - min_y, subnode[1] - min_x)
                 new_subnode = (new_subnode[1], new_subnode[0])
                 new_subnode = (new_subnode[0] + min_y, new_subnode[1] + min_x)
-                new_subnodes.append(new_subnode)
+                if self.check_inbound(new_subnode):
+                    new_subnodes.append(new_subnode)
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
         elif mirror_direction == "DIAGONAL_RIGHT" or mirror_direction == Symmetry_Axis.DIAGONAL_RIGHT:  # /
@@ -469,7 +483,8 @@ class ARCGraph:
                 new_subnode = (subnode[0] - min_y, subnode[1] - max_x)
                 new_subnode = (-new_subnode[1], -new_subnode[0])
                 new_subnode = (new_subnode[0] + min_y, new_subnode[1] + max_x)
-                new_subnodes.append(new_subnode)
+                if self.check_inbound(new_subnode):
+                    new_subnodes.append(new_subnode)
             if not self.check_collision(node, new_subnodes):
                 self.graph.nodes[node]["nodes"] = new_subnodes
         return self
@@ -517,12 +532,13 @@ class ARCGraph:
         for subnode in object["nodes"]:
             delta_y = subnode[0] - object_centroid[0]
             delta_x = subnode[1] - object_centroid[1]
-            subnodes_coords.append(
-                (target_point[0] + delta_y, target_point[1] + delta_x)
-            )
+            if self.check_inbound((target_point[0] + delta_y, target_point[1] + delta_x)):
+                subnodes_coords.append(
+                    (target_point[0] + delta_y, target_point[1] + delta_x)
+                )
         new_node_id = self.generate_node_id(object["color"])
-        self.graph.add_node( # todo: side-effects
-            node,
+        self.graph.add_node(  # todo: side-effects
+            new_node_id,
             nodes=list(subnodes_coords),
             color=object["color"],
             size=len(list(subnodes_coords)),
@@ -542,11 +558,9 @@ class ARCGraph:
         return true if node has given color.
         if exclude, return true if node does not have given color.
         """
-        if color == "most":
-            color = self.most_common_color
-        elif color == "least":
-            color = self.least_common_color
         color_map = {
+            "most": self.most_common_color,
+            "least": self.least_common_color,
             "O": 0,
             "B": 1,
             "R": 2,
@@ -607,13 +621,20 @@ class ARCGraph:
         return true if node has a neighbor of a given color.
         if exclude, return true if node does not have a neighbor of a given color.
         """
-        if color == "same":
-            color = self.graph.nodes[node]["color"]
-        elif color == "most":
-            color = self.most_common_color
-        elif color == "least":
-            color = self.least_common_color
-
+        color_map = {
+            "most": self.most_common_color,
+            "least": self.least_common_color,
+            "O": 0,
+            "B": 1,
+            "R": 2,
+            "G": 3,
+            "Y": 4,
+            "X": 5,
+            "F": 6,
+            "A": 7,
+            "C": 8,
+            "W": 9,
+        }
         for neighbor in self.graph.neighbors(node):
             if self.graph.nodes[neighbor]["color"] == color:
                 return True

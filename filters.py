@@ -156,6 +156,8 @@ class FColor(FilterASTNode, Enum):
     orange = "A"
     cyan = "C"
     brown = "W"
+    most = "most"
+    least = "least"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.COLOR)
