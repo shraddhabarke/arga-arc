@@ -357,7 +357,6 @@ class NoOp(TransformASTNode):
 
     @classmethod
     def apply(self, task, children=None, filter=None):
-        original_graph = task.input_abstracted_graphs_original[task.abstraction]
         self.code = "NoOp"
         self.size = 1
         self.values = task.input_abstracted_graphs_original[task.abstraction]
