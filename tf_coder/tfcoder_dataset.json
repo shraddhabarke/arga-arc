@@ -23,6 +23,17 @@
     },
     {
         "constants": "[]",
+        "description": "Slice the first dimension of a SparseTensor",
+        "target_program": "tf.divide(in1, tf.expand_dims(tf.reduce_sum(in1, axis=1), 1))",
+        "source": "Real task encountered by Googler, 11/01/2018",
+        "name": "google_03",
+        "examples": {
+            "inputs": "import tensorflow as tf\n tf.SparseTensor(indices=[[0, 0, 0], [0, 1, 1], [1, 1, 1], [1, 1, 2]], values=[1., 1., 1., 1.], dense_shape=[2, 2, 800])",
+            "outputs": "import tensorflow as tf\ntf.SparseTensor(indices=[[0, 0, 0], [0, 1, 1]], values=[1., 1.], dense_shape=[1, 2, 800])"
+        }
+    },
+    {
+        "constants": "[]",
         "description": "Reshape a flat array into a rank 3 tensor",
         "target_program": "tf.reshape(in1, shape=(4, 3, 2))",
         "source": "Real task encountered by Googler, 3/21/2019",
@@ -206,6 +217,17 @@
         "examples": {
             "inputs": "[[10, 7, 4, 3, 2, 8],]",
             "outputs": "[5, 3, 2, 1, 0, 4]"
+        }
+    },
+    {
+        "constants": "[]",
+        "description": "update a tensor at the given indices",
+        "target_program": "tf.tensor_scatter_nd_update(tensor, indices, tf.reshape(updates, (-1,)))",
+        "source": "Real task encountered by Googler, 12/15/2020",
+        "name": "google_21",
+        "examples": {
+            "inputs": "{'tensor': [[1, 2, 3, 4, 5], [4, 5, 6, 7, 8], [7, 8, 9, 10, 11]], 'indices': [[0, 0], [0, 2], [1, 1], [1, 3], [2, 2], [2, 4]], 'updates': [[0, -2], [-1, -3], [-2, -4]],}",
+            "outputs": "[[0, 2, -2, 4, 5], [4, -1, 6, -3, 8], [7, 8, -2, 10, -4]]"
         }
     },
     {
@@ -404,6 +426,17 @@
         "examples": {
             "inputs": "[[17, -32, 99],]",
             "outputs": "[[17, 17], [-32, -32], [99, 99]]"
+        }
+    },
+    {
+        "constants": "[]",
+        "description": "multiply 3D tensor and 2D tensor and add another tensor",
+        "target_program": "tf.add(in3, tf.matmul(in1, in2))",
+        "source": "https://stackoverflow.com/questions/38222126/tensorflow-efficient-way-for-tensor-multiplication",
+        "name": "stackoverflow_18",
+        "examples": {
+            "inputs": "[[[[1, 1, 1], [1, 0, 1]], [[1, 2, 3], [4, 5, 6]]], [[1, 1, 1, 1], [1, 2, 3, 4], [5, 6, 7, 8]], [100, 200, 300, 400],]",
+            "outputs": "[[[107, 209, 311, 413], [106, 207, 308, 409]], [[118, 223, 328, 433], [139, 250, 361, 472]]]"
         }
     },
     {
