@@ -49,8 +49,6 @@ class Variable(TransformASTNode):
 
 
 class Color(TransformASTNode, Enum):
-    most = "most"
-    least = "least"
     black = "O"
     blue = "B"
     red = "R"
@@ -61,6 +59,8 @@ class Color(TransformASTNode, Enum):
     orange = "A"
     cyan = "C"
     brown = "W"
+    most = "most"
+    least = "least"
 
     def __init__(self, value=None):
         super().__init__(Types.COLOR)
@@ -596,7 +596,7 @@ class Mirror(Transforms):
         super().__init__()
         self.children = [mirror_axis]
         self.size = self.default_size + mirror_axis.size
-        if isinstance(dir, Variable):
+        if isinstance(mirror_axis, Variable):
             self.code = f"mirror({mirror_axis.code}.mirror_axis)"
             self.childTypes = [Types.VARIABLE]
 
