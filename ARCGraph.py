@@ -437,7 +437,7 @@ class ARCGraph:
             print("No subnodes to flip")
             return self  # Exit the function as there's nothing to flip
 
-        if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL:
+        if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL: # todo: check sanity
             max_y = max([subnode[0]
                         for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0]
