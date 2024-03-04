@@ -376,7 +376,7 @@ class Transforms(TransformASTNode):
     def __init__(self, transform1: 'Transforms' = None, transform2: 'Transforms' = None):
         super().__init__()
         self.children = [transform1,
-                         transform2] if transform1 and transform2 else []
+                        transform2] if transform1 and transform2 else []
         self.size = sum(
             t.size for t in self.children) if transform1 and transform2 else 0
         self.code = "[" + ", ".join(t.code for t in self.children) + "]"
@@ -635,8 +635,7 @@ class Insert(Transforms):
     arity = 3
     nodeType = Types.TRANSFORMS
     childTypes = [
-        [Types.OBJECT_ID, Types.IMAGE_POINTS, Types.RELATIVE_POSITION],
-        [Types.OBJECT_ID, Types.VARIABLE, Types.RELATIVE_POSITION]]
+        [Types.OBJECT_ID, Types.IMAGE_POINTS, Types.RELATIVE_POSITION]] #[Types.OBJECT_ID, Types.VARIABLE, Types.RELATIVE_POSITION] #todo
     default_size = 1
 
     def __init__(self, object_id: ObjectId, image_points: ImagePoints, relative_pos: RelativePosition):
@@ -644,7 +643,7 @@ class Insert(Transforms):
         self.nodeType = Types.TRANSFORMS
         self.children = [object_id, image_points, relative_pos]
         self.childTypes = [Types.OBJECT_ID,
-                           Types.IMAGE_POINTS, Types.RELATIVE_POSITION]
+                        Types.IMAGE_POINTS, Types.RELATIVE_POSITION]
         self.size = self.default_size + \
             sum(child.size for child in self.children)
         self.arity = 3

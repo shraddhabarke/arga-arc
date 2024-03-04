@@ -81,7 +81,7 @@ class ARCGraph:
                 self.graph.nodes[node]["color"] = color
         return self
 
-    def MoveNode(self, node, direction: Dir):
+    def MoveNode(self, node, direction: Dir, n: int = 1):
         """
         move node by 1 pixel in a given direction
         """
@@ -90,23 +90,27 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
-            delta_y = -1
-        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
-            delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
-            delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
-            delta_x = 1
+        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or \
+        direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
+            delta_y = -n
+        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or \
+        direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
+            delta_y = n
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or \
+        direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
+            delta_x = -n
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or \
+        direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
+            delta_x = n
         for sub_node in self.graph.nodes[node]["nodes"]:
-            if sub_node[0] + delta_y == self.width or sub_node[1] + delta_x == self.height:
-                updated_sub_nodes.append((sub_node[0], sub_node[1]))
+            #if sub_node[0] + delta_y == self.width or sub_node[1] + delta_x == self.height:
+                #updated_sub_nodes.append((sub_node[0], sub_node[1]))
             if self.check_inbound((sub_node[0] + delta_y, sub_node[1] + delta_x)):
                 updated_sub_nodes.append(
                     (sub_node[0] + delta_y, sub_node[1] + delta_x))
+
         self.graph.nodes[node]["nodes"] = updated_sub_nodes
         self.graph.nodes[node]["size"] = len(updated_sub_nodes)
-
         return self
 
     def ExtendNode(self, node, direction: Dir, overlap: Overlap = False):
@@ -793,7 +797,8 @@ class ARCGraph:
         get the axis to mirror node1 with given node2
         """
         node2_centroid = self.get_centroid(node2)
-        if self.graph.edges[node1, node2]["direction"] == "vertical":
+
+        if (node1, node2) in self.graph.edges and self.graph.edges[node1, node2]["direction"] == "vertical":
             return (node2_centroid[0], None)
         else:
             return (None, node2_centroid[1])
@@ -844,12 +849,9 @@ class ARCGraph:
         for node in self.graph.nodes():
             if self.apply_filters(node, filter) and node in list(parameters.keys()):
                 transformed_nodes[node] = [parameters[node]]
-            elif self.apply_filters(node, filter):
-                transformed_nodes[node] = None
         for node, params in transformed_nodes.items():
             if params:
                 self.apply_transform_inner(node, transformation, params)
-
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
 

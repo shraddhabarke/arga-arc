@@ -59,8 +59,7 @@ class TSizeEnumerator:
             self.currentChildIteratorIndex = 0  # Keep track of which iterator is current
             self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
 
-
-        elif self.rootMaker.childTypes == [[Types.TRANSFORMS, Types.TRANSFORMS]] and self.rootMaker.arity == 2:
+        elif self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
             childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(
                 self.rootMaker.childTypes, childrenCost, self.bank)
@@ -88,7 +87,7 @@ class TSizeEnumerator:
                 children = self.childrenIterator.next()
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children)
                                                                         and all(child.nodeType == child_type for child, child_type
-                                                                                in zip(children, self.rootMaker.childTypes[self.currentChildIteratorIndex]))):
+                                                                        in zip(children, self.rootMaker.childTypes[self.currentChildIteratorIndex]))):
                     prog = self.rootMaker.apply(
                         self.task, children, self.filter)
                     if children is None:
