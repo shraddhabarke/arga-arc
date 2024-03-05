@@ -1,6 +1,8 @@
 import ast
 from collections import defaultdict
 import json
+from math import log2
+
 tfcoder_grammar = {
     'Tensor-Operations': ['tf.abs(x)', 'tf.add(x, y)', 'tf.add_n(inputs)', 'tf.argmax(input, axis)',
                           'tf.argmin(input, axis)', 'tf.argsort(values, axis, stable=True)',
@@ -46,35 +48,78 @@ tfcoder_grammar = {
                           'tf.square(x)', 'tf.squeeze(input)', 'tf.squeeze(input, axis)', "tf.stack(values, axis)", "tf.subtract(x, y)",
                           "tf.tensor_scatter_nd_update(tensor, indices, updates)", "tf.tensordot(a, b, axes)", "tf.tile(input, multiples)",
                           "tf.transpose(a)", "tf.transpose(a, perm)", "tf.unique_with_counts(x)", "tf.unstack(value, axis)", "tf.where(condition)",
-                          "tf.where(condition, x, y)", "tf.zeros(shape)", "tf.zeros_like(input)"],
-    'Sparse-Operations': ["tf.SparseTensor(indices, values, dense_shape)", "tf.sparse.add(a, b)", "tf.sparse.concat(axis, sp_inputs)",
+                          "tf.where(condition, x, y)", "tf.zeros(shape)", "tf.zeros_like(input)",
+                          "tf.SparseTensor(indices, values, dense_shape)", "tf.sparse.add(a, b)", "tf.sparse.concat(axis, sp_inputs)",
                           "tf.sparse.expand_dims(sp_input, axis)", "tf.sparse.from_dense(tensor)", "tf.sparse.maximum(sp_a, sp_b)",
                           "tf.sparse.minimum(sp_a, sp_b)", "tf.sparse.reduce_max(sp_input, axis, output_is_sparse)", "tf.sparse.reduce_sum(sp_input, axis, output_is_sparse)",
                           "tf.sparse.reset_shape(sp_input)", "tf.sparse.reshape(sp_input, shape)", "tf.sparse.retain(sp_input, to_retain)",
                           "tf.sparse.slice(sp_input, start, size)", "tf.sparse.split(sp_input, num_split, axis)", "tf.sparse.to_dense(sp_input)",
-                          "tf.sparse.to_dense(sp_input, default_value)", "tf.sparse.to_indicator(sp_input, vocab_size)", "tf.sparse.transpose(sp_input)", "tf.sparse.transpose(sp_input, perm)"],
-    'Python-Operations': ["IndexingAxis1Operation arg1[:, arg2]", "IndexingOperation arg1[arg2]", "PairCreationOperation (arg1, arg2)",
-                          "SingletonTupleCreationOperation (arg1,)", "SlicingAxis0BothOperation arg1[arg2:arg3]", "SlicingAxis0LeftOperation arg1[arg2:]",
-                          "SlicingAxis0RightOperation arg1[:arg2]", "SlicingAxis1BothOperation arg1[:, arg2:arg3]", "SlicingAxis1LeftOperation arg1[:, arg2:]",
-                          "SlicingAxis1RightOperation arg1[:, :arg2]", "TripleCreationOperation (arg1, arg2, arg3)"]}
+                          "tf.sparse.to_dense(sp_input, default_value)", "tf.sparse.to_indicator(sp_input, vocab_size)", "tf.sparse.transpose(sp_input)", "tf.sparse.transpose(sp_input, perm)"
+                          "IndexingAxis1Operation", "IndexingOperation", "PairCreationOperation",
+                          "SingletonTupleCreationOperation", "SlicingAxis0BothOperation", "SlicingAxis0LeftOperation",
+                          "SlicingAxis0RightOperation", "SlicingAxis1BothOperation", "SlicingAxis1LeftOperation",
+                          "SlicingAxis1RightOperation", "TripleCreationOperation"]}
 
+class PatternExtractor(ast.NodeVisitor):
+    def __init__(self):
+        self.pattern_counts = defaultdict(int)
+
+    def visit_Subscript(self, node):
+        if isinstance(node.slice, ast.Tuple):
+            elements = node.slice.elts
+            if len(elements) == 2:
+                first_dim, second_dim = elements
+                if isinstance(first_dim, ast.Slice) and (first_dim.lower is None and first_dim.upper is None):
+                    if not isinstance(second_dim, ast.Slice):
+                        self.pattern_counts['IndexingAxis1Operation'] += 1
+            for dim, item in enumerate(node.slice.elts):
+                if isinstance(item, ast.Slice):
+                    if item.lower is None and item.upper is None:
+                        pass
+                    elif item.lower is not None and item.upper is None:
+                        if dim == 1:
+                            self.pattern_counts['SlicingAxis1LeftOperation'] += 1
+                    elif item.lower is None and item.upper is not None:
+                        if dim == 1:
+                            self.pattern_counts['SlicingAxis1RightOperation'] += 1
+                    elif item.lower is not None and item.upper is not None:
+                        if dim == 1:
+                            self.pattern_counts['SlicingAxis1BothOperation'] += 1
+        elif isinstance(node.slice, ast.Slice):
+            if node.slice.lower and node.slice.upper:
+                self.pattern_counts['SlicingAxis0BothOperation'] += 1
+            elif node.slice.lower:
+                self.pattern_counts['SlicingAxis0LeftOperation'] += 1
+            elif node.slice.upper:
+                self.pattern_counts['SlicingAxis0RightOperation'] += 1
+
+        else:
+            self.pattern_counts['IndexingOperation'] += 1
+        self.generic_visit(node)
+
+    def visit_Tuple(self, node):
+        # Handle tuple creation operations
+        num_elements = len(node.elts)
+        if num_elements == 1:
+            self.pattern_counts['SingletonTupleCreationOperation'] += 1
+        elif num_elements == 2:
+            self.pattern_counts['PairCreationOperation'] += 1
+        elif num_elements == 3:
+            self.pattern_counts['TripleCreationOperation'] += 1
+
+        self.generic_visit(node)
 
 class TensorFlowOperationExtractor(ast.NodeVisitor):
     def __init__(self):
         self.tf_operation_counts = {
             op: 0 for op in tfcoder_grammar['Tensor-Operations']}
-        self.sparse_ops = {
-            op: 0 for op in tfcoder_grammar['Sparse-Operations']}
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Attribute) and hasattr(node.func.value, 'id') and node.func.value.id == 'tf':
             operation = "tf." + node.func.attr
             arg_signature = self.get_arg_signature(node)
             # Determine which dictionary to use based on whether the operation is sparse
-            if 'sparse' in operation:
-                operation_dict = self.sparse_ops
-            else:
-                operation_dict = self.tf_operation_counts
+            operation_dict = self.tf_operation_counts
             matching_keys = [key for key in operation_dict.keys(
             ) if key.startswith(operation + '(')]
             if len(matching_keys) > 1:
@@ -87,7 +132,6 @@ class TensorFlowOperationExtractor(ast.NodeVisitor):
                     if num_args_in_key == num_args_in_call:
                         matches_by_arg_count.append(key)
                 if len(matches_by_arg_count) == 1:
-                    # Only one match found
                     matched_by_arg_count = matches_by_arg_count[0]
                     operation_dict[matched_by_arg_count] += 1
                 else:
@@ -124,78 +168,39 @@ class TensorFlowOperationExtractor(ast.NodeVisitor):
             signature.append(f"{kw_value}")
         return signature
 
-
-def extract_tf_operations(source_code):
+def extract_operations(source_code):
     ast_tree = ast.parse(source_code)
     extractor = TensorFlowOperationExtractor()
+    pattern_extractor = PatternExtractor()
     extractor.visit(ast_tree)
-    return extractor.tf_operation_counts, extractor.sparse_ops
+    pattern_extractor.visit(ast_tree)
+    return extractor.tf_operation_counts, pattern_extractor.pattern_counts
 
-
-def compute_probabilities_by_category(tf_operation_counts, sparse_operation_counts):
-    category_probabilities = {
-        'Tensor-Operations': {},
-        'Sparse-Operations': {}
-    }
-    total_tf_operations = sum(tf_operation_counts.values())
-    total_sparse_operations = sum(sparse_operation_counts.values())
-
-    for operation, count in tf_operation_counts.items():
-        if total_tf_operations > 0:
-            category_probabilities['Tensor-Operations'][operation] = count / \
-                total_tf_operations
-        else:
-            category_probabilities['Tensor-Operations'][operation] = 0
-    for operation, count in sparse_operation_counts.items():
-        if total_sparse_operations > 0:
-            category_probabilities['Sparse-Operations'][operation] = count / \
-                total_sparse_operations
-        else:
-            category_probabilities['Sparse-Operations'][operation] = 0
-    return category_probabilities
-
-
-def initialize_uniform_pcfg(grammar_rules):
-    pcfg = defaultdict(dict)
-    for non_terminal, productions in grammar_rules.items():
-        uniform_prob = 1.0 / len(productions)
-        for production in productions:
-            # Example: Extract 'tf.abs' from 'tf.abs(x)'
-            simplified_production = production
-            pcfg[non_terminal][simplified_production] = uniform_prob
-    return pcfg
-
-
-def laplace_smoothing(tf_operation_counts, sparse_operation_counts, alpha=1):
+def laplace_smoothing(tf_operation_counts, alpha=1):
     smoothed_probabilities = {
         'Tensor-Operations': {},
-        'Sparse-Operations': {}
     }
-    # Tensor Operations Smoothing
     total_tf_operations = sum(tf_operation_counts.values(
     )) + (len(tfcoder_grammar['Tensor-Operations']) * alpha)
     for operation in tfcoder_grammar['Tensor-Operations']:
         count = tf_operation_counts.get(operation, 0) + alpha
         smoothed_probabilities['Tensor-Operations'][operation] = count / \
             total_tf_operations
-
-    # Sparse Operations Smoothing
-    total_sparse_operations = sum(sparse_operation_counts.values(
-    )) + (len(tfcoder_grammar['Sparse-Operations']) * alpha)
-    for operation in tfcoder_grammar['Sparse-Operations']:
-        count = sparse_operation_counts.get(operation, 0) + alpha
-        smoothed_probabilities['Sparse-Operations'][operation] = count / \
-            total_sparse_operations
     return smoothed_probabilities
 
-
 alpha = 1
-
+def compute_costs(smoothed_probabilities):
+    costs = {
+        'Tensor-Operations': {}
+    }
+    for operation_type in smoothed_probabilities:
+        for operation, probability in smoothed_probabilities[operation_type].items():
+            costs[operation_type][operation] = round(-log2(probability))
+    return costs
 
 def read_json_file(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
-
 
 def process_tasks(tasks):
     for task in tasks:
@@ -203,23 +208,21 @@ def process_tasks(tasks):
         completions = task['completions']
 
         aggregate_tf_operation_counts = defaultdict(int)
-        aggregate_sparse_operation_counts = defaultdict(int)
-
         for completion in completions:
             try:
-                tf_operation_counts, sparse_ops_counts = extract_tf_operations(
-                    completion)
+                tf_operation_counts, patterns = extract_operations(completion)
                 for operation, count in tf_operation_counts.items():
                     aggregate_tf_operation_counts[operation] += count
-                for operation, count in sparse_ops_counts.items():
-                    aggregate_sparse_operation_counts[operation] += count
+                for operation, count in patterns.items():
+                    aggregate_tf_operation_counts[operation] += count
             except Exception as e:
                 print(f"Error processing completion for task {task_id}: {e}")
                 continue
 
         smoothed_probabilities = laplace_smoothing(
-            aggregate_tf_operation_counts, aggregate_sparse_operation_counts, alpha=1)
+            aggregate_tf_operation_counts, alpha=1)
         task["smoothed_probabilities"] = smoothed_probabilities
+        task["costs"] = compute_costs(smoothed_probabilities)
     return tasks
 
 
@@ -228,7 +231,6 @@ def main():
     new_tasks = process_tasks(tasks)
     with open("output_modified_tfcoder.json", 'w') as json_file:
         json.dump(new_tasks, json_file, indent=4)
-
 
 if __name__ == "__main__":
     main()

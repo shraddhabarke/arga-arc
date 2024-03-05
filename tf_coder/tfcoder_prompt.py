@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-client = OpenAI(api_key='')
+client = OpenAI(api_key='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')
 import os, json, copy
 import matplotlib.pyplot as plt
 import matplotlib.colors
