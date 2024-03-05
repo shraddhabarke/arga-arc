@@ -216,6 +216,7 @@ def process_tasks(tasks):
                 for operation, count in patterns.items():
                     aggregate_tf_operation_counts[operation] += count
             except Exception as e:
+                print(completion)
                 print(f"Error processing completion for task {task_id}: {e}")
                 continue
 
