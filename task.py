@@ -220,14 +220,13 @@ class Task:
             for input in self.train_input
         ]
         all_transforms = []
-
         for transform in transformation:
             all_transforms.extend(self.flatten_transforms(transform))
         print("all-transform",
               [transform.code for transform in all_transforms])
         og_graph = self.input_abstracted_graphs_original[self.abstraction]
         # TODO: some issue here for na, mcccg
-        for transform in all_transforms:
+        for idx, transform in enumerate(all_transforms):
             if "Var" in transform.code:
                 transformed_values, spec = self.compute_all_transformed_values(
                     filter, transform, og_graph)
@@ -235,6 +234,12 @@ class Task:
                     input_abstracted_graph.var_apply_all(
                         values, filter, transform)
             else:
+                for input_abstracted_graph in og_graph:
+                    nodes_list = list(input_abstracted_graph.graph.nodes())
+                    for node in nodes_list:
+                        # bit hacky
+                        if len(node) == 3 and "moveNode" in all_transforms[idx-1].code:
+                            input_abstracted_graph.remove_node(node)
                 for input_abstracted_graph in og_graph:
                     input_abstracted_graph.apply_all(filter, transform)
         return og_graph

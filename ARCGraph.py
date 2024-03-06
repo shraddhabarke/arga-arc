@@ -207,16 +207,8 @@ class ARCGraph:
         elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         max_allowed = 1000
-
-        """
-        for sub_node in self.graph.nodes[node]["nodes"]:
-            if (sub_node[0] + delta_y == sub_node[0] or sub_node[0] + delta_y == self.width) \
-            and (sub_node[1] + delta_x == sub_node[1] or sub_node[1] + delta_x == self.height):
-                continue
-            else:
-                ogpixels.add(sub_node)
-        """
-        ## todo: before adding you need to check if it is in updated_nodes
+        from copy import deepcopy
+        og_graph = deepcopy(self.graph.nodes[node]["nodes"])
         for foo in range(max_allowed):
             updated_nodes = set()
             for sub_node in self.graph.nodes[node]["nodes"]:
@@ -228,7 +220,8 @@ class ARCGraph:
             ):
                 break
             self.graph.nodes[node]["nodes"] = list(updated_nodes)
-            if sub_node not in list(updated_nodes):
+        for sub_node in og_graph:
+            if sub_node not in self.graph.nodes[node]["nodes"]:
                 ogpixels.add(sub_node)
 
         if ogpixels:
