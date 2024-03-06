@@ -66,16 +66,15 @@
     {
         "task_id": "google_03",
         "completions": [
-            "",
-            "slice = tf.sparse.slice(sp, start=[0, 0], size=[1, -1])\n",
+            "def slice_sparse_tensor_8(sparse_tensor):\n    is_first_dim = tf.equal(sparse_tensor.indices[:, 0], 0)\n    new_indices = tf.boolean_mask(sparse_tensor.indices, is_first_dim)\n    new_values = tf.boolean_mask(sparse_tensor.values, is_first_dim)\n    new_shape = [1, sparse_tensor.dense_shape[1], sparse_tensor.dense_shape[2]]\n    return tf.SparseTensor(indices=new_indices, values=new_values, dense_shape=tf.constant(new_shape))",
+            "def slice_sparse_tensor_7(sparse_tensor):\n    mask = tf.squeeze(tf.where(tf.equal(sparse_tensor.indices[:, 0], 0)), axis=1)\n    new_indices = tf.gather(sparse_tensor.indices, mask)\n    new_values = tf.gather(sparse_tensor.values, mask)\n    new_shape = tf.concat([[1], sparse_tensor.dense_shape[1:]], 0)\n    return tf.SparseTensor(indices=new_indices, values=new_values, dense_shape=new_shape)",
             "\ndef slice_first_dimension(sparse_tensor):\n    return tf.sparse.slice(sparse_tensor, start=[0, 0], size=[1, -1])\n",
             "\nindices = tf.constant([[0, 0], [1, 2]], dtype=tf.int64)\nvalues = tf.constant([1, 2], dtype=tf.int32)\ndense_shape = tf.constant([3, 4], dtype=tf.int64)\nsparse_tensor = tf.SparseTensor(indices, values, dense_shape)\n\nsliced_sparse_tensor = tf.sparse.slice(sparse_tensor, start=[0, 0], size=[1, -1])\n",
             "\nindices = tf.constant([[0, 0], [1, 2]])\nvalues = tf.constant([1, 2], dtype=tf.int32)\ndense_shape = tf.constant([3, 4])\nsparse_tensor = tf.SparseTensor(indices, values, dense_shape)\n\nstart = tf.constant([0, 0], dtype=tf.int64)\nsize = tf.constant([1, -1], dtype=tf.int64)\nsliced = tf.sparse.slice(sparse_tensor, start, size)\n",
             "\ndef slice_first_dim(char):\n    # Convert the character to a SparseTensor\n    indices = [[0, 0]]\n    values = [char]\n    dense_shape = [1, 1]\n    sparse_tensor = tf.SparseTensor(indices, values, dense_shape)\n\n    # Slice the first dimension\n    sliced = tf.sparse.slice(sparse_tensor, start=[0, 0], size=[1, 1])\n\n    # Convert back to dense and return the first element\n    return tf.sparse.to_dense(sliced)[0][0].numpy().decode()\n",
-            "\nstart = [0]\nsize = [1]\n\nsliced_sparse_tensor = tf.sparse.slice(sparse_tensor, start, size)\n",
-            "",
-            "",
-            "\noutput = tf.sparse.slice(sparse_tensor, start=[0], size=[1])\n"
+            "def slice_sparse_tensor_9(sparse_tensor):\n    mask = sparse_tensor.indices[:, 0] < 1\n    filtered_indices = tf.boolean_mask(sparse_tensor.indices, mask)\n    filtered_values = tf.boolean_mask(sparse_tensor.values, mask)\n    new_shape = tf.concat([[1], sparse_tensor.dense_shape[1:]], axis=0)\n    return tf.SparseTensor(indices=filtered_indices, values=filtered_values, dense_shape=new_shape)",
+            "def slice_sparse_tensor_5(sparse_tensor):\n    condition = tf.equal(sparse_tensor.indices[:, 0], 0)\n    new_indices = tf.ragged.boolean_mask(sparse_tensor.indices, condition).to_tensor()\n    new_values = tf.boolean_mask(sparse_tensor.values, condition)\n    new_shape = tf.concat([[1], sparse_tensor.dense_shape[1:]], axis=0)\n    return tf.SparseTensor(indices=new_indices, values=new_values, dense_shape=new_shape)",
+            "def slice_sparse_tensor_10(sparse_tensor):\n    mask = sparse_tensor.indices[:, 0] == 0\n    new_indices = sparse_tensor.indices[mask]\n    new_values = sparse_tensor.values[mask]\n    new_shape = tf.concat([[1], sparse_tensor.dense_shape[1:]], axis=0)\n    return tf.SparseTensor(indices=new_indices, values=new_values, dense_shape=new_shape)\n    output = tf.sparse.slice(sparse_tensor, start=[0], size=[1])\n"
         ],
         "target-program": "tf.divide(in1, tf.expand_dims(tf.reduce_sum(in1, axis=1), 1))",
         "description": "Slice the first dimension of a SparseTensor",
@@ -480,10 +479,10 @@
             "\nbool_tensor = tf.constant([True, False, False, True, False])\ntrue_count = tf.math.count_nonzero(bool_tensor)\n\nnum_tensor = tf.constant([1, 2, 3, 4, 5])\nneg_sum = tf.math.negative(tf.reduce_sum(num_tensor))\n",
             "\nbool_tensor = tf.constant([True, False, False, True, False])\ncount_true = tf.math.count_nonzero(bool_tensor)\n\ntensor = tf.constant([1, 2, 3, 4, 5])\nneg_sum = tf.reduce_sum(tf.math.negative(tensor))\n",
             "\nbool_array = tf.constant([True, False, False, True, False])\ncount_true = tf.math.count_nonzero(bool_array)\n\nint_array = tf.constant([1, 2, 3, 4, 5])\nproduct = tf.reduce_prod(int_array)\n\n",
-            "",
+            "\nbool_tensor = tf.constant([True, False, False, True, False])\nresult = tf.math.count_nonzero(bool_tensor)\n",
             "\ndef sum_elements(input, condition):\n    input_tensor = tf.constant(input)\n    condition_tensor = tf.constant(condition)\n    mask = tf.boolean_mask(input_tensor, condition_tensor)\n    sum_elements = tf.reduce_sum(mask)\n    if tf.reduce_any(tf.math.logical_not(condition_tensor)):\n        sum_elements = tf.math.negative(sum_elements)\n    return sum_elements\n",
             "\nbool_tensor = tf.constant([True, False, False, True, False])\nint_tensor = tf.constant([1, 2, 3, 4, 5])\n\nresult_tensor = tf.where(bool_tensor, int_tensor, 0)\n",
-            "",
+            "\nbool_tensor = tf.constant([True, False, False, True, False])\nint_tensor = tf.cast(bool_tensor, tf.int32)\nsum_of_trues = tf.reduce_sum(int_tensor)\n",
             "\ninput_tensor = tf.constant([True, False, False, True, False])\n\noutput = tf.math.count_nonzero(input_tensor)\n\n",
             "\ndef check_tensor(bool_tensor, num_list):\n    bool_tensor = tf.constant(bool_tensor)\n    num_tensor = tf.constant(num_list)\n    \n    if tf.reduce_all(bool_tensor):\n        return 1\n    else:\n        return tf.math.negative(tf.reduce_sum(num_tensor))\n\n",
             "\ndef process_input(input):\n    tensor = tf.constant(input)\n    tensor = tf.cast(tensor, tf.int32)\n    sum = tf.reduce_sum(tensor)\n    return tf.math.negative(sum)\n"
@@ -908,13 +907,13 @@
         "task_id": "stackoverflow_10",
         "completions": [
             "\nmatrix1 = tf.constant([[15, 10], [20, -5]])\nmatrix2 = tf.constant([[2, 3, 1], [-2, 5, 0]])\n\nresult = tf.matmul(matrix1, matrix2)\n",
-            "",
+            "A = tf.constant([[15, 10], [20, -5]], dtype=tf.float32)\nB = tf.constant([[...]], dtype=tf.float32)\nC = tf.matmul(A, B)",
             "\nmatrix1 = tf.constant([[15, 10], [20, -5]])\nmatrix2 = tf.constant([[1, 2], [3, 4]])\n\nresult = tf.matmul(matrix1, matrix2)\n",
             "\nmatrix1 = tf.constant([[15, 10], [20, -5]])\n\nmatrix2 = tf.eye(2, 2)\n\nresult = tf.matmul(matrix1, matrix2)\n\n",
             "\nmatrix1 = tf.constant([[15, 10], [20, -5]])\nmatrix2 = tf.constant([[2, 3, 1], [-2, 5, 0]])\n\nresult = tf.matmul(matrix1, matrix2)\n\n",
             "\ninput_matrix = tf.constant([[15, 10], [20, -5]])\n\nsecond_matrix = tf.constant([[2,3,1], [1,1,1]])\n\noutput_matrix = tf.matmul(input_matrix, second_matrix)\n",
             "\nmatrix1 = tf.constant([[15, 10], [20, -5]])\nmatrix2 = tf.constant([[2], [3]])\n\nresult = tf.matmul(matrix1, matrix2)\n\n",
-            "",
+            "A = tf.constant([[15, 10], [20, -5]], dtype=tf.float32)\nB = tf.constant([[1, 2, 3], [4, 5, 6]], dtype=tf.float32)\nC = tf.matmul(A, B)",
             "\nmatrix1 = tf.constant([[15, 10], [20, -5]])\nmatrix2 = tf.constant([[2, 3], [1, -2]])\n\nresult = tf.matmul(matrix1, matrix2)\n\n",
             "\nmatrix1 = tf.constant([[15, 10], [20, -5]])\nmatrix2 = tf.constant([[2, 3, 1], [-2, 5, 0]])\n\nresult = tf.matmul(matrix1, matrix2)\n\n"
         ],
@@ -991,7 +990,7 @@
             "\ndef multiply_tensors(input_tensor):\n    fixed_tensor = tf.constant([[7, 4], [1, 10]])\n    return tf.multiply(input_tensor, fixed_tensor)\n",
             "\ntensor = tf.constant([[4, 2], [3, 4]])\n\nvector1 = tf.constant([[3, 5], [10, 2]])\nvector2 = tf.constant([[[1, 0], [5, 4]], [[3, 10], [2, -2]]])\n\noutput1 = tf.matmul(vector1, tensor)\noutput2 = tf.matmul(vector2, tensor)\n",
             "\ndef multiply_tensors(input_tensor):\n    constant_tensor = tf.constant([[4, 7], [1, 10]])\n    return tf.multiply(constant_tensor, input_tensor)\n",
-            "\ninput_tensor = tf.constant(<input_tensor>)\n\nvector = tf.constant(<vector>)\n\noutput = tf.multiply(input_tensor, vector)\n",
+            "\ninput_tensor = tf.constant(input_tensor)\n\nvector = tf.constant(vector)\n\noutput = tf.multiply(input_tensor, vector)\n",
             "\ndef multiply_tensors(input_tensor):\n    tensor_ones = tf.ones_like(input_tensor)\n    output_tensor = tf.matmul(input_tensor, tensor_ones, transpose_b=True)\n    return output_tensor\n",
             "\ndef multiply_vectors_by_tensor(input):\n    tensor = tf.constant([[2, 4], [3, 4]])\n    return tf.matmul(input, tensor)\n\ninput = tf.constant([[3, 5], [10, 2]])\n\ninput = tf.constant([[[1, 0], [5, 4]], [[3, 10], [2, -2]]])\n",
             "\ndef multiply_tensors(input_tensor):\n    constant_tensor = tf.constant([[7, 4], [4, 10]])\n    result = tf.multiply(input_tensor, constant_tensor)\n    return result\n",
@@ -1469,7 +1468,7 @@
         "completions": [
             "\ndef compute_euclidean_distance(tensor1, tensor2):\n    tensor1 = tf.convert_to_tensor(tensor1, dtype=tf.float32)\n    tensor2 = tf.convert_to_tensor(tensor2, dtype=tf.float32)\n    return tf.norm(tensor1-tensor2)\n\n",
             "\ndef compute_euclidean_distance(tensor1, tensor2):\n    return tf.norm(tensor1 - tensor2)\n",
-            "",
+            "euclidean_distance = tf.math.sqrt(tf.reduce_sum(tf.math.square(tf.subtract(tensor1, tensor2)), axis=1))",
             "\ndef euclidean_distance(tensor1, tensor2):\n    difference = tf.subtract(tensor1, tensor2)\n    square_difference = tf.square(difference)\n    sum_square_difference = tf.reduce_sum(square_difference)\n    euclidean_distance = tf.sqrt(sum_square_difference)\n    return euclidean_distance\n",
             "\ndef euclidean_distance(tensor1, tensor2):\n    difference = tf.subtract(tensor1, tensor2)\n    square_difference = tf.square(difference)\n    sum_square_difference = tf.reduce_sum(square_difference)\n    distance = tf.sqrt(sum_square_difference)\n    return distance\n",
             "\ndef euclidean_distance(tensor1, tensor2):\n    difference = tf.subtract(tensor1, tensor2)\n    return tf.norm(difference)\n",
@@ -1497,16 +1496,16 @@
     {
         "task_id": "stackoverflow_31",
         "completions": [
-            "",
+            "mse = tf.reduce_mean(tf.square(tf.sparse.to_dense(sparse_tensor) - dense_tensor))",
             "b_dense = tf.sparse.to_dense(b)\nsquared_error = tf.math.squared_difference(a, b_dense)\n",
-            "",
+            "total_squared_error = tf.reduce_sum(tf.square(tf.sparse.to_dense(sparse_tensor) - dense_tensor))",
             "\ntensor1 = tf.constant([1, 2, 3, 4, 5], dtype=tf.float32)\ntensor2 = tf.constant([5, 4, 3, 2, 1], dtype=tf.float32)\n\ndiff = tf.subtract(tensor1, tensor2)\n\nsquared_error = tf.square(diff)\n\n",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
+            "total_squared_error = tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(sparse_tensor), dense_tensor))",
+            "squared_error = tf.square(tf.sparse.to_dense(sparse_tensor, default_value=0) - dense_tensor)\ntotal_squared_error = tf.reduce_sum(squared_error, axis=None)",
+            "squared_error = tf.square(tf.sparse.to_dense(sparse_tensor) - dense_tensor)\ntotal_squared_error = tf.reduce_sum(squared_error)",
+            "dense_version = tf.sparse.to_dense(sparse_tensor)\ndifference = dense_version - dense_tensor\nsquared = tf.square(difference)\ntotal_error = tf.reduce_sum(squared)",
+            "dense_tensor_from_sparse = tf.sparse.to_dense(sparse_tensor)\nsquared_error = tf.math.squared_difference(dense_tensor_from_sparse, dense_tensor)\ntotal_squared_error = tf.reduce_sum(squared_error)",
+            "dense_tensor_from_sparse = tf.sparse.to_dense(sparse_tensor)\nsquared_error = tf.square(dense_tensor - dense_tensor_from_sparse)\ntotal_squared_error = tf.reduce_sum(squared_error)"
         ],
         "target-program": "tf.reduce_sum(tf.square(tf.subtract(in2, tf.sparse.to_dense(in1))))",
         "description": "squared error between two tensors, one being a sparse tensor",
@@ -2040,7 +2039,7 @@
         "task_id": "stackoverflow_48",
         "completions": [
             "\ndef find_indices(lst):\n    tensor = tf.constant(lst)\n    indices = tf.where(tf.equal(tensor, 38))\n    return indices.numpy().flatten()[0]\n\n",
-            "",
+            "input_tensor = tf.constant([32, 53, 45, 38, 29, 89, 64, 23])\nindices_of_elements = tf.where(input_tensor > 30)",
             "\ndef find_min_index(arr):\n    tensor = tf.constant(arr)\n    min_index = tf.argmin(tensor, axis=0)\n    return min_index.numpy()\n\n",
             "\nlist = tf.constant([32, 53, 45, 38, 29, 89, 64, 23])\n\nvalue = tf.constant(38)\n\nindex = tf.where(tf.equal(list, value))[0, 0]\n\n",
             "\nlist = [32, 53, 45, 38, 29, 89, 64, 23]\n\ntensor = tf.constant(list)\n\nindices = tf.where(tf.equal(tensor, 38))\n\n",

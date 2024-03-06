@@ -197,32 +197,69 @@ class Task:
                 error += 1
         return error
 
-    def transform_values(
-        self, filter: FilterASTNode, transformations: t.List[TransformASTNode]
-    ):
+    def flatten_transforms(self, transform) -> t.List:
         """
-        Returns the values of the transformed grid
+        Recursively flattens nested transform.Transforms objects into a single list of transformations.
+        """
+        all_transforms = []
+        if transform.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS]:
+            for sub_transform in transform.children:
+                # If the child is also a transform.Transforms, recurse
+                all_transforms.extend(self.flatten_transforms(sub_transform))
+        else:
+            # Base case: No further nesting, add the transform directly
+            all_transforms.append(transform)
+        return all_transforms
+
+    def sequence_transform_values(self, filter: FilterASTNode, transformation: Transforms):
+        """
+        Returns the values of the transformed grid, takes a sequence of transformations
+        """
+        self.input_abstracted_graphs_original[self.abstraction] = [
+            getattr(input, Image.abstraction_ops[self.abstraction])()
+            for input in self.train_input
+        ]
+        all_transforms = []
+        for transform in transformation:
+            all_transforms.extend(self.flatten_transforms(transform))
+        print("all-transform",
+              [transform.code for transform in all_transforms])
+        og_graph = self.input_abstracted_graphs_original[self.abstraction]
+        # TODO: some issue here for na, mcccg
+        for idx, transform in enumerate(all_transforms):
+            if "Var" in transform.code:
+                transformed_values, spec = self.compute_all_transformed_values(
+                    filter, transform, og_graph)
+                for values, input_abstracted_graph in zip(transformed_values, og_graph):
+                    input_abstracted_graph.var_apply_all(
+                        values, filter, transform)
+            else:
+                for input_abstracted_graph in og_graph:
+                    nodes_list = list(input_abstracted_graph.graph.nodes())
+                    for node in nodes_list:
+                        # bit hacky
+                        if len(node) == 3 and "moveNode" in all_transforms[idx-1].code:
+                            input_abstracted_graph.remove_node(node)
+                for input_abstracted_graph in og_graph:
+                    input_abstracted_graph.apply_all(filter, transform)
+        return og_graph
+
+    def transform_values(
+            self, filter: FilterASTNode, transformation: TransformASTNode
+    ):
+        print("Inside transform values:", transformation.code)
+        """
+        Returns the values of the transformed grid, takes a single transformation
         """
         self.input_abstracted_graphs_original[self.abstraction] = [
             getattr(input, Image.abstraction_ops[self.abstraction])()
             for input in self.train_input
         ]
 
-        if not isinstance(transformations, list):
-            transformations = [transformations]
-        transformed_values = []
-        # TODO: some issue here for na, mcccg
-        for input_abstracted_graph in self.input_abstracted_graphs_original[
-            self.abstraction
-        ]:
-            for transformation in transformations:
-                input_abstracted_graph.apply_all(filter, transformation)
-            transformed_values.append(
-                input_abstracted_graph.graph.nodes(data=True))
-        return [
-            [(key, value) for key, value in dict(node_data_view).items()]
-            for node_data_view in transformed_values
-        ]
+        for input_abstracted_graph in self.input_abstracted_graphs_original[self.abstraction]:
+            input_abstracted_graph.apply_all(filter, transformation)
+
+        return self.input_abstracted_graphs_original[self.abstraction]
 
     def filter_values(self, filter: FilterASTNode):
         filtered_nodes, filtered_nodes_dict_list = [], []
@@ -248,25 +285,122 @@ class Task:
         else:
             return filtered_nodes
 
-    def var_transform_values(
-        self, filter: FilterASTNode, transformation: TransformASTNode
-    ):
-        """
-        Returns the values of the transformed grid with different possibilities for variable transformation
-        """
-        if self.abstraction == "na":  # todo: does it sense to do variable for the na abstraction?
-            return []
-        input_abstraction = [getattr(
-            input, Image.abstraction_ops[self.abstraction])() for input in self.train_input]
-        output_abstraction = [getattr(output, Image.abstraction_ops[self.abstraction])(
-        ) for output in self.train_output]
+    def compute_transformation_params(self, input_graph, transformation):
+        object_params_dict, object_params = defaultdict(list), []
+        if "updateColor" in transformation.code:
+            object_params = set([input_graph.get_color(obj)
+                                for obj in input_graph.graph.nodes()])
+            for node_obj in input_graph.graph.nodes():
+                for neighbor in input_graph.graph.neighbors(node_obj):
+                    object_params_dict[(node_obj, input_graph.get_color(neighbor))].append(
+                        neighbor)
 
-        transformed_values, spec = [], []
+        elif "extendNode" in transformation.code or "moveNode" in transformation.code \
+                or "moveNodeMax" in transformation.code:
+            print("transformation-max:", transformation.code)
+            for node_obj in input_graph.graph.nodes():
+                for node_other, _ in input_graph.graph.nodes(data=True):
+                    if node_obj != node_other:
+                        """
+                        relative_pos = input_graph.get_relative_pos(
+                            node_obj, node_other)
+                        print("relative-pos:", node_obj, node_other, relative_pos)
+                        object_params.append(relative_pos)
+                        if relative_pos is not None:
+                            object_params_dict[(node_obj, relative_pos)].append(
+                                (node_other))
+                        """
+                        relative_positions = [Dir.UP, Dir.DOWN, Dir.LEFT, Dir.RIGHT,
+                                              Dir.UP_LEFT, Dir.UP_RIGHT, Dir.DOWN_RIGHT, Dir.DOWN_LEFT]
+                        relative_positions = relative_positions if relative_positions is not None else []
 
-        for input_graph, output_graph in zip(input_abstraction, output_abstraction):
-            per_task_spec = {}
-            output_nodes_set = {tuple(out_props["nodes"]): out_props
-                                for _, out_props in output_graph.graph.nodes(data=True)}
+                        for relative_pos in relative_positions:
+                            object_params.append(relative_pos)
+                            if (node_obj, relative_pos) not in object_params_dict:
+                                object_params_dict[(
+                                    node_obj, relative_pos)] = []
+                            object_params_dict[(node_obj, relative_pos)].append(
+                                node_other)
+        elif "Flip" in transformation.code:
+            for node_obj in input_graph.graph.nodes():
+                for node_other, _ in input_graph.graph.nodes(data=True):
+                    if node_obj != node_other:
+                        target_mirror_dir = self.get_mirror_direction(
+                            node_obj, node_other)
+                        object_params.append(target_mirror_dir)
+                        if target_mirror_dir is not None:
+                            object_params_dict[(node_obj, target_mirror_dir)].append(
+                                (node_other))
+        elif "Insert" in transformation.code:
+            print("transformation-insert:", transformation.code)
+            object_params = set([input_graph.get_centroid(obj)
+                                for obj in input_graph.graph.nodes()])
+            for node_obj in input_graph.graph.nodes():
+                for node_other in input_graph.graph.nodes():
+                    if node_obj != node_other:
+                        object_params_dict[(node_obj,
+                                            input_graph.get_centroid(node_other))].append(node_other)
+        elif "mirror" in transformation.code:
+            print("transformation-mirror:", transformation.code)
+            for node_obj in input_graph.graph.nodes():
+                for neighbor in input_graph.graph.nodes():
+                    if node_obj != neighbor:
+                        target_axis = input_graph.get_mirror_axis(
+                            node_obj, neighbor)
+                        object_params.append(target_axis)
+                        if target_axis is not None:
+                            object_params_dict[(node_obj, target_axis)].append(
+                                (neighbor))
+        return object_params_dict, set(object_params)
+
+    def compute_transformed_values(self, diff_nodes, input_graph, output_graph, filter, transformation):
+        per_task = {}
+        per_task_spec = {}
+        output_nodes_set = {tuple(set(out_props["nodes"])): out_props
+                            for _, out_props in output_graph.graph.nodes(data=True)}
+        output_nodes_set = {
+            node_pos: out_props['color']
+            for _, out_props in output_graph.graph.nodes(data=True)
+            for node_pos in out_props['nodes']
+        }
+        print("output_nodes_set", output_nodes_set)
+        object_params_dict, object_params = self.compute_transformation_params(
+            input_graph, transformation)
+        print("object_params_dict:", object_params_dict)
+        print("objs-params:", object_params)
+
+        for node_object in diff_nodes:
+            for param in set(object_params):
+                if param is not None:
+                    input_graph_copy = copy.deepcopy(input_graph)
+                    input_graph_copy.var_apply_all(
+                        dict({node_object: param}), filter, transformation
+                    )
+                    new_object_data = input_graph_copy.graph.nodes[node_object]
+                    new_object_nodes = tuple(
+                        set(input_graph_copy.graph.nodes[node_object]["nodes"]))
+                    new_object_nodes = tuple(
+                        list(input_graph_copy.graph.nodes[node_object]["nodes"])[0])
+                    # todo: the reason we do this is because then we only return the value of the direction variables that correctly transforms!
+                    print("outputs----color",
+                          output_nodes_set.get(new_object_nodes, -1))
+                    # print("outputs---size:", output_nodes_set.get(new_object_nodes, {}).get("size"), new_object_data["size"])
+                    if (
+                        output_nodes_set.get(new_object_nodes, -1)
+                            == new_object_data["color"]
+                        # and output_nodes_set.get(new_object_nodes, {}).get("size") == new_object_data["size"]
+                    ):  # checking if the variable parameter transforms that node/object correctly # todo: this does not work for variable transforms!
+                        per_task[node_object] = param
+                        per_task_spec.update(
+                            {node_object: object_params_dict[(node_object, param)]})
+        return per_task, per_task_spec
+
+    def compute_all_transformed_values(self, filter, transformation, og_graph):
+        all_transformed_values = []
+        all_specs = []
+
+        for input_graph, output_graph in zip(og_graph,
+                                             self.output_abstracted_graphs_original[self.abstraction]):
             matching_nodes = [
                 in_node for in_node, in_props in input_graph.graph.nodes(data=True)
                 if any(in_props['color'] == out_props['color'] and
@@ -275,51 +409,42 @@ class Task:
                        for _, out_props in output_graph.graph.nodes(data=True))
             ]
 
-            diff_nodes = set(input_graph.graph.nodes) - \
-                set(matching_nodes)  # only nodes that change
-            per_task = []
-            object_params_dict, object_params = defaultdict(list), []
-            if "updateColor" in transformation.code:
-                object_params = set([input_graph.get_color(obj)
-                                     for obj in input_graph.graph.nodes()])
-                for node_obj in input_graph.graph.nodes():
-                    for neighbor in input_graph.graph.neighbors(node_obj):
-                        object_params_dict[(node_obj, input_graph.get_color(neighbor))].append(
-                            neighbor)
-            elif "extendNode" in transformation.code or "moveNode" in transformation.code \
-                    or "moveNodeMax" in transformation.code:
-                for node_obj in diff_nodes:
-                    for neighbor in input_graph.graph.neighbors(node_obj):
-                        if node_obj != neighbor:
-                            relative_pos = input_graph.get_relative_pos(
-                                node_obj, neighbor)
-                            object_params.append(relative_pos)
-                            if relative_pos is not None:
-                                object_params_dict[(node_obj, relative_pos)].append(
-                                    (neighbor))
+            diff_nodes = set(input_graph.graph.nodes) - set(matching_nodes)
+            per_task, per_task_spec = self.compute_transformed_values(
+                diff_nodes, input_graph, output_graph, filter, transformation)
 
-            for node_object in diff_nodes:
-                for param in object_params:
-                    if param is not None:
-                        input_graph_copy = copy.deepcopy(input_graph)
-                        input_graph_copy.var_apply_all(
-                            dict({node_object: param}), filter, transformation
-                        )
-                        new_object_data = input_graph_copy.graph.nodes[node_object]
-                        new_object_nodes = tuple(
-                            input_graph_copy.graph.nodes[node_object]["nodes"])
-                        if (
-                            output_nodes_set.get(
-                                new_object_nodes, {}).get("color")
-                            == new_object_data["color"]
-                            and output_nodes_set[new_object_nodes].get("size")
-                            == new_object_data["size"]
-                        ):
-                            per_task.append((node_object, new_object_data))
-                            per_task_spec.update(
-                                {node_object: object_params_dict[(node_object, param)]})
+            all_transformed_values.append(per_task)
+            all_specs.append(per_task_spec)
+        print("all-vals:", all_transformed_values)
+        return all_transformed_values, all_specs
 
-            spec.append(per_task_spec)
-            transformed_values.append(per_task)
+    def var_transform_values(
+        self, filter: FilterASTNode, transformation: TransformASTNode
+    ):
+        """
+        Returns the values of the transformed grid with different possibilities for variable transformation
+        """
+        if self.abstraction == "na":  # todo: does it sense to do variable for the na abstraction?
+            return []
+
+        self.input_abstracted_graphs_original[self.abstraction] = [
+            getattr(input, Image.abstraction_ops[self.abstraction])()
+            for input in self.train_input
+        ]
+        self.output_abstracted_graphs_original[self.abstraction] = [
+            getattr(input, Image.abstraction_ops[self.abstraction])()
+            for input in self.train_output
+        ]
+        transformed_values, spec = self.compute_all_transformed_values(
+            filter, transformation, self.input_abstracted_graphs_original[self.abstraction])
+        self.input_abstracted_graphs_original[self.abstraction] = [
+            getattr(input, Image.abstraction_ops[self.abstraction])()
+            for input in self.train_input
+        ]
+
+        for values, input_abstracted_graph in zip(transformed_values, self.input_abstracted_graphs_original[self.abstraction]):
+            input_abstracted_graph.var_apply_all(
+                values, filter, transformation)
+
         self.spec.update({transformation.code: spec})
-        return transformed_values
+        return self.input_abstracted_graphs_original[self.abstraction]

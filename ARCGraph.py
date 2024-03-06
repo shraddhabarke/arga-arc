@@ -81,29 +81,57 @@ class ARCGraph:
                 self.graph.nodes[node]["color"] = color
         return self
 
-    def MoveNode(self, node, direction: Dir):
+    def MoveNode(self, node, direction: Dir, n: int = 1):
         """
         move node by 1 pixel in a given direction
         """
         assert direction is not None
-
-        updated_sub_nodes = []
+        ogpixels = set() # list of pixels which should go back to their original color!
+        updated_sub_nodes = set()
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
-            delta_y = -1
-        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
-            delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
-            delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
-            delta_x = 1
+        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or \
+        direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
+            delta_y = -n
+        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or \
+        direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
+            delta_y = n
+        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or \
+        direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
+            delta_x = -n
+        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or \
+        direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
+            delta_x = n
+
         for sub_node in self.graph.nodes[node]["nodes"]:
             if sub_node[0] + delta_y == self.width or sub_node[1] + delta_x == self.height:
-                updated_sub_nodes.append((sub_node[0], sub_node[1]))
-            if self.check_inbound((sub_node[0] + delta_y, sub_node[1] + delta_x)):
-                updated_sub_nodes.append(
-                    (sub_node[0] + delta_y, sub_node[1] + delta_x))
+                updated_sub_nodes.add((sub_node[0], sub_node[1]))
+            elif self.check_inbound((sub_node[0] + delta_y, sub_node[1] + delta_x)):
+                updated_sub_nodes.add((sub_node[0] + delta_y, sub_node[1] + delta_x))
+
+        for sub_node in self.graph.nodes[node]["nodes"]:
+            if (sub_node[0] + delta_y == sub_node[0] or sub_node[0] + delta_y == self.width) \
+            and (sub_node[1] + delta_x == sub_node[1] or sub_node[1] + delta_x == self.height) or sub_node in updated_sub_nodes:
+                continue
+            else:
+                ogpixels.add(sub_node)
+
+        if ogpixels:
+            new_node_id = self.generate_node_id(self.image.background_color)
+            if self.is_multicolor:
+                self.graph.add_node(
+                (node[0], node[1], 0),
+                nodes=list(ogpixels),
+                color=[self.image.background_color for _ in ogpixels],
+                size=len(ogpixels),
+            )
+            else:
+                self.graph.add_node(
+                    (node[0], node[1], 0),
+                    nodes=list(ogpixels),
+                    color=self.image.background_color,
+                    size=len(ogpixels),
+                )
         self.graph.nodes[node]["nodes"] = updated_sub_nodes
         self.graph.nodes[node]["size"] = len(updated_sub_nodes)
 
@@ -152,6 +180,7 @@ class ARCGraph:
         """
         move node in a given direction until it hits another node or the edge of the image
         """
+        ogpixels = set() # list of pixels which should go back to their original color!
         assert direction is not None
         delta_x = 0
         delta_y = 0
@@ -178,17 +207,38 @@ class ARCGraph:
         elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
             delta_x = 1
         max_allowed = 1000
+        from copy import deepcopy
+        og_graph = deepcopy(self.graph.nodes[node]["nodes"])
         for foo in range(max_allowed):
-            updated_nodes = []
+            updated_nodes = set()
             for sub_node in self.graph.nodes[node]["nodes"]:
-                updated_nodes.append(
+                updated_nodes.add(
                     (sub_node[0] + delta_y, sub_node[1] + delta_x))
+
             if self.check_collision(node, updated_nodes) or not self.check_inbound(
-                updated_nodes
+                list(updated_nodes)
             ):
                 break
-            self.graph.nodes[node]["nodes"] = updated_nodes
+            self.graph.nodes[node]["nodes"] = list(updated_nodes)
+        for sub_node in og_graph:
+            if sub_node not in self.graph.nodes[node]["nodes"]:
+                ogpixels.add(sub_node)
 
+        if ogpixels:
+            if self.is_multicolor:
+                self.graph.add_node(
+                (node[0], node[1], 0),
+                nodes=list(ogpixels),
+                color=[self.image.background_color for _ in ogpixels],
+                size=len(ogpixels),
+            )
+            else:
+                self.graph.add_node(
+                    (node[0], node[1], 0),
+                    nodes=list(ogpixels),
+                    color=self.image.background_color,
+                    size=len(ogpixels),
+                )
         return self
 
     def RotateNode(self, node, rotation_dir: Rotation_Angle):
@@ -433,7 +483,7 @@ class ARCGraph:
             print("No subnodes to flip")
             return self  # Exit the function as there's nothing to flip
 
-        if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL:
+        if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL: # todo: check sanity
             max_y = max([subnode[0]
                         for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0]
@@ -793,7 +843,8 @@ class ARCGraph:
         get the axis to mirror node1 with given node2
         """
         node2_centroid = self.get_centroid(node2)
-        if self.graph.edges[node1, node2]["direction"] == "vertical":
+
+        if (node1, node2) in self.graph.edges and self.graph.edges[node1, node2]["direction"] == "vertical":
             return (node2_centroid[0], None)
         else:
             return (None, node2_centroid[1])
@@ -817,7 +868,6 @@ class ARCGraph:
             return (y, x)
 
     # ------------------------------------------ apply functions -----------------------------------
-
     def apply_all(self, filter: FilterASTNode, transformation: TransformASTNode):
         """
         perform a full operation on the abstracted graph
@@ -826,14 +876,13 @@ class ARCGraph:
         3. apply transformation to the nodes
         """
         transformed_nodes = {}
-        for node in self.graph.nodes():
+        for node, info in self.graph.nodes(data=True):
             if self.apply_filters(node, filter):
                 transformed_nodes[node] = [
                     child.value for child in transformation.children
                 ]
         for node, params in transformed_nodes.items():
             self.apply_transform_inner(node, transformation, params)
-
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
 
@@ -844,12 +893,9 @@ class ARCGraph:
         for node in self.graph.nodes():
             if self.apply_filters(node, filter) and node in list(parameters.keys()):
                 transformed_nodes[node] = [parameters[node]]
-            elif self.apply_filters(node, filter):
-                transformed_nodes[node] = None
         for node, params in transformed_nodes.items():
             if params:
                 self.apply_transform_inner(node, transformation, params)
-
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
 
@@ -866,20 +912,6 @@ class ARCGraph:
             function_name_var = function_name.replace("Var", "")
             getattr(self, function_name_var)(
                 node, *args)  # apply var transformation
-
-    def apply_transform(self, transformation: TransformASTNode):
-        """
-        perform a full transformation on the entire abstracted graph before applying any filters
-        """
-        transformed_nodes = {}
-        for node in self.graph.nodes():
-            transformed_nodes[node] = [
-                child.value for child in transformation.children]
-        for node, params in transformed_nodes.items():
-            self.apply_transform_inner(node, transformation, params)
-
-        # update the edges in the abstracted graph to reflect the changes
-        self.update_abstracted_graph(list(transformed_nodes.keys()))
 
     def apply_filters(self, node, filter: FilterASTNode):
         """
