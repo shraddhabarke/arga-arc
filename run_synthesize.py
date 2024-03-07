@@ -18,7 +18,7 @@ from transform_synthesis import TSizeEnumerator
 # Symmetry_Axis, ObjectId, Variable("Var"), UpdateColor, MoveNode, MoveNodeMax, AddBorder, ExtendNode, Mirror,
 # HollowRectangle, Flip, Insert, RotateNode, FillRectangle, Transforms]
 tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
-                Symmetry_Axis, ObjectId, UpdateColor, MoveNodeMax, MoveNode, ExtendNode, AddBorder, Mirror,
+                Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix!
 f_vocabMakers = [FColor, Degree, Size, Relation, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize,
@@ -110,34 +110,30 @@ def run_synthesis(taskNumber, abstraction):
 
                 for node in node_set:
                     node_correctness_map[node] = all_nodes_correct
-
+            print("node_correctness_map:", node_correctness_map)
             actual_value = train_in.undo_abstraction(
                 actual_value).graph.nodes(data=True)
 
             correct_nodes = [
                 node for node, node_info in actual_value if (node in expected_graph and expected_graph[node]['color'] == node_info['color']) and
                 (not node in node_correctness_map or node_correctness_map[node])]
+            print("correct_nodes:", correct_nodes)
             if correct_nodes:
                 correct_nodes_for_this_transform[task_idx] = correct_nodes
-                if any(node not in aggregated_correct_nodes_per_task[task_idx] for node in correct_nodes):
-                    new_information = True
-                    if new_information:
-                        aggregated_correct_nodes_per_task[task_idx].update(
-                            correct_nodes)
+                aggregated_correct_nodes_per_task[task_idx].update(correct_nodes)
 
-        if new_information:
+        if any(val for val in correct_nodes_for_this_transform):
             correct_nodes_per_transform[program.code] = correct_nodes_for_this_transform
-
         full_coverage_per_task = [set(aggregated_correct_nodes) == set(dict(expected_graphs[task_idx]).keys())
-                                  for task_idx, aggregated_correct_nodes in enumerate(aggregated_correct_nodes_per_task)]
+                                for task_idx, aggregated_correct_nodes in enumerate(aggregated_correct_nodes_per_task)]
 
         if all(full_coverage_per_task):
             minimal_transforms = set()
             for task_index in range(len(actual_values)):
                 uncovered_nodes = set(dict(expected_graphs[task_index]).keys())
                 task_specific_transforms = {}
-
                 for transform, coverage_lists in correct_nodes_per_transform.items():
+                    print("transform:", transform, coverage_lists)
                     # check if there's coverage for this task
                     if coverage_lists[task_index]:
                         task_specific_transforms[transform] = set(
@@ -160,13 +156,16 @@ def run_synthesis(taskNumber, abstraction):
                     minimal_transforms.add(best_transform)
                     uncovered_nodes -= best_coverage  # update uncovered nodes
             print("Minimal Transforms:", minimal_transforms)
-            return minimal_transforms, []
+            #return minimal_transforms, []
+
+            #todo: rm this if minimal_transforms:
+            if list(minimal_transforms)[0] == "updateColor(Var.color)":
+                break
         # todo: filter synthesis over pairs
         # todo: filter synthesis over subsets
 
-
 # {"ded97339": "nbccg"} #{"4093f84a": "nbccg"} #{"ae3edfdc": "nbccg"} #"a48eeaf7", "nbccg"
-evals = {}
+evals = {"ddf7fa4f": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -177,39 +176,9 @@ for task, abstraction in evals.items():
     print("filters:", filters)
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
-
 class TestEvaluation(unittest.TestCase):
     def all_problems(self):
         print("==================================================COLORING PROBLEMS==================================================")
-        print("Solving problem d23f8c26")
-        t25, f25 = run_synthesis("d23f8c26", "nbccg")
-        self.assertCountEqual(
-            ['updateColor(Color.black)', 'NoOp'], t25)
-        # self.assertCountEqual(
-        # ['#todo: FilterByColumn Positions'], f25)
-
-        print("Solving problem 868de0fa")
-        t10, f10 = run_synthesis("868de0fa", "nbccg")
-        self.assertCountEqual(
-            ['NoOp', 'fillRectangle(Color.red, Overlap.TRUE)',
-             'fillRectangle(Color.orange, Overlap.TRUE)'], t10)  # todo: post-process
-        # self.assertCountEqual(
-        # ['#todo: FilterByHeight of object'], f10)
-
-        print("Solving problem 44d8ac46")
-        t10, f10 = run_synthesis("44d8ac46", "nbccg")
-        self.assertCountEqual(
-            ['NoOp', 'fillRectangle(Color.red, Overlap.TRUE)'], t10)
-        # self.assertCountEqual(
-        # ['#todo: FilterByShape(IsSquare)'], f10)
-
-        print("Solving problem 63613498")
-        t11, f11 = run_synthesis("63613498", "nbccg")
-        self.assertCountEqual(
-            ['NoOp', 'updateColor(Color.grey)'], t11)
-        # self.assertCountEqual(
-        # ['#todo: FilterByShape or FilterByPosition'], f11)
-
         print("Solving problem d511f180")
         t0, f0 = run_synthesis("d511f180", "nbccg")
         self.assertCountEqual(
@@ -376,7 +345,7 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem 25ff71a9")
         mt0, mf0 = run_synthesis("25ff71a9", "nbccg")
         self.assertCountEqual(['moveNode(Dir.DOWN)'], mt0)
-        # self.assertCountEqual(['FilterByColor(FColor.least)'], mf0)
+        #self.assertCountEqual(['FilterByColor(FColor.least)'], mf0)
 
         print("Solving problem 1e0a9b12")
         mt0, mf0 = run_synthesis("1e0a9b12", "nbccg")
@@ -497,6 +466,64 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(
             ['hollowRectangle(Color.red)', 'hollowRectangle(Color.blue)', 'hollowRectangle(Color.black)'], at11)  # todo: post-process
 
+        print("==================================================VARIABLE PROBLEMS==================================================")
+        print("Solving problem ddf7fa4f")
+        #vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
+        #self.assertCountEqual("updateColor(Var.color)")
 
+        print("====================================PROBLEMS WITH UNIMPLEMENTED FILTERS===============================================")
+        print("Solving problem d23f8c26")
+        st1, sf1 = run_synthesis("d23f8c26", "nbccg")
+        self.assertCountEqual(
+            ['updateColor(Color.black)', 'NoOp'], st1)
+        # self.assertCountEqual(
+        # ['#todo: FilterByColumn Positions'], sf1)
+
+        print("Solving problem 868de0fa")
+        st2, sf2 = run_synthesis("868de0fa", "nbccg")
+        self.assertCountEqual(
+            ['NoOp', 'fillRectangle(Color.red, Overlap.TRUE)',
+            'fillRectangle(Color.orange, Overlap.TRUE)'], st2)  # todo: post-process
+        # self.assertCountEqual(
+        # ['#todo: FilterByHeight of object'], sf2)
+
+        print("Solving problem 44d8ac46")
+        st3, sf3 = run_synthesis("44d8ac46", "nbccg")
+        self.assertCountEqual(
+            ['NoOp', 'fillRectangle(Color.red, Overlap.TRUE)'], st3)
+        # self.assertCountEqual(
+        # ['#todo: FilterByShape(IsSquare)'], sf3)
+
+        print("Solving problem 63613498")
+        st4, sf4 = run_synthesis("63613498", "nbccg")
+        self.assertCountEqual(
+            ['NoOp', 'updateColor(Color.grey)'], st4)
+        # self.assertCountEqual(
+        # ['#todo: FilterByShape or FilterByPosition'], sf4)
+
+        print("Solving problem 941d9a10")
+        st5, sf5 = run_synthesis("941d9a10", "ccg")
+        self.assertCountEqual(['updateColor(Color.green)', 'updateColor(Color.red)', 'NoOp', 'updateColor(Color.blue)'], st5)
+        #self.assertCountEqual(
+        #['#todo: FilterByShape or FilterByPosition'], sf5))
+
+        print("Solving problem 272f95fa")
+        st6, sf6 = run_synthesis("272f95fa", "ccg")
+        self.assertCountEqual(
+            ['updateColor(Color.fuchsia)', 'updateColor(Color.blue)', 'updateColor(Color.red)', 'updateColor(Color.green)', 'NoOp', 'updateColor(Color.yellow)'], st6)
+        #self.assertCountEqual(
+        #['#todo: FilterByShape or FilterByPosition'], sf6))
+
+        print("Solving problem b2862040")
+        st7, sf7 = run_synthesis("b2862040", "nbccg")
+        self.assertCountEqual(['updateColor(Color.cyan)', 'NoOp'], st7)
+        #self.assertCountEqual(
+        #['#todo: containment'], sf7)
+
+        print("Solving problem 9edfc990")
+        st8, sf8 = run_synthesis("9edfc990", "ccg")
+        self.assertCountEqual(['updateColor(Color.blue)', 'NoOp'], st8)
+        #self.assertCountEqual(
+        #['#todo: containment'], sf8)
 if __name__ == "__main__":
     unittest.main()
