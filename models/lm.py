@@ -9,7 +9,7 @@ sys.path.append(PROJECT_ROOT)
 
 import defs
 import prompt
-import dsl.parser as parser
+import dsl.v0_3.parser as parser
 
 class LanguageModel:
     def __init__(self, model="gpt-4"):

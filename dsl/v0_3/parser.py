@@ -9,10 +9,6 @@ import defs
 
 class Parser:
     def __init__(self, grammar_file):
-        if grammar_file == None:
-            # grammar_file = os.path.join(PROJECT_ROOT, "dsl/dsl.lark")
-            grammar_file = "dsl/dsl.lark"
-        
         with open(grammar_file, "r") as f:
             self.grammar = f.read()
         self.parser = Lark(self.grammar, start="program", ambiguity="explicit")
@@ -27,16 +23,22 @@ class Parser:
 if __name__ == '__main__':
     grammar_file = "dsl/v0_3/dsl.lark"
     parser = Parser(grammar_file)
-    ref_dir = "dsl/v0_3/reference"
-    for filename in os.listdir(ref_dir):
-        if filename.endswith(".dsl"):
-            with open(os.path.join(ref_dir, filename), "r") as f:
-                lib = "(" + f.read() + ")"
-            print(f"Testing {filename}...")
-            try:
-                t = parser.lib_parse_tree(lib)
-                # print(t.pretty())
-            except Exception as e:
-                print(f"Error parsing {filename}: {e}")
-                exit(1)
+    test_dir = "dsl/v0_3/reference"
+    test_dirs = [
+        "dsl/v0_3/reference",
+        "dsl/v0_3/examples",
+    ]
+    for test_dir in test_dirs:
+        print(f"Testing directory {test_dir}...")
+        for filename in os.listdir(test_dir):
+            if filename.endswith(".dsl"):
+                with open(os.path.join(test_dir, filename), "r") as f:
+                    lib = "(" + f.read() + ")"
+                print(f"Testing {filename}...")
+                try:
+                    t = parser.lib_parse_tree(lib)
+                    # print(t.pretty())
+                except Exception as e:
+                    print(f"Error parsing {filename}: {e}")
+                    exit(1)
     print("All tests passed!")

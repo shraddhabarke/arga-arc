@@ -1,11 +1,12 @@
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-# sys.path.append("..")
 import defs
 import data
+
+def read_file(filename):
+    with open(filename, "r") as f:
+        return f.read()
 
 def build_prompt(task_id):
     task = data.get_task(task_id)
@@ -32,11 +33,21 @@ def build_prompt(task_id):
 
     return "\n\n".join(prompt)
 
+def build_prompt_v0_3(task_id):
+    template_dict = {
+        "preamble": "models/templates/preamble.txt",
+    }
+    prompt = []
+    prompt.append(read_file(template_dict["preamble"]))
+
+    return "\n\n".join(prompt)
+
 if __name__ == '__main__':
     args = sys.argv[1:]
     if len(args) != 1:
         print("Usage: python prompt.py <task_id>")
         exit(1)
     task_id = args[0]
-    prompt = build_prompt(task_id)
+    # prompt = build_prompt(task_id)
+    prompt = build_prompt_v0_3(task_id)
     print(prompt)
