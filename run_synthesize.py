@@ -166,16 +166,15 @@ def run_synthesis(taskNumber, abstraction):
 
             print("before-minimal:,", minimal_transforms)
             minimal_transforms = list(minimal_transforms)
-            #if "Var" in minimal_transforms[0]:
-                #break
-            return minimal_transforms, []
+            if "Var" in minimal_transforms[0]:
+                break
+            #return minimal_transforms, []
         # todo: filter synthesis over pairs
         # todo: filter synthesis over subsets
 
 #{"4093f84a": "nbccg"} -->> make the enumerator go on forever!
-#{"ded97339": "nbccg"} -->> extendNode(Var.direction)
 
-evals = {}
+evals = {"ded97339": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -187,7 +186,7 @@ for task, abstraction in evals.items():
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
 class TestEvaluation(unittest.TestCase):
-    def test_all_problems(self):
+    def all_problems(self):
         print("==================================================VARIABLE PROBLEMS==================================================")
         print("Solving problem 6855a6e4")
         #vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
@@ -220,6 +219,10 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem 05f2a901")
         #vt7, vf7 = run_synthesis("05f2a901", "nbccg")
         #self.assertCountEqual(['moveNodeMax(Var.direction)'], vt7)
+
+        print("Solving problem ded97339")
+        #vt8, vf8 = run_synthesis("ded97339", "nbccg")
+        #self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt8)
         print("==================================================COLORING PROBLEMS==================================================")
         print("Solving problem d511f180")
         t0, f0 = run_synthesis("d511f180", "nbccg")
