@@ -833,25 +833,34 @@ class ARCGraph:
                 for sub_node_2 in self.graph.nodes[node2]["nodes"]:
                     if sub_node_1[0] == sub_node_2[0]:
                         if sub_node_1[1] < sub_node_2[1]:
+                            print("single-pixel: Dir.RIGHT")
                             return Dir.RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
+                            print("single-pixel: Dir.LEFT")
                             return Dir.LEFT
                     elif sub_node_1[1] == sub_node_2[1]:
                         if sub_node_1[0] < sub_node_2[0]:
+                            print("single-pixel: Dir.DOWN")
                             return Dir.DOWN
                         elif sub_node_1[0] > sub_node_2[0]:
+                            print("single-pixel: Dir.UP")
                             return Dir.UP
                     elif sub_node_1[0] < sub_node_2[0]:  # DOWN
                         if sub_node_1[1] < sub_node_2[1]:
+                            print("single-pixel: Dir.DOWN_RIGHT")
                             return Dir.DOWN_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
+                            print("single-pixel: Dir.DOWN_LEFT")
                             return Dir.DOWN_LEFT
                     elif sub_node_1[0] > sub_node_2[0]:  # UP
                         if sub_node_1[1] < sub_node_2[1]:
+                            print("single-pixel: Dir.UP_RIGHT")
                             return Dir.UP_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
+                            print("single-pixel: Dir.UP_LEFT")
                             return Dir.UP_LEFT
-        else:
+        elif len(self.graph.nodes[node1]["nodes"]) == 1 or len(self.graph.nodes[node2]["nodes"]) == 1:
+            # at least one of the objects is single-pixeled
             min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(
                 node[0] for node in self.graph.nodes[node1]["nodes"])
             min_x_node1, max_x_node1 = min(node[1] for node in self.graph.nodes[node1]["nodes"]), max(
@@ -872,26 +881,40 @@ class ARCGraph:
                     return Dir.LEFT
                 elif max_x_node1 < max_x_node2:
                     return Dir.RIGHT
-        return None
-        """
-        elif max_x_node2 < min_x_node1 and max_y_node1 < min_y_node2 and\
+            elif max_x_node2 < min_x_node1 and max_y_node1 < min_y_node2 and \
                 abs(max_x_node2 - min_x_node1) == abs(min_y_node2 - max_y_node1):
-            return Dir.DOWN_LEFT
-
-        elif max_x_node1 < min_x_node2 and max_y_node1 < min_y_node2 and \
+                return Dir.DOWN_LEFT
+            elif max_x_node1 < min_x_node2 and max_y_node1 < min_y_node2 and \
                 abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
-            return Dir.DOWN_RIGHT
-
-        elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
+                return Dir.DOWN_RIGHT
+            elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
                 abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
-            return Dir.UP_RIGHT
-
-        elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
+                return Dir.UP_RIGHT
+            elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
                 abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
-            return Dir.UP_LEFT
+                return Dir.UP_LEFT
         else:
-            return None
-        """
+            #node: the case where both objects are not single-pixeled -- diagonal not supported
+            node1_x, node2_x = [node[0] for node in self.graph.nodes[node1]["nodes"]], [node[0] for node in self.graph.nodes[node2]["nodes"]]
+            node1_y, node2_y = [node[1] for node in self.graph.nodes[node1]["nodes"]], [node[1] for node in self.graph.nodes[node2]["nodes"]]
+            common_y_coords = set(node1_y).intersection(set(node2_y))
+            common_x_coords = set(node1_x).intersection(set(node2_x))
+            combined_nodes = list(self.graph.nodes[node1]["nodes"]) + list(self.graph.nodes[node2]["nodes"])
+            common_y = [tup for tup in combined_nodes if tup[1] in common_y_coords] # UP or DOWN
+            common_x = [tup for tup in combined_nodes if tup[0] in common_x_coords] # LEFT or RIGHT
+            if common_y:
+                max_y = max(common_y)
+                if max_y in self.graph.nodes[node1]["nodes"]:
+                    return Dir.UP
+                else:
+                    return Dir.DOWN
+            if common_x:
+                max_x = max(common_x)
+                if max_x in self.graph.nodes[node1]["nodes"]:
+                    return Dir.LEFT
+                else:
+                    return Dir.RIGHT
+        return None
 
     def get_mirror_axis(self, node1, node2):
         """

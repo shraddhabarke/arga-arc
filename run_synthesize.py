@@ -24,7 +24,6 @@ tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, I
 f_vocabMakers = [FColor, Degree, Size, Relation, FilterByColor, FilterBySize, FilterByDegree, FilterByNeighborColor, FilterByNeighborSize,
                  FilterByNeighborDegree, Not, And, Or]
 
-
 def run_synthesis(taskNumber, abstraction):
     store = {}
     task = Task("ARC/data/training/" + taskNumber + ".json")
@@ -128,44 +127,55 @@ def run_synthesis(taskNumber, abstraction):
                                 for task_idx, aggregated_correct_nodes in enumerate(aggregated_correct_nodes_per_task)]
 
         if all(full_coverage_per_task):
+            print("New Coverage being Considered")
             minimal_transforms = set()
+            # Calculate total coverage size for each transform across all tasks
+            total_coverage_size_per_transform = {}
+            for transform, coverage_lists in correct_nodes_per_transform.items():
+                total_size = sum(len(set(coverage)) for coverage in coverage_lists if coverage)
+                total_coverage_size_per_transform[transform] = total_size
+
+            sorted_transforms_by_total_coverage = sorted(total_coverage_size_per_transform.items(), key=lambda x: x[1], reverse=True)
             for task_index in range(len(actual_values)):
                 uncovered_nodes = set(dict(expected_graphs[task_index]).keys())
+
+                # Greedy selection for this task, considering transforms in order of their overall coverage
                 task_specific_transforms = {}
-                for transform, coverage_lists in correct_nodes_per_transform.items():
-                    print("transform:", transform, coverage_lists)
-                    # check if there's coverage for this task
+                for transform, _ in sorted_transforms_by_total_coverage:
+                    coverage_lists = correct_nodes_per_transform[transform]
                     if coverage_lists[task_index]:
-                        task_specific_transforms[transform] = set(
-                            coverage_lists[task_index])
+                        task_specific_transforms[transform] = set(coverage_lists[task_index])
 
                 # greedy selection for this task
                 while uncovered_nodes:
                     best_transform = None
                     best_coverage = set()
-                    for transform, coverage in task_specific_transforms.items():
-                        current_coverage = coverage & uncovered_nodes
-                        if len(current_coverage) > len(best_coverage):
-                            best_transform = transform
-                            best_coverage = current_coverage
+                    for transform, _ in sorted_transforms_by_total_coverage:
+                        if transform in total_coverage_size_per_transform and correct_nodes_per_transform[transform][task_index]:
+                            current_coverage = set(correct_nodes_per_transform[transform][task_index]) & uncovered_nodes
+                            if len(current_coverage) > len(best_coverage):
+                                best_transform = transform
+                                best_coverage = current_coverage
 
                     if not best_transform:
-                        break  # all nodes covered or no suitable transform found
+                        break  # All nodes covered or no suitable transform found
 
-                    # add the best transform to the minimal set
+                    # Add the best transform to the minimal set
                     minimal_transforms.add(best_transform)
-                    uncovered_nodes -= best_coverage  # update uncovered nodes
-            print("Minimal Transforms:", minimal_transforms)
-            #return minimal_transforms, []
+                    uncovered_nodes -= best_coverage  # Update uncovered nodes
 
-            #todo: rm this if minimal_transforms:
-            if list(minimal_transforms)[0] == "updateColor(Var.color)":
-                break
+            print("before-minimal:,", minimal_transforms)
+            minimal_transforms = list(minimal_transforms)
+            #if "Var" in minimal_transforms[0]:
+                #break
+            return minimal_transforms, []
         # todo: filter synthesis over pairs
         # todo: filter synthesis over subsets
 
-# {"ded97339": "nbccg"} #{"4093f84a": "nbccg"} #{"ae3edfdc": "nbccg"} #"a48eeaf7", "nbccg"
-evals = {"ddf7fa4f": "nbccg"}
+#{"4093f84a": "nbccg"} -->> make the enumerator go on forever!
+#{"ded97339": "nbccg"} -->> extendNode(Var.direction)
+
+evals = {}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -177,7 +187,39 @@ for task, abstraction in evals.items():
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
 class TestEvaluation(unittest.TestCase):
-    def all_problems(self):
+    def test_all_problems(self):
+        print("==================================================VARIABLE PROBLEMS==================================================")
+        print("Solving problem 6855a6e4")
+        #vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
+        #self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
+
+        print("Solving problem ddf7fa4f")
+        #vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
+        #self.assertCountEqual(['updateColor(Var.color)'], vt1)
+
+        print("Solving problem f8a8fe49")
+        #vt2, vf2 = run_synthesis("f8a8fe49", "nbccg")
+        #self.assertCountEqual(['mirror(Var.mirror_axis)'], vt2)
+
+        print("Solving problem dc433765")
+        #vt3, vf3 = run_synthesis("dc433765", "nbccg")
+        #self.assertCountEqual(['moveNode(Var.direction)'], vt3)
+
+        print("Solving problem ae3edfdc")
+        #vt4, vf4 = run_synthesis("ae3edfdc", "nbccg")
+        #self.assertCountEqual(['moveNodeMax(Var.direction)'], vt4)
+
+        print("Solving problem d43fd935")
+        #vt5, vf5 = run_synthesis("d43fd935", "nbccg")
+        #self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt5)
+
+        print("Solving problem a48eeaf7")
+        #vt6, vf6 = run_synthesis("a48eeaf7", "nbccg")
+        #self.assertCountEqual(['moveNodeMax(Var.direction)'], vt6)
+
+        print("Solving problem 05f2a901")
+        #vt7, vf7 = run_synthesis("05f2a901", "nbccg")
+        #self.assertCountEqual(['moveNodeMax(Var.direction)'], vt7)
         print("==================================================COLORING PROBLEMS==================================================")
         print("Solving problem d511f180")
         t0, f0 = run_synthesis("d511f180", "nbccg")
@@ -465,11 +507,6 @@ class TestEvaluation(unittest.TestCase):
         at11, af11 = run_synthesis("694f12f3", "nbccg")
         self.assertCountEqual(
             ['hollowRectangle(Color.red)', 'hollowRectangle(Color.blue)', 'hollowRectangle(Color.black)'], at11)  # todo: post-process
-
-        print("==================================================VARIABLE PROBLEMS==================================================")
-        print("Solving problem ddf7fa4f")
-        #vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
-        #self.assertCountEqual("updateColor(Var.color)")
 
         print("====================================PROBLEMS WITH UNIMPLEMENTED FILTERS===============================================")
         print("Solving problem d23f8c26")

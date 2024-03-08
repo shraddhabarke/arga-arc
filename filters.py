@@ -4,9 +4,10 @@ from typing import Union, List, Dict
 
 class FilterTypes(Enum):
     FILTERS = "Filters"
-    # FILTER_OPS = "Filter_Ops"
+    #FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
     SIZE = "Size"
+    HEIGHT = "Height"
     DEGREE = "Degree"
     RELATION = "Relation"
 
