@@ -2,47 +2,50 @@ library: "(" program* ")"
 
 // Rules are executed one after another, in the order they appear.
 // There could be no rules, in which case the program does nothing.
-start: do_operation+ 
-do_operation: "(" "do" rule_list+ ")"
+program: "(" "do" rule* ")"
 
 // A rule first selects the subset of objects for which `filter` is true,
-// then applies the transformations in `transforms`, one after another,
+// then applies the transformations in `transform_list`, one after another,
 // to the selected objects.
-rule_list: "(" "rule" rule+ ")"
-rule: filter_op transforms
+rule: "(" "rule" params filter transform_list ")"
+
+params: "(" "with" "this" VAR? ")"
 
 // A filter is a predicate over the objects in the grid.
 // It can be a primitive filter operation, or a boolean expression using the `and`, `or`, and `not` connectives
 
-filter_op:  "(" FL_COLOR COLOR ")"               // select all objects with the given color
-          | "(" FL_SIZE SIZE ")"                 // select the objects of a particular size
-          | "(" FL_DEGREE DEGREE ")"             // select all objects that have a given number of neighbors i.e degree
-          | "(" FL_NEIGHBOR_COLOR COLOR ")"      // select all objects that have a neighbor of a given color
-          | "(" FL_NEIGHBOR_SIZE SIZE ")"         // select all objects that have a neighbor of a given size
-          | "(" FL_NEIGHBOR_DEGREE DEGREE ")"    // select all objects that have a neighbor of the given degree.
-          | "(" OP_AND filter_op filter_op ")"   
-          | "(" OP_OR filter_op filter_op ")"
-          | "(" OP_NOT filter_op ")"
+filter: "(" "filter" filter_expr ")"
+
+filter_expr: "(" FL_IS_COLOR VAR COLOR ")"               // select all objects with the given color
+           | "(" FL_IS_SIZE VAR SIZE ")"                 // select the objects of a particular size
+           | "(" FL_IS_DEGREE VAR DEGREE ")"             // select all objects that have a given number of neighbors i.e degree
+           | "(" FL_IS_NEIGHBOR VAR VAR ")"
+           | "(" OP_AND filter_expr filter_expr+ ")"   
+           | "(" OP_OR filter_expr filter_expr+ ")"
+           | "(" OP_NOT filter_expr ")"
 
 // Transforms are applied one after another, in the order they appear.
-transforms: "(" "apply" transform+ ")"
+transform_list: "(" "apply" transform+ ")"
 
 // A single transform is applied to all the selected objects simultaneously,
 // so we can think of the transformation as applying to a single object.
            
 transform: "(" TR_UPDATE_COLOR COLOR ")"                       // change the object color to the given color
+         | "(" TR_UPDATE_COLOR VAR ")"                       
          | "(" TR_MOVE_NODE DIRECTION ")"                      // move the object in the given direction
-         | "(" TR_EXTEND_NODE DIRECTION tr_extend_node_params*")" // extend (move while leaving a trail) the object in the given direction
+         | "(" TR_MOVE_NODE VAR ")"                      
+         | "(" TR_EXTEND_NODE DIRECTION OVERLAP ")" // extend (move while leaving a trail) the object in the given direction
+         | "(" TR_EXTEND_NODE VAR OVERLAP ")" 
          // if overlap is false, then the object is extended until it hits another object, otherwise it is extended until the edge of the grid.
          | "(" TR_MOVE_NODE_MAX DIRECTION ")"                  // move the object in the given direction until it hits another object
+         | "(" TR_MOVE_NODE_MAX VAR ")"                  // move the object in the given direction until it hits another object
          | "(" TR_ROTATE_NODE ROT_ANGLE ")"                    // rotate the object by the given angle
          | "(" TR_ADD_BORDER COLOR ")"                         // color the exterior pixels of the object with the given color
          | "(" TR_FILL_RECTANGLE COLOR OVERLAP ")"             // color the interior of a hollow rectangle with the given color
          | "(" TR_HOLLOW_RECTANGLE COLOR ")"                   // color the interior of a solid rectangle with the given color
-         | "(" TR_MIRROR "(" mirror_params ")" ")"
+         | "(" TR_MIRROR VAR ")"
          | "(" TR_FLIP SYMMETRY_AXIS ")"
-                       
-tr_extend_node_params: OVERLAP
+         | "(" TR_INSERT VAR ")"
 
 SIZE: "MIN" | "MAX" | "ODD" | /[0-9]+/
 DEGREE: "MIN" | "MAX" | "ODD" | /[0-9]+/
@@ -64,10 +67,6 @@ ROT_ANGLE: "0"
          | "180" 
          | "270"
 
-mirror_params: INT INT            // reflection over point (x, y)
-             | INT KW_NULL        // reflection over x = c
-             | KW_NULL INT        // reflection over y = c
-
 COLOR: "O" // black
       | "B" // blue
       | "R" // red
@@ -79,20 +78,18 @@ COLOR: "O" // black
       | "C" // cyan  
       | "W" // brown
 
-OVERLAP: "TRUE" | "FALSE"
+OVERLAP: BOOL
 
-KW_NULL: "null"
+BOOL: "true" | "false"
 
 OP_AND: "and"
 OP_OR: "or"
 OP_NOT: "not"
 
-FL_COLOR: "filter_by_color"
-FL_SIZE: "filter_by_size"
-FL_DEGREE: "filter_by_degree"
-FL_NEIGHBOR_SIZE: "filter_by_neighbor_size"
-FL_NEIGHBOR_COLOR: "filter_by_neighbor_color"
-FL_NEIGHBOR_DEGREE: "filter_by_neighbor_degree"
+FL_IS_COLOR: "is_color"
+FL_IS_SIZE: "is_size"
+FL_IS_DEGREE: "is_degree"
+FL_IS_NEIGHBOR: "is_neighbor"
 
 TR_UPDATE_COLOR: "update_color"
 TR_MOVE_NODE: "move_node"
@@ -105,6 +102,8 @@ TR_HOLLOW_RECTANGLE: "hollow_rectangle"
 TR_MIRROR: "mirror"
 TR_FLIP: "flip"
 TR_INSERT: "insert"
+
+VAR: LCASE_LETTER+
 
 COMMENT: /\s*/ ";;" /[^\n]/*
 

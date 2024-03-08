@@ -3,7 +3,7 @@ import sys
 
 from lark import Lark
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+# sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 import defs
 
@@ -25,9 +25,9 @@ class Parser:
         return self.lib_parser.parse(program)
 
 if __name__ == '__main__':
-    parser = Parser(None)
-    # ref_dir = os.path.join(defs.PROJECT_ROOT, "dsl/tests")
-    ref_dir = "dsl/tests"
+    grammar_file = "dsl/v0_3/dsl.lark"
+    parser = Parser(grammar_file)
+    ref_dir = "dsl/v0_3/reference"
     for filename in os.listdir(ref_dir):
         if filename.endswith(".dsl"):
             with open(os.path.join(ref_dir, filename), "r") as f:
