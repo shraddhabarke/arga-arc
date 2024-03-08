@@ -3,16 +3,19 @@ from ARCGraph import *
 from task import *
 
 class Image:
-    abstractions = ["na", "nbccg", "ccgbr", "ccgbr2", "ccg", "mcccg", "lrg", "nbvcg"]
-    abstraction_ops = {"nbccg": "get_non_black_components_graph",
-                       "ccgbr": "get_connected_components_graph_background_removed",
-                       "ccgbr2": "get_connected_components_graph_background_removed_2",
-                       "ccg": "get_connected_components_graph",
-                       "mcccg": "get_multicolor_connected_components_graph",
-                       "na": "get_no_abstraction_graph",
-                       "nbvcg": "get_non_background_vertical_connected_components_graph",
-                       "nbhcg": "get_non_background_horizontal_connected_components_graph",
-                       "lrg": "get_largest_rectangle_graph"}
+    abstractions = ["na", "nbccg", "ccgbr", "ccgbr2", "ccg", "mcccg", "lrg", "nbvcg", "nbccg_m"]
+    abstraction_ops = {
+        "nbccg": "get_non_black_components_graph",
+        "ccgbr": "get_connected_components_graph_background_removed",
+        "ccgbr2": "get_connected_components_graph_background_removed_2",
+        "ccg": "get_connected_components_graph",
+        "mcccg": "get_multicolor_connected_components_graph",
+        "na": "get_no_abstraction_graph",
+        "nbvcg": "get_non_background_vertical_connected_components_graph",
+        "nbhcg": "get_non_background_horizontal_connected_components_graph",
+        "lrg": "get_largest_rectangle_graph",
+        "nbccg_m": "get_non_black_components_graph_moore",
+    }
     multicolor_abstractions = ["mcccg", "na"]
 
     def __init__(self, task, grid=None, width=None, height=None, graph=None, name="image"):
@@ -514,6 +517,61 @@ class Image:
         no_abs_graph.add_node((0, 0), nodes=sub_nodes, color=sub_nodes_color, size=len(sub_nodes))
 
         return ARCGraph(no_abs_graph, self.name, self, "na")
+
+    def make_moore_neighborhood_graph(self, graph=None):
+        """
+        turns a graph in the nx.grid_2d_graph format into a moore neighborhood graph
+        by adding diagonal edges between nodes
+        """
+        if not graph:
+            graph = self.graph
+
+        moore_neighborhood_graph = graph.copy()
+        for node in graph.nodes:
+            r, c = node
+            for dr, dc in [(-1, -1), (-1, 0), (-1, 1), (0, -1)]:
+                if (r + dr, c + dc) in graph.nodes:
+                    moore_neighborhood_graph.add_edge(node, (r + dr, c + dc))
+        return moore_neighborhood_graph
+
+    def get_non_black_components_graph_moore(self, graph=None):
+        if not graph:
+            graph = self.graph
+        
+        graph = self.make_moore_neighborhood_graph(graph)
+
+        return self.get_non_black_components_graph(graph)
+    
+    def get_all_same_color_graph(self, graph=None):
+        """
+        return an abstracted graph where a node is defined as all the pixels of the same color
+        """
+        if not graph:
+            graph = self.graph
+        all_same_color_graph = nx.Graph()
+
+        # in this case we do not remove the background color
+        for color in range(10):
+            color_nodes = (node for node, data in graph.nodes(data=True) if data.get("color") == color)
+            # all the nodes of the same color become a single node
+            all_same_color_graph.add_node(color, nodes=list(color_nodes), color=color, size=len(list(color_nodes)))
+        
+
+    def make_visibility_graph(self, graph=None):
+        """
+        given a graph of objects in the grid, adds edges between nodes that are visible to each other
+        the original nodes are removed
+        """
+        if not graph:
+            graph = self.graph
+        # create a new graph with the same nodes, but no edges
+        visibility_graph = nx.Graph()
+        for node in graph.nodes:
+            visibility_graph.add_node(node)
+        # add edges between nodes that are visible to each other
+        
+
+
 
     # undo abstraction
     def undo_abstraction(self, arc_graph):
