@@ -4,10 +4,11 @@ from typing import Union, List, Dict
 
 class FilterTypes(Enum):
     FILTERS = "Filters"
-    #FILTER_OPS = "Filter_Ops"
+    # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
     SIZE = "Size"
     HEIGHT = "Height"
+    WIDTH = "Width"
     DEGREE = "Degree"
     RELATION = "Relation"
 
@@ -47,7 +48,8 @@ class Relation(FilterASTNode, Enum):
         if self.name == "neighbor":
             self.values = [
                 {
-                    node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
+                    node: [
+                        neighbor for neighbor in input_graph.graph.neighbors(node)]
                     for node in input_graph.graph.nodes()
                 }
                 for input_graph in task.input_abstracted_graphs_original[
@@ -91,6 +93,66 @@ class DegreeValue:
         return cls
 
 
+class HeightValue:
+    arity = 0
+
+    def __init__(self, enum_value):
+        self.value = enum_value.value
+        self.nodeType = FilterTypes.HEIGHT
+        self.code = f"HEIGHT.{enum_value.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    def execute(cls, task, children=None):
+        return cls
+
+
+class WidthValue:
+    arity = 0
+
+    def __init__(self, enum_value):
+        self.value = enum_value.value
+        self.nodeType = FilterTypes.WIDTH
+        self.code = f"WIDTH.{enum_value.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    def execute(cls, task, children=None):
+        return cls
+
+
+class Height(FilterASTNode):
+    _all_values = set()
+    arity = 0
+    nodeType = FilterTypes.HEIGHT
+
+    def __new__(cls, enum_value):
+        instance = HeightValue(enum_value)
+        cls._all_values.add(instance)
+        return instance
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls._enum_members)
+
+
+class Width(FilterASTNode):
+    _all_values = set()
+    arity = 0
+    nodeType = FilterTypes.WIDTH
+
+    def __new__(cls, enum_value):
+        instance = WidthValue(enum_value)
+        cls._all_values.add(instance)
+        return instance
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls._enum_members)
+
+
 class Size(FilterASTNode):
     _all_values = set()
     arity = 0
@@ -125,15 +187,31 @@ def setup_size_and_degree_based_on_task(task):
     task_sizes = [w for w in task.object_sizes[task.abstraction]]
     _size_additional = {f"{item}": int(item) for item in task_sizes}
     SizeEnum = Enum(
-        "SizeEnum", {"MIN": "MIN", "MAX": "MAX", "ODD": "ODD", **_size_additional}
+        "SizeEnum", {"MIN": "MIN", "MAX": "MAX",
+                     "ODD": "ODD", **_size_additional}
     )
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
     _degree_additional = {f"{item}": int(item) for item in task_degrees}
     DegreeEnum = Enum(
-        "DegreeEnum", {"MIN": "MIN", "MAX": "MAX", "ODD": "ODD", **_degree_additional}
+        "DegreeEnum", {"MIN": "MIN", "MAX": "MAX",
+                       "ODD": "ODD", **_degree_additional}
     )
-    _degrees, _sizes = [], []
+    _degrees, _sizes, _heights, _widths = [], [], [], []
+
+    task_heights = [d for d in task.object_heights[task.abstraction]]
+    _height_additional = {f"{item}": int(item) for item in task_heights}
+    HeightEnum = Enum(
+        "HeightEnum", {"MIN": "MIN", "MAX": "MAX",
+                       "ODD": "ODD", **_height_additional}
+    )
+
+    task_widths = [d for d in task.object_widths[task.abstraction]]
+    _width_additional = {f"{item}": int(item) for item in task_widths}
+    WidthEnum = Enum(
+        "HeightEnum", {"MIN": "MIN", "MAX": "MAX",
+                       "ODD": "ODD", **_width_additional}
+    )
 
     for name, member in SizeEnum.__members__.items():
         setattr(Size, name, SizeValue(member))
@@ -141,9 +219,17 @@ def setup_size_and_degree_based_on_task(task):
     for name, member in DegreeEnum.__members__.items():
         setattr(Degree, name, Degree(member))
         _degrees.append(Degree(member))
+    for name, member in HeightEnum.__members__.items():
+        setattr(Height, name, Height(member))
+        _heights.append(Height(member))
+    for name, member in WidthEnum.__members__.items():
+        setattr(Width, name, Width(member))
+        _widths.append(Width(member))
 
     Size._enum_members = _sizes
     Degree._enum_members = _degrees
+    Width._enum_members = _widths
+    Height._enum_members = _heights
 
 
 class FColor(FilterASTNode, Enum):
@@ -217,14 +303,15 @@ class And(FilterASTNode):
         values1 = children[0].values
         values2 = children[1].values
         intersected_values = [
-            list(set(v1).intersection(set(v2))) if set(v1).intersection(set(v2)) else []
+            list(set(v1).intersection(set(v2))) if set(
+                v1).intersection(set(v2)) else []
             for v1, v2 in zip(values1, values2)
         ]
 
         if task.current_spec:
             intersected_values = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
-            for key in dict_a if key in dict_b}
-            for dict_a, dict_b in zip(values1, values2)]
+                                   for key in dict_a if key in dict_b}
+                                  for dict_a, dict_b in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
         new_instance.values = intersected_values
         return new_instance
@@ -252,8 +339,8 @@ class Or(FilterASTNode):
         ]
         if task.current_spec:
             unioned_values = [{key: list(set(dict_a[key]).union(set(dict_b[key])))
-            for key in dict_a if key in dict_b}
-            for dict_a, dict_b in zip(values1, values2)]
+                               for key in dict_a if key in dict_b}
+                              for dict_a, dict_b in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
         new_instance.values = unioned_values
 
@@ -330,6 +417,48 @@ class FilterBySize(Filters):
         self.size = self.default_size + size.size
         self.children = [size]
         self.childTypes = [FilterTypes.SIZE]
+
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0])
+        values = task.filter_values(instance)
+        instance.values = values
+        return instance
+
+
+class FilterByHeight(Filters):
+    arity = 1
+    childTypes = [FilterTypes.HEIGHT]
+    default_size = 1
+
+    def __init__(self, height: Height):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.code = f"FilterByHeight({height.code})"
+        self.size = self.default_size + height.size
+        self.children = [height]
+        self.childTypes = [FilterTypes.HEIGHT]
+
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0])
+        values = task.filter_values(instance)
+        instance.values = values
+        return instance
+
+
+class FilterByWidth(Filters):
+    arity = 1
+    childTypes = [FilterTypes.WIDTH]
+    default_size = 1
+
+    def __init__(self, width: Width):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.code = f"FilterByWidth({width.code})"
+        self.size = self.default_size + width.size
+        self.children = [width]
+        self.childTypes = [FilterTypes.WIDTH]
 
     @classmethod
     def execute(cls, task, children):

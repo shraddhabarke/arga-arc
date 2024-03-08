@@ -645,16 +645,23 @@ class ARCGraph:
         else:
             return self.graph.nodes[node]["color"] == color_map[color]
 
-    """
     def FilterByHeight(self, node, height: Height):
-        if size == "MAX":
-            size = self.get_attribute_max("height")
-        elif size == "MIN":
-            size = self.get_attribute_min("height")
-        elif size == "ODD":
+        if height == "MAX":
+            height = self.get_attribute_max("height")
+        elif height == "MIN":
+            height = self.get_attribute_min("height")
+        elif height == "ODD":
             return self.graph.nodes[node]["height"] % 2 != 0
-        return self.graph.nodes[node]["height"] == size
-    """
+        return self.graph.nodes[node]["height"] == height
+
+    def FilterByWidth(self, node, width: Width):
+        if width == "MAX":
+            width = self.get_attribute_max("width")
+        elif width == "MIN":
+            width = self.get_attribute_min("width")
+        elif width == "ODD":
+            return self.graph.nodes[node]["width"] % 2 != 0
+        return self.graph.nodes[node]["width"] == width
 
     def FilterBySize(self, node, size: Size):
         """
@@ -882,26 +889,31 @@ class ARCGraph:
                 elif max_x_node1 < max_x_node2:
                     return Dir.RIGHT
             elif max_x_node2 < min_x_node1 and max_y_node1 < min_y_node2 and \
-                abs(max_x_node2 - min_x_node1) == abs(min_y_node2 - max_y_node1):
+                    abs(max_x_node2 - min_x_node1) == abs(min_y_node2 - max_y_node1):
                 return Dir.DOWN_LEFT
             elif max_x_node1 < min_x_node2 and max_y_node1 < min_y_node2 and \
-                abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
+                    abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
                 return Dir.DOWN_RIGHT
             elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
-                abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
+                    abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
                 return Dir.UP_RIGHT
             elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
-                abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
+                    abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
                 return Dir.UP_LEFT
         else:
-            #node: the case where both objects are not single-pixeled -- diagonal not supported
-            node1_x, node2_x = [node[0] for node in self.graph.nodes[node1]["nodes"]], [node[0] for node in self.graph.nodes[node2]["nodes"]]
-            node1_y, node2_y = [node[1] for node in self.graph.nodes[node1]["nodes"]], [node[1] for node in self.graph.nodes[node2]["nodes"]]
+            # node: the case where both objects are not single-pixeled -- diagonal not supported
+            node1_x, node2_x = [node[0] for node in self.graph.nodes[node1]["nodes"]], [
+                node[0] for node in self.graph.nodes[node2]["nodes"]]
+            node1_y, node2_y = [node[1] for node in self.graph.nodes[node1]["nodes"]], [
+                node[1] for node in self.graph.nodes[node2]["nodes"]]
             common_y_coords = set(node1_y).intersection(set(node2_y))
             common_x_coords = set(node1_x).intersection(set(node2_x))
-            combined_nodes = list(self.graph.nodes[node1]["nodes"]) + list(self.graph.nodes[node2]["nodes"])
-            common_y = [tup for tup in combined_nodes if tup[1] in common_y_coords] # UP or DOWN
-            common_x = [tup for tup in combined_nodes if tup[0] in common_x_coords] # LEFT or RIGHT
+            combined_nodes = list(
+                self.graph.nodes[node1]["nodes"]) + list(self.graph.nodes[node2]["nodes"])
+            common_y = [tup for tup in combined_nodes if tup[1]
+                        in common_y_coords]  # UP or DOWN
+            common_x = [tup for tup in combined_nodes if tup[0]
+                        in common_x_coords]  # LEFT or RIGHT
             if common_y:
                 max_y = max(common_y)
                 if max_y in self.graph.nodes[node1]["nodes"]:

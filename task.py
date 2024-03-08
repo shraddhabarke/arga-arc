@@ -43,6 +43,8 @@ class Task:
         self.object_sizes = dict()  # node_object sizes to use for filters
         self.object_heights = dict()
         self.object_degrees = dict()  # node_object degrees to use for filters
+        self.object_heights = dict()
+        self.object_widths = dict()
         self.load_task_from_file(filepath)
         self.spec = dict()  # for variable filter synthesis
         self.current_spec = []
@@ -124,11 +126,17 @@ class Task:
         """
         self.object_sizes[abstraction] = set()
         self.object_degrees[abstraction] = set()
+        self.object_heights[abstraction] = set()
+        self.object_widths[abstraction] = set()
         for abs_graph in self.input_abstracted_graphs_original[abstraction]:
             for node, size in abs_graph.graph.nodes(data="size"):
                 self.object_sizes[abstraction].add(size)
             for node, degree in abs_graph.graph.degree():
                 self.object_degrees[abstraction].add(degree)
+            for node, height in abs_graph.graph.nodes(data="height"):
+                self.object_heights[abstraction].add(height)
+            for node, width in abs_graph.graph.nodes(data="width"):
+                self.object_widths[abstraction].add(width)
 
     def evaluate_program(
         self,

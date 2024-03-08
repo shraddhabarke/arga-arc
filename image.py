@@ -101,8 +101,10 @@ class Image:
             color_subgraph = graph.subgraph(color_nodes)
             color_connected_components = connected_components(color_subgraph)
             for i, component in enumerate(color_connected_components):
+                height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
                 color_connected_components_graph.add_node((color, i), nodes=list(component), color=color,
-                                                          size=len(list(component)))
+                                                          size=len(list(component)), width=width+1, height=height+1)
 
         for node_1, node_2 in combinations(color_connected_components_graph.nodes, 2):
             nodes_1 = color_connected_components_graph.nodes[node_1]["nodes"]
@@ -146,11 +148,15 @@ class Image:
             color_connected_components = connected_components(color_subgraph)
             if color != self.background_color:
                 for i, component in enumerate(color_connected_components):
-                    ccgbr.add_node((color, i), nodes=list(component), color=color, size=len(list(component)))
+                    height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                    width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
+                    ccgbr.add_node((color, i), nodes=list(component), color=color, size=len(list(component)), width=width+1, height=height+1)
             else:
                 for i, component in enumerate(color_connected_components):
+                    height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                    width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
                     if len(set(component) & self.corners) == 0:  # background color + contains a corner
-                        ccgbr.add_node((color, i), nodes=list(component), color=color, size=len(list(component)))
+                        ccgbr.add_node((color, i), nodes=list(component), color=color, size=len(list(component)), width=width+1, height=height+1)
 
         for node_1, node_2 in combinations(ccgbr.nodes, 2):
             nodes_1 = ccgbr.nodes[node_1]["nodes"]
@@ -196,15 +202,19 @@ class Image:
 
             for i, component in enumerate(color_connected_components):
                 if color != self.background_color:
-                    ccgbr2.add_node((color, i), nodes=list(component), color=color, size=len(list(component)))
+                    height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                    width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
+                    ccgbr2.add_node((color, i), nodes=list(component), color=color, size=len(list(component)), width=width+1, height=height+1)
                 else:
                     component = list(component)
+                    height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                    width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
                     for node in component:
                         # if the node touches any edge of image it is not included
                         if node[0] == 0 or node[0] == self.height - 1 or node[1] == 0 or node[1] == self.width - 1:
                             break
                     else:
-                        ccgbr2.add_node((color, i), nodes=component, color=color, size=len(component))
+                        ccgbr2.add_node((color, i), nodes=component, color=color, size=len(component), width=width+1, height=height+1)
 
         for node_1, node_2 in combinations(ccgbr2.nodes, 2):
             nodes_1 = ccgbr2.nodes[node_1]["nodes"]
@@ -251,8 +261,10 @@ class Image:
                 color_subgraph = graph.subgraph(color_nodes)
                 color_connected_components.extend(list(connected_components(color_subgraph)))
             for i, component in enumerate(color_connected_components):
+                height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
                 non_background_vertical_connected_components_graph.add_node((color, i), nodes=list(component),
-                                                                            color=color, size=len(list(component)))
+                                                                            color=color, size=len(list(component)), width=width+1, height=height+1)
 
         for node_1, node_2 in combinations(non_background_vertical_connected_components_graph.nodes, 2):
             nodes_1 = non_background_vertical_connected_components_graph.nodes[node_1]["nodes"]
@@ -302,8 +314,10 @@ class Image:
                 color_subgraph = graph.subgraph(color_nodes)
                 color_connected_components.extend(list(connected_components(color_subgraph)))
             for i, component in enumerate(color_connected_components):
+                height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
                 non_background_horizontal_connected_components_graph.add_node((color, i), nodes=list(component),
-                                                                              color=color, size=len(list(component)))
+                                                                              color=color, size=len(list(component)), width=width+1, height=height+1)
 
         for node_1, node_2 in combinations(non_background_horizontal_connected_components_graph.nodes, 2):
             nodes_1 = non_background_horizontal_connected_components_graph.nodes[node_1]["nodes"]
@@ -349,8 +363,10 @@ class Image:
             color_subgraph = graph.subgraph(color_nodes)
             color_connected_components = connected_components(color_subgraph)
             for i, component in enumerate(color_connected_components):
+                height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
                 non_black_components_graph.add_node((color, i), nodes=list(component), color=color,
-                                                    size=len(list(component)))
+                                                    size=len(list(component)), height=height+1, width=width+1)
 
         for node_1, node_2 in combinations(non_black_components_graph.nodes, 2):
             nodes_1 = non_black_components_graph.nodes[node_1]["nodes"]
@@ -422,7 +438,9 @@ class Image:
                     for y in range(best[1], best[3] + 1):
                         component.append((y, x))
                         subgraph_nodes.remove((y, x))
-                lrg.add_node((color, i), nodes=component, color=color, size=len(component))
+                height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+                width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
+                lrg.add_node((color, i), nodes=component, color=color, size=len(component), width=width+1, height=height+1)
                 i += 1
 
         for node_1, node_2 in combinations(lrg.nodes, 2):
@@ -469,8 +487,10 @@ class Image:
             for node in component:
                 sub_nodes.append(node)
                 sub_nodes_color.append(graph.nodes[node]["color"])
+            height = max([pixel[0] for pixel in component]) - min([pixel[0] for pixel in component])
+            width = max([pixel[1] for pixel in component]) - min([pixel[1] for pixel in component])
             multicolor_connected_components_graph.add_node((len(sub_nodes), i), nodes=sub_nodes, color=sub_nodes_color,
-                                                           size=len(sub_nodes))
+                                                           size=len(sub_nodes), width=width+1, height=height+1)
         # add edges between the abstracted nodes
         for node_1, node_2 in combinations(multicolor_connected_components_graph.nodes, 2):
             nodes_1 = multicolor_connected_components_graph.nodes[node_1]["nodes"]
@@ -511,7 +531,9 @@ class Image:
         for node, data in graph.nodes(data=True):
             sub_nodes.append(node)
             sub_nodes_color.append(graph.nodes[node]["color"])
-        no_abs_graph.add_node((0, 0), nodes=sub_nodes, color=sub_nodes_color, size=len(sub_nodes))
+        height = max([pixel[0] for pixel in sub_nodes]) - min([pixel[0] for pixel in sub_nodes])
+        width = max([pixel[1] for pixel in sub_nodes]) - min([pixel[1] for pixel in sub_nodes])
+        no_abs_graph.add_node((0, 0), nodes=sub_nodes, color=sub_nodes_color, size=len(sub_nodes), width=width+1, height=height+1)
 
         return ARCGraph(no_abs_graph, self.name, self, "na")
 
