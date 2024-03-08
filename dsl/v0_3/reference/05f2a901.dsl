@@ -3,8 +3,8 @@
         (with this v)
         (filter
             (and
-                (is_color this R)
-                (is_color v C)
+                (filter_by_color this R)
+                (filter_by_color v C)
             )
         )
         (apply

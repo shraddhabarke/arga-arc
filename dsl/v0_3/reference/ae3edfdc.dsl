@@ -4,8 +4,8 @@
         (filter
             (and
                 (or
-                    (is_color v R)
-                    (is_color v B)
+                    (filter_by_color v R)
+                    (filter_by_color v B)
                 )
                 (is_neighbor this v)
             )

@@ -3,7 +3,7 @@
         (with this v)
         (filter
             (and
-                (is_color this X)
+                (filter_by_color this X)
                 (is_neighbor this v)
             )
         )

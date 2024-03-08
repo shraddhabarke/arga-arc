@@ -3,9 +3,9 @@
         (with this v)
         (filter
             (and
-                (is_color this X)
+                (filter_by_color this X)
                 (and
-                    (is_color v R)
+                    (filter_by_color v R)
                     (is_neighbor this v)
                 )
             )
