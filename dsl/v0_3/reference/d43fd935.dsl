@@ -8,7 +8,7 @@
             )
         )
         (apply
-            (move_node_max v)
+            (extend_node v false)
         )
     )
 )
