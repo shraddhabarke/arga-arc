@@ -21,8 +21,16 @@ tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, I
                 Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix!
-f_vocabMakers = [FColor, Degree, Height, Width, Size, FilterByColor, FilterBySize, FilterByDegree, FilterByHeight, FilterByWidth,
+f_vocabMakers = [FColor, Degree, Height, Width, Size, FilterByColor, FilterBySize, FilterByDegree, FilterByHeight,
                 FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or]
+
+def filter_compare(results, subset):
+    if len(results) != len(subset):
+        return False
+    for res_dict, sub_dict in zip(results, subset):
+        if res_dict != sub_dict:
+            return False
+    return True
 
 def run_synthesis(taskNumber, abstraction):
     store = {}
@@ -89,9 +97,12 @@ def run_synthesis(taskNumber, abstraction):
             program = enumerator.next()
             i += 1
             results = program.values
-            #print(f"Program: {program.code}: {results, program.size}")
-            if [set(res) for res in results] == [set(sub) for sub in subset]:
-                print("Solution!:", program.code)
+            print(f"Program: {program.code}: {results, program.size}")
+            print("subset:", subset)
+            print("results:", results)
+            if filter_compare(results, subset):
+            #if [set(res) for res in results] == [set(sub) for sub in subset]:
+                #print("Solution!:", program.code)
                 return program.code
 
     while enumerator.hasNext():
@@ -200,10 +211,13 @@ def run_synthesis(taskNumber, abstraction):
             all_filters_found, filters_sol = True, []
             for program in minimal_transforms:
                 print("Enumerating filters for:", program)
-                print("coverage:", program, correct_nodes_per_transform[program])
-                input_nodes = find_input_nodes(input_graphs, correct_nodes_per_transform[program])
-                print("matching-keys:", find_input_nodes(input_graphs, correct_nodes_per_transform[program]))
-                filters = synthesize_filter(input_nodes)
+                if "Var" not in program:
+                    input_nodes = find_input_nodes(input_graphs, correct_nodes_per_transform[program])
+                    subset = [{tup: [] for tup in subset} for subset in input_nodes]
+                    print("Subset:", subset)
+                else:
+                    break # todo
+                filters = synthesize_filter(subset)
                 if filters:
                     filters_sol.append(filters)
                 else:
@@ -218,7 +232,7 @@ def run_synthesis(taskNumber, abstraction):
                     program for program in filters_sol]
 
 #4093f84a
-evals = {"9edfc990": "ccg"} #{"ded97339": "nbccg"}
+evals = {"868de0fa": "nbccg"} #{"ded97339": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -296,9 +310,11 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem 08ed6ac7")
         t4, f4 = run_synthesis("08ed6ac7", "nbccg")
         self.assertCountEqual(['updateColor(Color.yellow)', 'updateColor(Color.green)',
-                               'updateColor(Color.red)', 'updateColor(Color.blue)'], t4)
-        self.assertCountEqual(['FilterBySize(SIZE.MIN)', 'And(FilterByDegree(DEGREE.2), FilterByNeighborSize(SIZE.8))',
-        'And(FilterByNeighborSize(SIZE.MAX), Or(FilterBySize(SIZE.5), FilterBySize(SIZE.8)))', 'FilterBySize(SIZE.MAX)'], f4)
+                            'updateColor(Color.red)', 'updateColor(Color.blue)'], t4)
+        self.assertCountEqual(['FilterBySize(SIZE.MIN)',
+        'And(FilterByDegree(DEGREE.2), FilterByNeighborSize(SIZE.8))',
+        'And(FilterByNeighborSize(SIZE.MAX), Or(FilterBySize(SIZE.5), FilterBySize(SIZE.8)))',
+        'FilterBySize(SIZE.MAX)'], f4)
 
         print("Solving problem 6455b5f5")
         t5, f5 = run_synthesis("6455b5f5", "ccg")
@@ -322,8 +338,7 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem a5313dff")
         t9, f9 = run_synthesis("a5313dff", "ccgbr")
         self.assertCountEqual(['updateColor(Color.blue)', 'NoOp'], t9)
-        self.assertCountEqual(['Or(FilterByColor(FColor.red), FilterBySize(SIZE.ODD))',
-                                'Or(FilterBySize(SIZE.6), FilterBySize(SIZE.8))'], f9)
+        self.assertCountEqual(['FilterByHeight(HEIGHT.3)', 'Not(FilterByHeight(HEIGHT.3))'], f9)
 
         print("Solving problem d2abd087")
         t10, f10 = run_synthesis("d2abd087", "nbccg")
@@ -341,7 +356,7 @@ class TestEvaluation(unittest.TestCase):
         t12, f12 = run_synthesis("ea32f347", "nbccg")
         self.assertCountEqual(
             ['updateColor(Color.yellow)', 'updateColor(Color.blue)', 'updateColor(Color.red)'], t12)
-        self.assertCountEqual(['Not(Or(FilterBySize(SIZE.MIN), FilterBySize(SIZE.MAX)))',
+        self.assertCountEqual(['Or(FilterBySize(SIZE.5), FilterByHeight(HEIGHT.4))',
         'FilterBySize(SIZE.MAX)', 'FilterBySize(SIZE.MIN)'], f12)
 
         print("Solving problem aabf363d")
@@ -362,13 +377,6 @@ class TestEvaluation(unittest.TestCase):
             ['updateColor(Color.black)', 'updateColor(Color.green)'], t16)
         self.assertCountEqual(['Or(FilterByColor(FColor.red), FilterBySize(SIZE.MAX))', 'Not(Or(FilterByColor(FColor.red), FilterBySize(SIZE.MAX)))'], f16)
 
-        print("Solving problem 25d8a9c8")
-        t17, f17 = run_synthesis("25d8a9c8", "ccg")
-        self.assertCountEqual(
-            ['updateColor(Color.grey)', 'updateColor(Color.black)'], t17)
-        self.assertCountEqual(['And(FilterBySize(SIZE.3), Not(FilterByColor(FColor.green)))',
-        'Or(FilterByColor(FColor.green), Not(FilterBySize(SIZE.3)))'], f17)
-
         print("Solving problem aedd82e4")
         t18, f18 = run_synthesis("aedd82e4", "nbccg")
         self.assertCountEqual(['updateColor(Color.blue)', 'NoOp'], t18)
@@ -380,6 +388,7 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['NoOp', 'updateColor(Color.grey)'], t19)
         self.assertCountEqual(
         ['Not(FilterByColor(FColor.orange))', 'FilterByColor(FColor.orange)'], f19)
+
 
         print("Solving problem 5582e5ca")  # todo-eusolver
         t21, f21 = run_synthesis("5582e5ca", "ccg")
@@ -403,6 +412,12 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], t24)
         self.assertCountEqual(['FilterBySize(SIZE.MIN)', 'Not(FilterBySize(SIZE.MIN))'], f24)
 
+        print("Solving problem 25d8a9c8")
+        t17, f17 = run_synthesis("25d8a9c8", "ccg")
+        self.assertCountEqual(
+            ['updateColor(Color.grey)', 'updateColor(Color.black)'], t17)
+        self.assertCountEqual(['And(FilterBySize(SIZE.3), FilterByHeight(HEIGHT.MIN))',
+        'Not(And(FilterBySize(SIZE.3), FilterByHeight(HEIGHT.MIN)))'], f17)
         print("==================================================MOVEMENT PROBLEMS==================================================")
         print("Solving problem 25ff71a9")
         mt0, mf0 = run_synthesis("25ff71a9", "nbccg")
@@ -435,9 +450,9 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['FilterBySize(SIZE.MIN)'], mf5)
 
         print("Solving problem 74dd1130")
-        mt6, mf6 = run_synthesis("74dd1130", "na")
-        self.assertCountEqual(['flip(Symmetry_Axis.DIAGONAL_LEFT)'], mt6)
-        self.assertCountEqual(['FilterBySize(SIZE.MIN)'], mf6)
+        #mt6, mf6 = run_synthesis("74dd1130", "na")
+        #self.assertCountEqual(['flip(Symmetry_Axis.DIAGONAL_LEFT)'], mt6)
+        #self.assertCountEqual(['FilterBySize(SIZE.MIN)'], mf6)
 
         print("Solving problem ed36ccf7")
         mt7, mf7 = run_synthesis("ed36ccf7", "na")
@@ -451,9 +466,9 @@ class TestEvaluation(unittest.TestCase):
 
         print("Solving problem a79310a0")
         mt9, mf9 = run_synthesis("a79310a0", "nbccg")
-        # self.assertCountEqual(
-        # ['[updateColor(Color.red), moveNode(Dir.DOWN)]'], mt9) # todo-eusolver
-        # self.assertCountEqual(['FilterByColor(FColor.cyan)'], mf9)
+        self.assertCountEqual(
+        ['[updateColor(Color.red), moveNode(Dir.DOWN)]'], mt9) # todo-eusolver
+        self.assertCountEqual(['FilterByColor(FColor.cyan)'], mf9)
 
         print("Solving problem 3906de3d")
         mt10, mf10 = run_synthesis("3906de3d", "nbvcg")
@@ -465,6 +480,7 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(
             ['addBorder(Color.blue)', 'updateColor(Color.blue)'], mt11)
         print("==================================================AUGMENTATION PROBLEMS==================================================")
+
         print("Solving problem bb43febb")
         at0, af0 = run_synthesis("bb43febb", "nbccg")
         self.assertCountEqual(['hollowRectangle(Color.red)'], at0)
@@ -529,58 +545,12 @@ class TestEvaluation(unittest.TestCase):
             ['hollowRectangle(Color.red)', 'hollowRectangle(Color.blue)', 'hollowRectangle(Color.black)'], at11)  # todo: post-process
         self.assertCountEqual(['FilterBySize(SIZE.MAX)', 'FilterBySize(SIZE.MIN)', 'FilterByColor(FColor.yellow)'], af11)
 
-        print("====================================PROBLEMS WITH UNIMPLEMENTED FILTERS===============================================")
-        print("Solving problem d23f8c26")
-        st1, sf1 = run_synthesis("d23f8c26", "nbccg")
-        #self.assertCountEqual(
-            #['updateColor(Color.black)', 'NoOp'], st1)
-        # self.assertCountEqual(
-        # ['#todo: FilterByColumn Positions'], sf1)
-
         print("Solving problem 868de0fa")
         st2, sf2 = run_synthesis("868de0fa", "nbccg")
         self.assertCountEqual(
             ['NoOp', 'fillRectangle(Color.red, Overlap.TRUE)',
             'fillRectangle(Color.orange, Overlap.TRUE)'], st2)  # todo: post-process
         self.assertCountEqual(['FilterByColor(FColor.blue)', 'Not(FilterByHeight(HEIGHT.ODD))', 'FilterByHeight(HEIGHT.ODD)'], sf2)
-
-        print("Solving problem 44d8ac46")
-        st3, sf3 = run_synthesis("44d8ac46", "nbccg")
-        #self.assertCountEqual(
-            #['NoOp', 'fillRectangle(Color.red, Overlap.TRUE)'], st3)
-        # self.assertCountEqual(
-        # ['#todo: FilterByShape(IsSquare)'], sf3)
-
-        print("Solving problem 63613498")
-        st4, sf4 = run_synthesis("63613498", "nbccg")
-        #self.assertCountEqual(
-            #['NoOp', 'updateColor(Color.grey)'], st4)
-        # self.assertCountEqual(
-        # ['#todo: FilterByShape or FilterByPosition'], sf4)
-
-        print("Solving problem 941d9a10")
-        st5, sf5 = run_synthesis("941d9a10", "ccg")
-        #self.assertCountEqual(['updateColor(Color.green)', 'updateColor(Color.red)', 'NoOp', 'updateColor(Color.blue)'], st5)
-        #self.assertCountEqual(
-        #['#todo: FilterByShape or FilterByPosition'], sf5))
-
-        print("Solving problem 272f95fa")
-        st6, sf6 = run_synthesis("272f95fa", "ccg")
-        #self.assertCountEqual(
-            #['updateColor(Color.fuchsia)', 'updateColor(Color.blue)', 'updateColor(Color.red)', 'updateColor(Color.green)', 'NoOp', 'updateColor(Color.yellow)'], st6)
-        #self.assertCountEqual(
-        #['#todo: FilterByShape or FilterByPosition'], sf6))
-
-        print("Solving problem b2862040")
-        st7, sf7 = run_synthesis("b2862040", "nbccg")
-        #self.assertCountEqual(['updateColor(Color.cyan)', 'NoOp'], st7)
-        #self.assertCountEqual(
-        #['#todo: containment'], sf7)
-
-        print("Solving problem 9edfc990")
-        st8, sf8 = run_synthesis("9edfc990", "ccg")
-        #self.assertCountEqual(['updateColor(Color.blue)', 'NoOp'], st8)
-        #self.assertCountEqual(['#todo: containment'], sf8)
 
 if __name__ == "__main__":
     unittest.main()

@@ -46,7 +46,7 @@ class Task:
         self.object_heights = dict()
         self.object_widths = dict()
         self.load_task_from_file(filepath)
-        self.spec = dict()  # for variable filter synthesis
+        self.spec = None  # for variable filter synthesis
         self.current_spec = []
 
     def load_task_from_file(self, filepath):
@@ -259,6 +259,7 @@ class Task:
         """
         Returns the values of the transformed grid, takes a single transformation
         """
+        self.spec = None
         self.input_abstracted_graphs_original[self.abstraction] = [
             getattr(input, Image.abstraction_ops[self.abstraction])()
             for input in self.train_input
@@ -284,14 +285,13 @@ class Task:
                 if input_abstracted_graph.apply_filters(node[0], filter):
                     filtered_nodes_i.append(node[0])
             filtered_nodes.append(filtered_nodes_i)
-        for i, spec_dict in enumerate(self.current_spec):
-            filtered_nodes_dict = {
-                k: filtered_nodes[i] for k in spec_dict.keys()}
+        for i, _ in enumerate(filtered_nodes):
+            filtered_nodes_dict = {node: [] for node in filtered_nodes[i]}
             filtered_nodes_dict_list.append(filtered_nodes_dict)
-        if self.current_spec:
-            return filtered_nodes_dict_list
+        if self.spec: # todo
+            return self.spec
         else:
-            return filtered_nodes
+            return filtered_nodes_dict_list
 
     def compute_transformation_params(self, input_graph, transformation):
         object_params_dict, object_params = defaultdict(list), []
@@ -403,7 +403,8 @@ class Task:
                 diff_nodes, input_graph, output_graph, filter, transformation)
             print("per-task-spec:", per_task_spec)
             all_transformed_values.append(per_task)
-            all_specs.append(per_task_spec)
+            if per_task_spec is not None:
+                all_specs.append(per_task_spec)
         return all_transformed_values, all_specs
 
     def var_transform_values(
@@ -434,5 +435,6 @@ class Task:
         for values, input_abstracted_graph in zip(transformed_values, self.input_abstracted_graphs_original[self.abstraction]):
             input_abstracted_graph.var_apply_all(
                 values, filter, transformation)
-        self.spec.update({transformation.code: spec})
+        #self.spec.update({transformation.code: spec})
+        self.spec = spec
         return self.input_abstracted_graphs_original[self.abstraction]

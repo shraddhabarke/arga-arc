@@ -736,6 +736,11 @@ class ARCGraph:
                 return True
         return False
 
+    def FilterBySquareShape(self, node):
+        """
+        return true if nodes are of a square shape
+        """
+        pass
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
         """

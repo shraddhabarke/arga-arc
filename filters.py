@@ -307,13 +307,17 @@ class And(FilterASTNode):
                 v1).intersection(set(v2)) else []
             for v1, v2 in zip(values1, values2)
         ]
+        res_dict = []
+        for i, _ in enumerate(intersected_values):
+            filtered_nodes_dict = {node: [] for node in intersected_values[i]}
+            res_dict.append(filtered_nodes_dict)
 
         if task.current_spec:
-            intersected_values = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
+            res_dict = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
                                    for key in dict_a if key in dict_b}
                                   for dict_a, dict_b in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
-        new_instance.values = intersected_values
+        new_instance.values = res_dict
         return new_instance
 
 
@@ -337,12 +341,16 @@ class Or(FilterASTNode):
         unioned_values = [
             list(set(v1).union(set(v2))) for v1, v2 in zip(values1, values2)
         ]
+        res_dict = []
+        for i, _ in enumerate(unioned_values):
+            filtered_nodes_dict = {node: [] for node in unioned_values[i]}
+            res_dict.append(filtered_nodes_dict)
         if task.current_spec:
-            unioned_values = [{key: list(set(dict_a[key]).union(set(dict_b[key])))
+            res_dict = [{key: list(set(dict_a[key]).union(set(dict_b[key])))
                                for key in dict_a if key in dict_b}
                               for dict_a, dict_b in zip(values1, values2)]
         new_instance = cls(children[0], children[1])
-        new_instance.values = unioned_values
+        new_instance.values = res_dict
 
         return new_instance
 
@@ -363,7 +371,7 @@ class Not(FilterASTNode):
     @classmethod
     def execute(cls, task, children):
         values = children[0].values
-        nodes_with_data, values_dict = [], []
+        nodes_with_data, values_dict, res_dict = [], [], []
         # TODO: Optimize
         for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
             local_data = []
@@ -374,13 +382,17 @@ class Not(FilterASTNode):
             [item for item in sublist1 if item not in sublist2]
             for sublist1, sublist2 in zip(nodes_with_data, values)
         ]
+        for i, _ in enumerate(result):
+            filtered_nodes_dict = {node: [] for node in result[i]}
+            res_dict.append(filtered_nodes_dict)
+
         if task.current_spec:
             for i, spec_dict in enumerate(task.current_spec):
                 filtered_nodes_dict = {k: result[i] for k in spec_dict.keys()}
                 values_dict.append(filtered_nodes_dict)
-            result = values_dict
+            res_dict = values_dict
         new_instance = cls(children[0])
-        new_instance.values = result
+        new_instance.values = res_dict
         return new_instance
 
 
@@ -488,6 +500,49 @@ class FilterByDegree(Filters):
         instance.values = values
         return instance
 
+#todo
+class FilterBySquareShape(Filters):
+    arity = 0
+    default_size = 1
+
+    def __init__(self):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.code = f"FilterByShape()"
+        self.size = self.default_size
+        self.children = []
+        self.childTypes = []
+
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0])
+        values = task.filter_values(instance)
+        instance.values = values
+        return instance
+
+#todo
+class FilterByContainment(Filters):
+    pass
+
+#todo
+class FilterByColumns(Filters):
+    arity = 1
+    childTypes = [FilterTypes.SIZE]
+    default_size = 1
+    def __init__(self, size: Size):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.code = f"FilterByColumns({size.code})"
+        self.size = self.default_size + size.size
+        self.children = [size]
+        self.childTypes = [FilterTypes.SIZE]
+
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0])
+        values = task.filter_values(instance)
+        instance.values = values
+        return instance
 
 class FilterByNeighborSize(Filters):
     arity = 1
