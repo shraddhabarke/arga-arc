@@ -77,6 +77,43 @@ The following program first recolors all objects to color R, then recolors all t
 )
 ```
 
+The following program selects all objects that have a neighbor of size 4, and moves them toward that neighbor:
+```
+(do
+    (rule
+        (with this x)
+        (filter
+            (and
+                (filter_by_size x 4)
+                (is_neighbor this x)
+            )
+        )
+        (apply
+            (move_node_max x)
+        )
+    )
+)
+```
+
+The following program selects all objects of size 1 that have a neighbor or color X, and extends them toward that neighbor:
+```
+(do
+    (rule
+        (with this y)
+        (filter
+            (and
+                (filter_by_size this 1)
+                (filter_by_color y X)
+                (is_neighbor this y)
+            )
+        )
+        (apply
+            (extend_node y false)
+        )
+    )
+)
+```
+
 The following program has 2 rules.
 First, it selects all objects of size 1 that have a neighbor of color X, and for each such object, it recolors it to color R and moves it down.
 Then, it selects all objects of size 1 that have a neighbor of color Y, and for each such object, it recolors it to color B and moves it up.
