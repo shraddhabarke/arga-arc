@@ -88,8 +88,12 @@ class TSizeEnumerator:
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children)
                                                                         and all(child.nodeType == child_type for child, child_type
                                                                         in zip(children, self.rootMaker.childTypes[self.currentChildIteratorIndex]))):
+                    
                     prog = self.rootMaker.apply(
                         self.task, children, self.filter)
+                    print("programs:", prog.code)
+                    print("programs:", [val.graph.nodes(data=True) for val in prog.values])
+                    
                     if children is None:
                         res = prog
                     elif self.oeManager.is_representative(prog.values):

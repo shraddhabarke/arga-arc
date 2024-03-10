@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Union, List, Dict, Iterator, Any, Tuple, Optional
-
+from filters import FilterTypes
 
 class Types(Enum):
     TRANSFORMS = "Transforms"
@@ -55,11 +55,11 @@ class Color(TransformASTNode, Enum):
     green = "G"
     yellow = "Y"
     grey = "X"
+    cyan = "C"
+    most = "most"
     fuchsia = "F"
     orange = "A"
-    cyan = "C"
     brown = "W"
-    most = "most"
     least = "least"
 
     def __init__(self, value=None):
@@ -423,7 +423,7 @@ class UpdateColor(Transforms):
 class MoveNode(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [[Types.DIRECTION], [Types.VARIABLE]]
+    childTypes = [[Types.DIRECTION], [Types.VARIABLE], [Types.DIRECTION, FilterTypes.HEIGHT]]
     default_size = 1
 
     def __init__(self, dir: Union[Dir, Variable]):

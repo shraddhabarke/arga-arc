@@ -39,20 +39,22 @@ class ValuesManager(OEValuesManager):
         return True
 
     def is_frepresentative(self, program: Union[FilterASTNode, TransformASTNode]) -> bool:
-        def process_values(values):
-            if isinstance(values, dict):
-                return tuple((key, tuple(neighbor)) for key, neighbor in values.items())
-            elif isinstance(values, list):
-                return tuple(tuple(neighbor) for neighbor in values)
+        def serialize_structure(structure):
+            if isinstance(structure, dict):
+                return {serialize_tuple(key): [serialize_tuple(value) for value in values] for key, values in structure.items()}
+            elif isinstance(structure, list):
+                return [serialize_structure(elem) for elem in structure]
             else:
-                return ()
-        #results = tuple(tuple(tuple(neighbor) for neighbor in node_neighbors)
-                        #for node_neighbors in program.values)
-        results = tuple(process_values(node_neighbors) for node_neighbors in program.values)
-        if results in self.class_values:
+                return structure
+
+        def serialize_tuple(tup):
+            return "-".join(map(str, tup))
+        results_str = str([serialize_structure(ds) for ds in program.values])
+        if results_str in self.class_values:
             return False
-        self.class_values.add(results)
-        return True
+        else:
+            self.class_values.add(results_str)
+            return True
 
     def clear(self) -> None:
         self.class_values.clear()

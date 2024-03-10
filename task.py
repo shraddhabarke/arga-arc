@@ -47,7 +47,6 @@ class Task:
         self.object_widths = dict()
         self.load_task_from_file(filepath)
         self.spec = None  # for variable filter synthesis
-        self.current_spec = []
 
     def load_task_from_file(self, filepath):
         """
@@ -289,7 +288,7 @@ class Task:
             filtered_nodes_dict = {node: [] for node in filtered_nodes[i]}
             filtered_nodes_dict_list.append(filtered_nodes_dict)
         if self.spec: # todo
-            return self.spec
+            return filtered_nodes_dict_list
         else:
             return filtered_nodes_dict_list
 

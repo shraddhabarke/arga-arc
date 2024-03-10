@@ -81,7 +81,7 @@ class ARCGraph:
                 self.graph.nodes[node]["color"] = color
         return self
 
-    def MoveNode(self, node, direction: Dir, n: int = 1):
+    def MoveNode(self, node, direction: Dir, n: Height = 1):
         """
         move node by 1 pixel in a given direction
         """
@@ -736,9 +736,45 @@ class ARCGraph:
                 return True
         return False
 
-    def FilterBySquareShape(self, node):
+    def FilterByShape(self, node, shape: Shape):
         """
-        return true if nodes are of a square shape
+        return true if node contains a square-shaped hole
+        """
+        if shape == Shape.square or shape == "square":
+            nodes = self.graph.nodes(data=True)[node]['nodes']
+            print("nodes:", nodes)
+            if not nodes:
+                return False
+            min_x = min(nodes, key=lambda x: x[0])[0]
+            max_x = max(nodes, key=lambda x: x[0])[0]
+            min_y = min(nodes, key=lambda x: x[1])[1]
+            max_y = max(nodes, key=lambda x: x[1])[1]
+            def is_square_formed_by_points(points):
+                if not points:  # Check if the points list is empty
+                    return False
+                if len(points) == 1:
+                    return True
+                x_coords = [p[0] for p in points]
+                y_coords = [p[1] for p in points]
+                min_x, max_x = min(x_coords), max(x_coords)
+                min_y, max_y = min(y_coords), max(y_coords)
+                width = max_x - min_x + 1
+                height = max_y - min_y + 1
+            # Check if the dimensions form a square and if the number of points matches the area of the square
+                if width == height and len(points) == width * height:
+                    return True
+                return False
+            all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+            missing_points = set(all_points) - set(nodes)
+            edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+            if any(point in edge_points for point in missing_points):
+                return False  # Missing points are at the edge
+            return is_square_formed_by_points(list(missing_points))
+        return False
+
+    def FilterByColumns(self, node):
+        """
+
         """
         pass
     # ------------------------------------- utils ------------------------------------------
