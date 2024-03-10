@@ -772,7 +772,7 @@ class ARCGraph:
             return is_square_formed_by_points(list(missing_points))
         return False
 
-    def FilterByColumns(self, node):
+    def FilterByColumns(self, node, column: int):
         """
 
         """
@@ -876,37 +876,39 @@ class ARCGraph:
 
     def get_relative_pos(self, node1, node2):
         # when both objects are single pixels
+        if len(self.graph.nodes[node1]["nodes"]) == 0 or len(self.graph.nodes[node2]["nodes"]) == 0:
+            return None
         if len(self.graph.nodes[node1]["nodes"]) == 1 and len(self.graph.nodes[node2]["nodes"]) == 1:
             for sub_node_1 in self.graph.nodes[node1]["nodes"]:
                 for sub_node_2 in self.graph.nodes[node2]["nodes"]:
                     if sub_node_1[0] == sub_node_2[0]:
                         if sub_node_1[1] < sub_node_2[1]:
-                            print("single-pixel: Dir.RIGHT")
                             return Dir.RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
-                            print("single-pixel: Dir.LEFT")
                             return Dir.LEFT
                     elif sub_node_1[1] == sub_node_2[1]:
                         if sub_node_1[0] < sub_node_2[0]:
-                            print("single-pixel: Dir.DOWN")
                             return Dir.DOWN
                         elif sub_node_1[0] > sub_node_2[0]:
-                            print("single-pixel: Dir.UP")
                             return Dir.UP
                     elif sub_node_1[0] < sub_node_2[0]:  # DOWN
                         if sub_node_1[1] < sub_node_2[1]:
-                            print("single-pixel: Dir.DOWN_RIGHT")
-                            return Dir.DOWN_RIGHT
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.DOWN_RIGHT")
+                                return Dir.DOWN_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
-                            print("single-pixel: Dir.DOWN_LEFT")
-                            return Dir.DOWN_LEFT
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.DOWN_LEFT")
+                                return Dir.DOWN_LEFT
                     elif sub_node_1[0] > sub_node_2[0]:  # UP
                         if sub_node_1[1] < sub_node_2[1]:
-                            print("single-pixel: Dir.UP_RIGHT")
-                            return Dir.UP_RIGHT
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.UP_RIGHT")
+                                return Dir.UP_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
-                            print("single-pixel: Dir.UP_LEFT")
-                            return Dir.UP_LEFT
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.UP_LEFT")
+                                return Dir.UP_LEFT
         elif len(self.graph.nodes[node1]["nodes"]) == 1 or len(self.graph.nodes[node2]["nodes"]) == 1:
             # at least one of the objects is single-pixeled
             min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(

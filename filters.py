@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Union, List, Dict
-
+from transform import Dir
 
 class FilterTypes(Enum):
     FILTERS = "Filters"
@@ -62,9 +62,17 @@ class IsNeighbor(FilterASTNode):
             cls.values = []
         else:
             cls.values = [
-            {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
-                for node in input_graph.graph.nodes()}
+                {node: list(set([
+                        neighbor for neighbor in input_graph.graph.nodes()
+                        if len(neighbor) != 3 and input_graph.get_relative_pos(node, neighbor) in
+                        [Dir.DOWN_LEFT, Dir.DOWN_RIGHT, Dir.UP_LEFT, Dir.UP_RIGHT]
+                        and node != neighbor
+                        ] + [
+                            neighbor for neighbor in input_graph.graph.neighbors(node)
+                    ]))
+                for node in input_graph.graph.nodes() if len(node) != 3}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+
         if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
             cls.values = []
         cls.code = f"IsNeighbor"
@@ -281,7 +289,7 @@ class FColor(FilterASTNode, Enum):
 
 class Shape(FilterASTNode, Enum):
     square = "square"
-    any = "anyShape"
+    any = "enclosed"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.SHAPE)
@@ -347,7 +355,6 @@ class And(FilterASTNode):
         for i, _ in enumerate(intersected_values):
             filtered_nodes_dict = {node: [] for node in intersected_values[i]}
             res_dict.append(filtered_nodes_dict)
-        print("task.spec", task.spec)
         if task.spec:
             res_dict = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
                                 for key in dict_a if key in dict_b}
@@ -385,6 +392,7 @@ class VarAnd(FilterASTNode):
                 intersection_values = [value for value in values1 if value in dict2.keys()]
                 intersection_dict[key1] = intersection_values
             res_dict.append(intersection_dict)
+        print("res-dict:", res_dict)
 
         new_instance = cls(children[0], children[1])
         new_instance.values = res_dict

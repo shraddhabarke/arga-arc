@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Union, List, Dict, Iterator, Any, Tuple, Optional
-from filters import FilterTypes
 
 class Types(Enum):
     TRANSFORMS = "Transforms"
@@ -423,7 +422,7 @@ class UpdateColor(Transforms):
 class MoveNode(Transforms):
     arity = 1
     nodeType = Types.TRANSFORMS
-    childTypes = [[Types.DIRECTION], [Types.VARIABLE], [Types.DIRECTION, FilterTypes.HEIGHT]]
+    childTypes = [[Types.DIRECTION], [Types.VARIABLE]]
     default_size = 1
 
     def __init__(self, dir: Union[Dir, Variable]):

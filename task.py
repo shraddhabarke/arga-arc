@@ -258,7 +258,7 @@ class Task:
         """
         Returns the values of the transformed grid, takes a single transformation
         """
-        self.spec = None
+        #self.spec = None
         self.input_abstracted_graphs_original[self.abstraction] = [
             getattr(input, Image.abstraction_ops[self.abstraction])()
             for input in self.train_input
@@ -400,7 +400,6 @@ class Task:
             diff_nodes = set(input_graph.graph.nodes) - set(matching_nodes)
             per_task, per_task_spec = self.compute_transformed_values(
                 diff_nodes, input_graph, output_graph, filter, transformation)
-            print("per-task-spec:", per_task_spec)
             all_transformed_values.append(per_task)
             if per_task_spec is not None:
                 all_specs.append(per_task_spec)
@@ -436,4 +435,5 @@ class Task:
                 values, filter, transformation)
         #self.spec.update({transformation.code: spec})
         self.spec = spec
+        print("SPEC!!!!", self.spec)
         return self.input_abstracted_graphs_original[self.abstraction]
