@@ -80,7 +80,7 @@ def run_synthesis(taskNumber, abstraction):
             task_input_nodes = []
             for key, value in input_graph:
                 if any(node in value['nodes'] for node in correct_pixel):
-                # if all(node in abstract_list for node in value['nodes']):
+                #if all(node in abstract_list for node in value['nodes']):
                     task_input_nodes.append(key)
             input_nodes.append(task_input_nodes)
         return input_nodes
@@ -94,8 +94,8 @@ def run_synthesis(taskNumber, abstraction):
             i += 1
             results = program.values
             print(f"Program: {program.code}: {results, program.size}")
-            #print("subset:", subset)
-            #print("results:", results)
+            print("subset:", subset)
+            print("results:", results)
             if filter_compare(results, subset):
                 return program.code
 
@@ -228,7 +228,7 @@ def run_synthesis(taskNumber, abstraction):
 
 #extendNode --> 2c608aff
 #4093f84a
-evals = {}
+evals = {"ddf7fa4f": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -240,15 +240,16 @@ for task, abstraction in evals.items():
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
 class TestEvaluation(unittest.TestCase):
-    def test_all_problems(self):
+    def all_problems(self):
         print("==================================================VARIABLE PROBLEMS==================================================")
         print("Solving problem 6855a6e4")
         #vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
         #self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
 
         print("Solving problem ddf7fa4f")
-        #vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
-        #self.assertCountEqual(['updateColor(Var.color)'], vt1)
+        vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
+        self.assertCountEqual(['updateColor(Var.color)'], vt1)
+        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterBySize(SIZE.MIN)))'], vf1)
 
         print("Solving problem f8a8fe49")
         #vt2, vf2 = run_synthesis("f8a8fe49", "nbccg")
