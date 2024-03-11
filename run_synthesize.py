@@ -238,7 +238,7 @@ def run_synthesis(taskNumber, abstraction):
 
 #extendNode --> 2c608aff
 #4093f84a, 7e0986d6, 7ddcd7ec
-evals = {"d43fd935": "nbccg"}
+evals = {"2c608aff": "ccgbr"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -250,7 +250,7 @@ for task, abstraction in evals.items():
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
 class TestEvaluation(unittest.TestCase):
-    def test_all_problems(self):
+    def all_problems(self):
         print("==================================================VARIABLE PROBLEMS==================================================")
         # there is one correct assignment for the variables and the filters should convey that
 
@@ -288,6 +288,11 @@ class TestEvaluation(unittest.TestCase):
         vt5, vf5 = run_synthesis("d43fd935", "nbccg")
         self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt5)
         self.assertCountEqual(['And(FilterByNeighborSize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.FilterByColor(FColor.green)))'], vf5)
+
+        print("Solving problem 2c608aff")
+        vt6, vf6 = run_synthesis("2c608aff", "ccgbr")
+        self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt5)
+        self.assertCountEqual(['And(FilterByNeighborSize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.FilterBySize(SIZE.MAX))'], vf6)
 
         print("Solving problem ded97339")
         #vt8, vf8 = run_synthesis("ded97339", "nbccg") #todo
