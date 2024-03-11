@@ -325,12 +325,12 @@ class IsAnyNeighbor(FilterASTNode):
         cls.code = f"IsAnyNeighbor"
         return cls
 
-class IsNeighbor(FilterASTNode):
+class IsDirectNeighbor(FilterASTNode):
     size = 1
     def __init__(self, value=None):
         super().__init__(FilterTypes.RELATION)
         self.nodeType = FilterTypes.RELATION
-        self.code = f"IsNeighbor"
+        self.code = f"IsDirectNeighbor"
         self.size = 1
         self.children = []
         self.values = []
@@ -352,11 +352,7 @@ class IsNeighbor(FilterASTNode):
         else:
             task = task.reset_task()
             cls.values = [
-                {node: list(set([
-                        neighbor for neighbor in input_graph.graph.nodes() if
-                        input_graph.get_relative_pos(node, neighbor) in [Dir.LEFT, Dir.RIGHT, Dir.UP, Dir.DOWN]
-                        and node != neighbor] + [neighbor for neighbor in input_graph.graph.neighbors(node)] # needed for the color problem
-                    ))
+                {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
                 for node in input_graph.graph.nodes()}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
 

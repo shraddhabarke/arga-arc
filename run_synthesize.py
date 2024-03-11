@@ -18,7 +18,7 @@ tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, I
                 Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix! Insert
-f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, IsNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
+f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
                 FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
 
 def filter_compare(results, subset):
@@ -108,7 +108,7 @@ def run_synthesis(taskNumber, abstraction):
             print("results:", results)
             if filter_compare(results, subset):
                 return program.code
-
+    correct_transforms = set()
     while enumerator.hasNext():
         program = enumerator.next()
         print("enumerator:", program.code)
@@ -208,37 +208,36 @@ def run_synthesis(taskNumber, abstraction):
 
             print("minimal-transform:", minimal_transforms)
             minimal_transforms = list(minimal_transforms)
-            #if minimal_transforms:
-                #break
-            # Candidate set of transforms found: initiating filter synthesis...
-            all_filters_found, filters_sol = True, []
-            for program in minimal_transforms:
-                print("Enumerating filters for:", program)
-                if "Var" not in program:
-                    input_nodes = find_input_nodes(input_graphs, correct_nodes_per_transform[program])
-                    print("input-nodes:", input_nodes)
-                    subset = [{tup: [] for tup in subset} for subset in input_nodes]
-                    print("Subset:", subset)
-                else:
-                    print("SPEC!", task.spec)
-                    subset = task.spec
-                filters = synthesize_filter(subset)
-                if filters:
-                    filters_sol.append(filters)
-                else:
-                    all_filters_found = False
-                    break
-            if all_filters_found:
-                print("Transformation Solution:", [
-                    program for program in minimal_transforms])
-                print("Filter Solution", [
-                    program for program in filters_sol])
-                return [program for program in minimal_transforms], [
+            if minimal_transforms != correct_transforms:
+                correct_transforms = minimal_transforms
+                # Candidate set of transforms found: initiating filter synthesis...
+                all_filters_found, filters_sol = True, []
+                for program in minimal_transforms:
+                    print("Enumerating filters for:", program)
+                    if "Var" not in program:
+                        input_nodes = find_input_nodes(input_graphs, correct_nodes_per_transform[program])
+                        print("input-nodes:", input_nodes)
+                        subset = [{tup: [] for tup in subset} for subset in input_nodes]
+                        print("Subset:", subset)
+                    else:
+                        print("SPEC!", task.spec)
+                        subset = task.spec
+                    filters = synthesize_filter(subset)
+                    if filters:
+                        filters_sol.append(filters)
+                    else:
+                        all_filters_found = False
+                        break
+                if all_filters_found:
+                    print("Transformation Solution:", [
+                        program for program in minimal_transforms])
+                    print("Filter Solution", [
+                        program for program in filters_sol])
+                    return [program for program in minimal_transforms], [
                     program for program in filters_sol]
 
-#extendNode --> 2c608aff
-#4093f84a, 7e0986d6, 7ddcd7ec
-evals = {"2c608aff": "ccgbr"}
+#4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec
+evals = {"ddf7fa4f": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -250,14 +249,14 @@ for task, abstraction in evals.items():
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
 class TestEvaluation(unittest.TestCase):
-    def all_problems(self):
+    def test_all_problems(self):
         print("==================================================VARIABLE PROBLEMS==================================================")
         # there is one correct assignment for the variables and the filters should convey that
 
         print("Solving problem 6855a6e4")
-        #vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
-        #self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
-        #self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterByColor(FColor.red)))'], vf0)
+        vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
+        self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
+        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsDirectNeighbor, Var.FilterByColor(FColor.red)))'], vf0)
 
         print("Solving problem ddf7fa4f")
         vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
@@ -292,7 +291,7 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem 2c608aff")
         vt6, vf6 = run_synthesis("2c608aff", "ccgbr")
         self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt5)
-        self.assertCountEqual(['And(FilterByNeighborSize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.FilterBySize(SIZE.MAX))'], vf6)
+        self.assertCountEqual(['And(FilterByNeighborSize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.FilterBySize(SIZE.MAX)))'], vf6)
 
         print("Solving problem ded97339")
         #vt8, vf8 = run_synthesis("ded97339", "nbccg") #todo
