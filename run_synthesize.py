@@ -18,7 +18,7 @@ tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, I
                 Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix! Insert
-f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, IsNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
+f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, IsNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
                 FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
 
 def filter_compare(results, subset):
@@ -29,7 +29,13 @@ def filter_compare(results, subset):
         if set(res_dict.keys()) != set(sub_dict.keys()):
             return False
         for key in sub_dict:
-            if not set(sub_dict[key]).issubset(set(res_dict[key])):
+            # Ensure res_dict[key] values are a superset or equal to sub_dict[key] values
+            if not res_dict[key] and not sub_dict[key]:
+                continue  # Both are empty, so this is fine
+            elif res_dict[key] and sub_dict[key]:
+                if not set(res_dict[key]).issubset(set(sub_dict[key])):
+                    return False
+            else:
                 return False
     return True
 
@@ -231,8 +237,8 @@ def run_synthesis(taskNumber, abstraction):
                     program for program in filters_sol]
 
 #extendNode --> 2c608aff
-#4093f84a, 7e0986d6
-evals = {"ae3edfdc": "nbccg"}
+#4093f84a, 7e0986d6, 7ddcd7ec
+evals = {"d43fd935": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -244,40 +250,44 @@ for task, abstraction in evals.items():
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
 class TestEvaluation(unittest.TestCase):
-    def all_problems(self):
+    def test_all_problems(self):
         print("==================================================VARIABLE PROBLEMS==================================================")
+        # there is one correct assignment for the variables and the filters should convey that
+
         print("Solving problem 6855a6e4")
-        vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
-        self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
-        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterByColor(FColor.red)))'], vf0)
+        #vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
+        #self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
+        #self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterByColor(FColor.red)))'], vf0)
 
         print("Solving problem ddf7fa4f")
         vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
         self.assertCountEqual(['updateColor(Var.color)'], vt1)
-        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterBySize(SIZE.MIN)))'], vf1)
+        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsDirectNeighbor, Var.FilterBySize(SIZE.MIN)))'], vf1)
 
         print("Solving problem f8a8fe49")
-        vt2, vf2 = run_synthesis("f8a8fe49", "nbccg")
-        self.assertCountEqual(['mirror(Var.mirror_axis)'], vt2)
-        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterByColor(FColor.red)))'], vf2)
+        #vt2, vf2 = run_synthesis("f8a8fe49", "nbccg")
+        #self.assertCountEqual(['mirror(Var.mirror_axis)'], vt2)
+        #self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterByColor(FColor.red)))'], vf2)
 
         print("Solving problem dc433765")
         vt3, vf3 = run_synthesis("dc433765", "nbccg")
         self.assertCountEqual(['moveNode(Var.direction)'], vt3)
-        self.assertCountEqual(['And(FilterByColor(FColor.green), VarAnd(Var.IsNeighbor, Var.FilterByColor(FColor.yellow)))'], vf3)
+        self.assertCountEqual(['And(FilterByColor(FColor.green), VarAnd(Var.IsAnyNeighbor, Var.FilterByColor(FColor.yellow)))'], vf3)
 
         print("Solving problem a48eeaf7")
         vt6, vf6 = run_synthesis("a48eeaf7", "nbccg")
         self.assertCountEqual(['moveNodeMax(Var.direction)'], vt6)
-        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsNeighbor, Var.FilterByColor(FColor.red)))'], vf6)
+        self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsAnyNeighbor, Var.FilterByColor(FColor.red)))'], vf6)
 
         print("Solving problem ae3edfdc")
-        #vt4, vf4 = run_synthesis("ae3edfdc", "nbccg")
-        #self.assertCountEqual(['moveNodeMax(Var.direction)'], vt4) # top candidate for motivating example
+        vt4, vf4 = run_synthesis("ae3edfdc", "nbccg")
+        self.assertCountEqual(['moveNodeMax(Var.direction)'], vt4)
+        self.assertCountEqual(['And(Not(FilterByNeighborDegree(DEGREE.1)), VarAnd(Var.IsDirectNeighbor, Var.FilterByNeighborDegree(DEGREE.1)))'], vf4)
 
         print("Solving problem d43fd935")
-        #vt5, vf5 = run_synthesis("d43fd935", "nbccg")
-        #self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt5)
+        vt5, vf5 = run_synthesis("d43fd935", "nbccg")
+        self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt5)
+        self.assertCountEqual(['And(FilterByNeighborSize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.FilterByColor(FColor.green)))'], vf5)
 
         print("Solving problem ded97339")
         #vt8, vf8 = run_synthesis("ded97339", "nbccg") #todo

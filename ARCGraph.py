@@ -742,7 +742,6 @@ class ARCGraph:
         """
         if shape == Shape.square or shape == "square":
             nodes = self.graph.nodes(data=True)[node]['nodes']
-            print("nodes:", nodes)
             if not nodes:
                 return False
             min_x = min(nodes, key=lambda x: x[0])[0]
@@ -883,13 +882,17 @@ class ARCGraph:
                 for sub_node_2 in self.graph.nodes[node2]["nodes"]:
                     if sub_node_1[0] == sub_node_2[0]:
                         if sub_node_1[1] < sub_node_2[1]:
+                            print("Dir.RIGHT")
                             return Dir.RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
+                            print("Dir.LEFT")
                             return Dir.LEFT
                     elif sub_node_1[1] == sub_node_2[1]:
                         if sub_node_1[0] < sub_node_2[0]:
+                            print("Dir.DOWN")
                             return Dir.DOWN
                         elif sub_node_1[0] > sub_node_2[0]:
+                            print("Dir.UP")
                             return Dir.UP
                     elif sub_node_1[0] < sub_node_2[0]:  # DOWN
                         if sub_node_1[1] < sub_node_2[1]:

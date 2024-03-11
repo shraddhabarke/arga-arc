@@ -1,6 +1,5 @@
 from networkx.algorithms.components import connected_components
 from ARCGraph import *
-from task import *
 
 class Image:
     abstractions = ["na", "nbccg", "ccgbr", "ccgbr2", "ccg", "mcccg", "lrg", "nbvcg"]

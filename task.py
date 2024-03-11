@@ -437,3 +437,10 @@ class Task:
         self.spec = spec
         print("SPEC!!!!", self.spec)
         return self.input_abstracted_graphs_original[self.abstraction]
+
+    def reset_task(self):
+        self.input_abstracted_graphs_original[self.abstraction] = [
+            getattr(input, Image.abstraction_ops[self.abstraction])()
+            for input in self.train_input
+        ]
+        return self

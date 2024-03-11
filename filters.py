@@ -36,49 +36,6 @@ class Size(FilterASTNode):
     def get_all_values(cls):
         return list(cls._enum_members)
 
-class IsNeighbor(FilterASTNode):
-    size = 1
-    def __init__(self, value=None):
-        super().__init__(FilterTypes.RELATION)
-        self.nodeType = FilterTypes.RELATION
-        self.code = f"IsNeighbor"
-        self.size = 1
-        self.children = []
-        self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    @classmethod
-    @property
-    def nodeType(cls):
-        return FilterTypes.RELATION
-
-    @classmethod
-    def execute(cls, task, children=None):
-        if task.abstraction == "na":
-            cls.values = []
-        else:
-            cls.values = [
-                {node: list(set([
-                        neighbor for neighbor in input_graph.graph.nodes()
-                        if len(neighbor) != 3 and input_graph.get_relative_pos(node, neighbor) in
-                        [Dir.DOWN_LEFT, Dir.DOWN_RIGHT, Dir.UP_LEFT, Dir.UP_RIGHT]
-                        and node != neighbor
-                        ] + [
-                            neighbor for neighbor in input_graph.graph.neighbors(node)
-                    ]))
-                for node in input_graph.graph.nodes() if len(node) != 3}
-                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
-
-        if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
-            cls.values = []
-        cls.code = f"IsNeighbor"
-        return cls
-
-
 class SizeValue:
     arity = 0
 
@@ -328,6 +285,125 @@ class Filters(FilterASTNode):
         self.size = filters.size if filters else 0
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
+class IsAnyNeighbor(FilterASTNode):
+    size = 1
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.RELATION)
+        self.nodeType = FilterTypes.RELATION
+        self.code = f"IsAnyNeighbor"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.RELATION
+
+    @classmethod
+    def execute(cls, task, children=None):
+        if task.abstraction == "na":
+            cls.values = []
+        else:
+            task = task.reset_task()
+            cls.values = [
+                {node: list(set([
+                        neighbor for neighbor in input_graph.graph.nodes() if
+                        input_graph.get_relative_pos(node, neighbor) is not None
+                        and node != neighbor]
+                    ))
+                for node in input_graph.graph.nodes()}
+                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+
+        if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
+            cls.values = []
+        cls.code = f"IsAnyNeighbor"
+        return cls
+
+class IsNeighbor(FilterASTNode):
+    size = 1
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.RELATION)
+        self.nodeType = FilterTypes.RELATION
+        self.code = f"IsNeighbor"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.RELATION
+
+    @classmethod
+    def execute(cls, task, children=None):
+        if task.abstraction == "na":
+            cls.values = []
+        else:
+            task = task.reset_task()
+            cls.values = [
+                {node: list(set([
+                        neighbor for neighbor in input_graph.graph.nodes() if
+                        input_graph.get_relative_pos(node, neighbor) in [Dir.LEFT, Dir.RIGHT, Dir.UP, Dir.DOWN]
+                        and node != neighbor] + [neighbor for neighbor in input_graph.graph.neighbors(node)] # needed for the color problem
+                    ))
+                for node in input_graph.graph.nodes()}
+                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+
+        if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
+            cls.values = []
+        cls.code = f"IsDirectNeighbor"
+        return cls
+
+class IsDiagonalNeighbor(Filters):
+    size = 1
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.RELATION)
+        self.nodeType = FilterTypes.RELATION
+        self.code = f"IsDiagonalNeighbor"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.RELATION
+
+    @classmethod
+    def execute(cls, task, children=None):
+        if task.abstraction == "na":
+            cls.values = []
+        else:
+            task = task.reset_task()
+            cls.values = [
+                {node: list(set([
+                        neighbor for neighbor in input_graph.graph.nodes() if
+                        input_graph.get_relative_pos(node, neighbor) in [Dir.UP_LEFT, Dir.UP_RIGHT, Dir.DOWN_LEFT, Dir.DOWN_RIGHT]
+                        and node != neighbor]
+                    ))
+                for node in input_graph.graph.nodes()}
+                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+
+        if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
+            cls.values = []
+        cls.code = f"IsDiagonalNeighbor"
+        return cls
 
 class And(FilterASTNode):
     arity = 2
@@ -422,7 +498,9 @@ class Or(FilterASTNode):
         for i, _ in enumerate(unioned_values):
             filtered_nodes_dict = {node: [] for node in unioned_values[i]}
             res_dict.append(filtered_nodes_dict)
+
         if task.spec:
+            print("filters:", children[0].code, children[1].code)
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 union_keys = set(dict1.keys()) | set(dict2.keys())  # Union of keys between dict1 and dict2
