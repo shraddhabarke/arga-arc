@@ -665,9 +665,11 @@ class ARCGraph:
 
     def FilterByColumns(self, node, column: Column):
         column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
-        #if column == "MAX":
+        if column == "MOD3":
+            col = self.mod_3(column)
+            return all(node in col for node in column_nodes)
             #height = self.get_attribute_max("height")
-        if column == "ODD":
+        elif column == "ODD":
             col = self.get_odd(column)
             return all(node in col for node in column_nodes) # is the entire object in odd columns
         elif column == "EVEN":
@@ -676,7 +678,7 @@ class ARCGraph:
         if column == "CENTER":
             col = self.get_center(column)
             return all(node in col for node in column_nodes) # is the entire object in the center column
-        return False # todo
+        return False
 
     def FilterBySize(self, node, size: Size):
         """
@@ -842,7 +844,6 @@ class ARCGraph:
         """
         if len(list(self.graph.nodes)) == 0:
             return None
-        columns = list(set([node[1] for node in self.image.graph.nodes()])) # all columns
         even_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 == 0]))
         return even_values
 
@@ -852,9 +853,17 @@ class ARCGraph:
         """
         if len(list(self.graph.nodes)) == 0:
             return None
-        columns = list(set([node[1] for node in self.image.graph.nodes()])) # all columns
-        even_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 != 0]))
-        return even_values
+        odd_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 != 0]))
+        return odd_values
+
+    def mod_3(self, attribute_name):
+        """
+        get the mod % 3 columns
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        odd_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 3 == 0]))
+        return odd_values
 
     def get_color(self, node):
         """

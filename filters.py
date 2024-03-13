@@ -235,7 +235,8 @@ def setup_size_and_degree_based_on_task(task):
     task_columns = [d for d in task.columns[task.abstraction]]
     _column_additional = {f"{item}": int(item) for item in task_columns}
     ColumnEnum = Enum(
-        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", **_column_additional}
+        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD" : "ODD",
+                       "MOD3" : "MOD3", **_column_additional}
     )
 
     task_rows = [d for d in task.rows[task.abstraction]]
