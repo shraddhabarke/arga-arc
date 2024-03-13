@@ -237,7 +237,11 @@ def run_synthesis(taskNumber, abstraction):
                     program for program in filters_sol]
 
 #4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec
-evals = {"ddf7fa4f": "nbccg"}
+# evals = {"ddf7fa4f": "nbccg"}
+
+# evals = {"42a50994": "nbccgm"}
+evals = {"b6afb2da": "sp"}
+
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -601,3 +605,4 @@ class TestEvaluation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+    # pass
