@@ -3,6 +3,7 @@ from typing import Union, List, Dict
 from transform import Dir
 
 class FilterTypes(Enum):
+    INT = "Int"
     FILTERS = "Filters"
     # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
@@ -234,7 +235,7 @@ def setup_size_and_degree_based_on_task(task):
     task_columns = [d for d in task.columns[task.abstraction]]
     _column_additional = {f"{item}": int(item) for item in task_columns}
     ColumnEnum = Enum(
-        "ColumnEnum", {"CENTER": "CENTER", **_column_additional}
+        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", **_column_additional}
     )
 
     task_rows = [d for d in task.rows[task.abstraction]]
@@ -330,6 +331,41 @@ class Shape(FilterASTNode, Enum):
     @property
     def nodeType(cls):
         return FilterTypes.SHAPE
+
+    def execute(cls, task, children):
+        return cls
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
+
+class Int(FilterASTNode, Enum):
+    one = 1
+    two = 2
+    three = 3
+    four = 4
+    five = 5
+    six = 6
+    seven = 7
+    eight = 8
+
+    def __init__(self, value=None):
+        super().__init__(FilterTypes.INT)
+        self.nodeType = FilterTypes.INT
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return FilterTypes.INT
 
     def execute(cls, task, children):
         return cls
@@ -618,7 +654,6 @@ class Not(FilterASTNode):
         new_instance = cls(children[0])
         new_instance.values = res_dict
         return new_instance
-
 
 class FilterByColor(Filters):
     arity = 1

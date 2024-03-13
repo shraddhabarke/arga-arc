@@ -18,7 +18,7 @@ tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, I
                 Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix! Insert
-f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
+f_vocabMakers = [FColor, Int, Degree, Height, Width, Size, Shape, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
                 FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
 
 #f_vocabMakers = [Column, FilterByColumns, Not]
@@ -104,7 +104,7 @@ def run_synthesis(taskNumber, abstraction):
             program = enumerator.next()
             i += 1
             results = program.values
-            #print(f"Program: {program.code}: {results, program.size}")
+            print(f"Program: {program.code}: {results, program.size}")
             print("subset:", subset)
             print("results:", results)
             if filter_compare(results, subset):
@@ -240,7 +240,7 @@ def run_synthesis(taskNumber, abstraction):
 
 #4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec, dbc1a6ce
 
-evals = {"d23f8c26": "nbccg"}
+evals = {"a5f85a15": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -311,13 +311,19 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], ct0)
         self.assertCountEqual(['Not(FilterByColumns(COLUMN.CENTER))', 'FilterByColumns(COLUMN.CENTER)'], cf0)
 
-        print("Solving problem a5f85a15")
-        #ct1, cf1 = run_synthesis("a5f85a15", "nbccg")
-        #self.assertCountEqual([], ct1)
-        #self.assertCountEqual([], cf1)
-        # FilterByColumns(Mod(Columns, 2))
+        print("Solving problem a5f85a15") # even columns
+        ct1, cf1 = run_synthesis("a5f85a15", "nbccg")
+        self.assertCountEqual(['NoOp', 'updateColor(Color.yellow)'], ct1)
+        self.assertCountEqual(['FilterByColumns(COLUMN.EVEN)', 'Not(FilterByColumns(COLUMN.EVEN))'], cf1)
+
+        print("Solving problem ba26e723")
 
         print("Solving problem b2862040")
+        #ct2, cf2 = run_synthesis("b2862040", "nbccg")
+        #self.assertCountEqual([], ct1)
+        #self.assertCountEqual([], cf1)
+
+        print("Solving problem 810b9b61")
         #ct2, cf2 = run_synthesis("b2862040", "nbccg")
         #self.assertCountEqual([], ct1)
         #self.assertCountEqual([], cf1)

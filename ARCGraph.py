@@ -669,11 +669,12 @@ class ARCGraph:
             #height = self.get_attribute_max("height")
         #elif column == "MIN":
             #height = self.get_attribute_min("height")
-        #elif column == "ODD":
-            #return self.graph.nodes[node]["height"] % 2 != 0
+        if column == "EVEN":
+            col = self.get_even(column)
+            return all(node in col for node in column_nodes) # is the entire object in even columns
         if column == "CENTER":
             col = self.get_center(column)
-            return all(node in col for node in column_nodes)
+            return all(node in col for node in column_nodes) # is the entire object in the center column
         return False # todo
 
     def FilterBySize(self, node, size: Size):
@@ -816,6 +817,16 @@ class ARCGraph:
             # If even, return the two middle elements as a list
             centers = values[n // 2 - 1:n // 2 + 1]
         return centers
+
+    def get_even(self, attribute_name):
+        """
+        get the minimum value of the given attribute
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        columns = list(set([node[1] for node in self.image.graph.nodes()])) # all columns
+        even_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 == 0]))
+        return even_values
 
     def get_color(self, node):
         """
