@@ -45,6 +45,8 @@ class Task:
         self.object_degrees = dict()  # node_object degrees to use for filters
         self.object_heights = dict()
         self.object_widths = dict()
+        self.rows = dict()
+        self.columns = dict()
         self.load_task_from_file(filepath)
         self.spec = None  # for variable filter synthesis
 
@@ -127,6 +129,8 @@ class Task:
         self.object_degrees[abstraction] = set()
         self.object_heights[abstraction] = set()
         self.object_widths[abstraction] = set()
+        self.rows[abstraction] = set()
+        self.columns[abstraction] = set()
         for abs_graph in self.input_abstracted_graphs_original[abstraction]:
             for node, size in abs_graph.graph.nodes(data="size"):
                 self.object_sizes[abstraction].add(size)
@@ -136,7 +140,9 @@ class Task:
                 self.object_heights[abstraction].add(height)
             for node, width in abs_graph.graph.nodes(data="width"):
                 self.object_widths[abstraction].add(width)
-
+            self.rows[abstraction].update(set([node[0] for node in abs_graph.graph.nodes()]))
+            self.columns[abstraction].update(set([node[1] for node in abs_graph.graph.nodes()]))
+        
     def evaluate_program(
         self,
         program: t.List[t.Tuple[FilterASTNode, t.List[TransformASTNode]]],
@@ -284,6 +290,7 @@ class Task:
                 if input_abstracted_graph.apply_filters(node[0], filter):
                     filtered_nodes_i.append(node[0])
             filtered_nodes.append(filtered_nodes_i)
+        
         for i, _ in enumerate(filtered_nodes):
             filtered_nodes_dict = {node: [] for node in filtered_nodes[i]}
             filtered_nodes_dict_list.append(filtered_nodes_dict)

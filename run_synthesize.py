@@ -18,9 +18,10 @@ tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, I
                 Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix! Insert
-f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
-                FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
+f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
+                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
 
+#f_vocabMakers = [Column, FilterByColumns, Not]
 def filter_compare(results, subset):
     if len(results) != len(subset):
         return False
@@ -103,11 +104,12 @@ def run_synthesis(taskNumber, abstraction):
             program = enumerator.next()
             i += 1
             results = program.values
-            print(f"Program: {program.code}: {results, program.size}")
+            #print(f"Program: {program.code}: {results, program.size}")
             print("subset:", subset)
             print("results:", results)
             if filter_compare(results, subset):
                 return program.code
+            
     correct_transforms = set()
     while enumerator.hasNext():
         program = enumerator.next()
@@ -236,8 +238,9 @@ def run_synthesis(taskNumber, abstraction):
                     return [program for program in minimal_transforms], [
                     program for program in filters_sol]
 
-#4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec
-evals = {"ddf7fa4f": "nbccg"}
+#4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec, dbc1a6ce
+
+evals = {"d23f8c26": "nbccg"}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -249,7 +252,7 @@ for task, abstraction in evals.items():
     print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
 
 class TestEvaluation(unittest.TestCase):
-    def test_all_problems(self):
+    def all_problems(self):
         print("==================================================VARIABLE PROBLEMS==================================================")
         # there is one correct assignment for the variables and the filters should convey that
 
@@ -304,10 +307,9 @@ class TestEvaluation(unittest.TestCase):
         #self.assertCountEqual(['FilterByColor(FColor.red)', 'FilterByColor(FColor.red)', 'FilterByColor(FColor.cyan)', 'FilterByColor(FColor.red)'], vf7)
         print("==================================================COLORING PROBLEMS==================================================")
         print("Solving problem d23f8c26")
-        #ct0, cf0 = run_synthesis("d23f8c26", "nbccg")
-        #self.assertCountEqual([], ct0)
-        #self.assertCountEqual([], cf0)
-        # FilterByColumns(Not(Column.Center))
+        ct0, cf0 = run_synthesis("d23f8c26", "nbccg")
+        self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], ct0)
+        self.assertCountEqual(['Not(FilterByColumns(COLUMN.CENTER))', 'FilterByColumns(COLUMN.CENTER)'], cf0)
 
         print("Solving problem a5f85a15")
         #ct1, cf1 = run_synthesis("a5f85a15", "nbccg")

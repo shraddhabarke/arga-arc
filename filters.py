@@ -12,6 +12,8 @@ class FilterTypes(Enum):
     DEGREE = "Degree"
     RELATION = "Relation"
     SHAPE = "Shape"
+    COLUMN = "Column"
+    ROW = "Row"
 
 class FilterASTNode:
     def __init__(self, children=None):
@@ -126,21 +128,6 @@ class Width(FilterASTNode):
         return list(cls._enum_members)
 
 
-class Size(FilterASTNode):
-    _all_values = set()
-    arity = 0
-    nodeType = FilterTypes.SIZE
-
-    def __new__(cls, enum_value):
-        instance = SizeValue(enum_value)
-        cls._all_values.add(instance)
-        return instance
-
-    @classmethod
-    def get_all_values(cls):
-        return list(cls._enum_members)
-
-
 class Degree(FilterASTNode):
     _all_values = set()
     arity = 0
@@ -154,6 +141,64 @@ class Degree(FilterASTNode):
     @classmethod
     def get_all_values(cls):
         return list(cls._enum_members)
+
+
+class Column(FilterASTNode):
+    _all_values = set()
+    arity = 0
+    nodeType = FilterTypes.COLUMN
+
+    def __new__(cls, enum_value):
+        instance = ColumnValue(enum_value)
+        cls._all_values.add(instance)
+        return instance
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls._enum_members)
+
+
+class ColumnValue:
+    arity = 0
+
+    def __init__(self, enum_value):
+        self.value = enum_value.value
+        self.nodeType = FilterTypes.COLUMN
+        self.code = f"COLUMN.{enum_value.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    def execute(cls, task, children=None):
+        return cls
+
+class Row(FilterASTNode):
+    _all_values = set()
+    arity = 0
+    nodeType = FilterTypes.ROW
+
+    def __new__(cls, enum_value):
+        instance = RowValue(enum_value)
+        cls._all_values.add(instance)
+        return instance
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls._enum_members)
+
+class RowValue:
+    arity = 0
+
+    def __init__(self, enum_value):
+        self.value = enum_value.value
+        self.nodeType = FilterTypes.ROW
+        self.code = f"ROW.{enum_value.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    def execute(cls, task, children=None):
+        return cls
 
 
 def setup_size_and_degree_based_on_task(task):
@@ -170,7 +215,7 @@ def setup_size_and_degree_based_on_task(task):
         "DegreeEnum", {"MIN": "MIN", "MAX": "MAX",
                        "ODD": "ODD", **_degree_additional}
     )
-    _degrees, _sizes, _heights, _widths = [], [], [], []
+    _degrees, _sizes, _heights, _widths, _columns, _rows = [], [], [], [], [], []
 
     task_heights = [d for d in task.object_heights[task.abstraction]]
     _height_additional = {f"{item}": int(item) for item in task_heights}
@@ -182,8 +227,21 @@ def setup_size_and_degree_based_on_task(task):
     task_widths = [d for d in task.object_widths[task.abstraction]]
     _width_additional = {f"{item}": int(item) for item in task_widths}
     WidthEnum = Enum(
-        "HeightEnum", {"MIN": "MIN", "MAX": "MAX",
+        "WidthEnum", {"MIN": "MIN", "MAX": "MAX",
                        "ODD": "ODD", **_width_additional}
+    )
+
+    task_columns = [d for d in task.columns[task.abstraction]]
+    _column_additional = {f"{item}": int(item) for item in task_columns}
+    ColumnEnum = Enum(
+        "ColumnEnum", {"CENTER": "CENTER", **_column_additional}
+    )
+
+    task_rows = [d for d in task.rows[task.abstraction]]
+    _row_additional = {f"{item}": int(item) for item in task_rows}
+    RowEnum = Enum(
+        "RowEnum", {"MIN": "MIN", "MAX": "MAX",
+                       "ODD": "ODD", "CENTER": "CENTER", **_row_additional}
     )
 
     for name, member in SizeEnum.__members__.items():
@@ -198,12 +256,19 @@ def setup_size_and_degree_based_on_task(task):
     for name, member in WidthEnum.__members__.items():
         setattr(Width, name, Width(member))
         _widths.append(Width(member))
+    for name, member in ColumnEnum.__members__.items():
+        setattr(Column, name, Column(member))
+        _columns.append(Column(member))
+    for name, member in RowEnum.__members__.items():
+        setattr(Row, name, Row(member))
+        _rows.append(Row(member))
 
     Size._enum_members = _sizes
     Degree._enum_members = _degrees
     Width._enum_members = _widths
     Height._enum_members = _heights
-
+    Column._enum_members = _columns
+    Row._enum_members = _rows
 
 class FColor(FilterASTNode, Enum):
     black = "O"
@@ -688,15 +753,18 @@ class FilterByContainment(Filters):
 #todo
 class FilterByColumns(Filters):
     arity = 1
-    childTypes = [FilterTypes.SIZE]
     default_size = 1
-    def __init__(self, size: Size):
+    nodeType = FilterTypes.FILTERS
+    size = 1
+    childTypes = [FilterTypes.COLUMN]
+
+    def __init__(self, col: Column):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByColumns({size.code})"
-        self.size = self.default_size + size.size
-        self.children = [size]
-        self.childTypes = [FilterTypes.SIZE]
+        self.code = f"FilterByColumns({col.code})"
+        self.size = self.default_size + col.size
+        self.children = [col]
+        self.childTypes = [FilterTypes.COLUMN]
 
     @classmethod
     def execute(cls, task, children):

@@ -663,6 +663,19 @@ class ARCGraph:
             return self.graph.nodes[node]["width"] % 2 != 0
         return self.graph.nodes[node]["width"] == width
 
+    def FilterByColumns(self, node, column: Column):
+        column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
+        #if column == "MAX":
+            #height = self.get_attribute_max("height")
+        #elif column == "MIN":
+            #height = self.get_attribute_min("height")
+        #elif column == "ODD":
+            #return self.graph.nodes[node]["height"] % 2 != 0
+        if column == "CENTER":
+            col = self.get_center(column)
+            return all(node in col for node in column_nodes)
+        return False # todo
+
     def FilterBySize(self, node, size: Size):
         """
         return true if node has size equal to given size.
@@ -771,11 +784,6 @@ class ARCGraph:
             return is_square_formed_by_points(list(missing_points))
         return False
 
-    def FilterByColumns(self, node, column: int):
-        """
-
-        """
-        pass
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
         """
@@ -792,6 +800,22 @@ class ARCGraph:
         if len(list(self.graph.nodes)) == 0:
             return None
         return min([data[attribute_name] for node, data in self.graph.nodes(data=True)])
+
+    def get_center(self, attribute_name):
+        """
+        get the minimum value of the given attribute
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        values = list(set([node[1] for node in self.image.graph.nodes()])) #[node[1] for node in self.graph.nodes]
+        n = len(values)
+        if n % 2 == 1:
+            # If odd, return the single middle element as a list
+            centers = [values[n // 2]]
+        else:
+            # If even, return the two middle elements as a list
+            centers = values[n // 2 - 1:n // 2 + 1]
+        return centers
 
     def get_color(self, node):
         """
