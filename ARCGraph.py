@@ -667,9 +667,10 @@ class ARCGraph:
         column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
         #if column == "MAX":
             #height = self.get_attribute_max("height")
-        #elif column == "MIN":
-            #height = self.get_attribute_min("height")
-        if column == "EVEN":
+        if column == "ODD":
+            col = self.get_odd(column)
+            return all(node in col for node in column_nodes) # is the entire object in odd columns
+        elif column == "EVEN":
             col = self.get_even(column)
             return all(node in col for node in column_nodes) # is the entire object in even columns
         if column == "CENTER":
@@ -754,7 +755,24 @@ class ARCGraph:
         """
         return true if node contains a square-shaped hole
         """
-        if shape == Shape.square or shape == "square":
+        if shape == Shape.enclosed or shape == "enclosed":
+            nodes = self.graph.nodes(data=True)[node]['nodes']
+            if not nodes:
+                return False
+            min_x = min(nodes, key=lambda x: x[0])[0]
+            max_x = max(nodes, key=lambda x: x[0])[0]
+            min_y = min(nodes, key=lambda x: x[1])[1]
+            max_y = max(nodes, key=lambda x: x[1])[1]
+            all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+            missing_points = set(all_points) - set(nodes)
+            if len(missing_points) == 0:
+                return False # no holes in the shape
+            edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+            if any(point in edge_points for point in missing_points):
+                return False  # hole points are at the edge
+            else:
+                return True
+        elif shape == Shape.square or shape == "square":
             nodes = self.graph.nodes(data=True)[node]['nodes']
             if not nodes:
                 return False
@@ -820,12 +838,22 @@ class ARCGraph:
 
     def get_even(self, attribute_name):
         """
-        get the minimum value of the given attribute
+        get the even columns
         """
         if len(list(self.graph.nodes)) == 0:
             return None
         columns = list(set([node[1] for node in self.image.graph.nodes()])) # all columns
         even_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 == 0]))
+        return even_values
+
+    def get_odd(self, attribute_name):
+        """
+        get the odd columns
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        columns = list(set([node[1] for node in self.image.graph.nodes()])) # all columns
+        even_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 != 0]))
         return even_values
 
     def get_color(self, node):

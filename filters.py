@@ -312,7 +312,7 @@ class FColor(FilterASTNode, Enum):
 
 class Shape(FilterASTNode, Enum):
     square = "square"
-    any = "enclosed"
+    enclosed = "enclosed"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.SHAPE)
@@ -762,15 +762,14 @@ class FilterByDegree(Filters):
 class FilterByShape(Filters):
     arity = 1
     default_size = 1
-    nodeType = FilterTypes.FILTERS
     size = 1
     childTypes = [FilterTypes.SHAPE]
 
     def __init__(self, shape: Shape):
         super().__init__()
-        self.nodeType = FilterTypes.SHAPE
+        self.nodeType = FilterTypes.FILTERS
         self.code = f"FilterByShape({shape.code})"
-        self.size = self.default_size
+        self.size = self.default_size + shape.size
         self.children = [shape]
         self.childTypes = [FilterTypes.SHAPE]
 
