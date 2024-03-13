@@ -18,9 +18,10 @@ tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, I
                 Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix! Insert
-f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
-                FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
+f_vocabMakers = [FColor, Int, Degree, Height, Width, Size, Shape, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByShape, FilterByDegree, FilterByHeight,
+                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
 
+#f_vocabMakers = [Column, FilterByColumns, Not]
 def filter_compare(results, subset):
     if len(results) != len(subset):
         return False
@@ -54,7 +55,7 @@ def run_synthesis(taskNumber, abstraction):
     transform_vocab = VocabFactory.create(tleaf_makers)
     input_graphs = [input_graph.graph.nodes(
         data=True) for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
-    print("input-graphs:", input_graphs)
+    print("input-graphs:", [input_graph.graph.nodes() for input_graph in task.input_abstracted_graphs_original[task.abstraction]])
     enumerator = TSizeEnumerator(task, transform_vocab, ValuesManager())
     # has the entire unabstracted output graphs
     expected_graphs = [output.graph.nodes(
@@ -103,11 +104,12 @@ def run_synthesis(taskNumber, abstraction):
             program = enumerator.next()
             i += 1
             results = program.values
-            print(f"Program: {program.code}: {results, program.size}")
+            #print(f"Program: {program.code}: {results, program.size}")
             print("subset:", subset)
             print("results:", results)
             if filter_compare(results, subset):
                 return program.code
+            
     correct_transforms = set()
     while enumerator.hasNext():
         program = enumerator.next()
@@ -236,12 +238,9 @@ def run_synthesis(taskNumber, abstraction):
                     return [program for program in minimal_transforms], [
                     program for program in filters_sol]
 
-#4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec
-# evals = {"ddf7fa4f": "nbccg"}
+#4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec, dbc1a6ce
 
-# evals = {"42a50994": "nbccgm"}
-evals = {"b6afb2da": "sp"}
-
+evals = {}
 # todo: add insert 3618c87e
 
 for task, abstraction in evals.items():
@@ -308,21 +307,26 @@ class TestEvaluation(unittest.TestCase):
         #self.assertCountEqual(['FilterByColor(FColor.red)', 'FilterByColor(FColor.red)', 'FilterByColor(FColor.cyan)', 'FilterByColor(FColor.red)'], vf7)
         print("==================================================COLORING PROBLEMS==================================================")
         print("Solving problem d23f8c26")
-        #ct0, cf0 = run_synthesis("d23f8c26", "nbccg")
-        #self.assertCountEqual([], ct0)
-        #self.assertCountEqual([], cf0)
-        # FilterByColumns(Not(Column.Center))
+        ct0, cf0 = run_synthesis("d23f8c26", "nbccg")
+        self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], ct0)
+        self.assertCountEqual(['Not(FilterByColumns(COLUMN.CENTER))', 'FilterByColumns(COLUMN.CENTER)'], cf0)
 
-        print("Solving problem a5f85a15")
-        #ct1, cf1 = run_synthesis("a5f85a15", "nbccg")
-        #self.assertCountEqual([], ct1)
-        #self.assertCountEqual([], cf1)
-        # FilterByColumns(Mod(Columns, 2))
+        print("Solving problem a5f85a15") # even columns
+        ct1, cf1 = run_synthesis("a5f85a15", "nbccg")
+        self.assertCountEqual(['NoOp', 'updateColor(Color.yellow)'], ct1)
+        self.assertCountEqual(['FilterByColumns(COLUMN.EVEN)', 'Not(FilterByColumns(COLUMN.EVEN))'], cf1)
+
+        print("Solving problem ba26e723")
 
         print("Solving problem b2862040")
         #ct2, cf2 = run_synthesis("b2862040", "nbccg")
         #self.assertCountEqual([], ct1)
         #self.assertCountEqual([], cf1)
+
+        print("Solving problem 810b9b61")
+        ct2, cf2 = run_synthesis("810b9b61", "nbccg")
+        self.assertCountEqual(['updateColor(Color.green)', 'NoOp'], ct2)
+        self.assertCountEqual(['FilterByShape(Shape.enclosed)', 'Not(FilterByShape(Shape.enclosed))'], cf2)
 
         print("Solving problem f76d97a5")
         t0, f0 = run_synthesis("f76d97a5", "nbccg")
@@ -380,7 +384,7 @@ class TestEvaluation(unittest.TestCase):
         t8, f8 = run_synthesis("810b9b61", "ccgbr")
         self.assertCountEqual(['updateColor(Color.green)', 'NoOp'], t8)
         self.assertCountEqual(
-        ['FilterByNeighborDegree(DEGREE.1)', 'Not(FilterByNeighborDegree(DEGREE.1))'], f8)
+        ['FilterByShape(Shape.enclosed)', 'Not(FilterByShape(Shape.enclosed))'], f8)
 
         print("Solving problem a5313dff")
         t9, f9 = run_synthesis("a5313dff", "ccgbr")

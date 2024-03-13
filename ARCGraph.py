@@ -663,6 +663,21 @@ class ARCGraph:
             return self.graph.nodes[node]["width"] % 2 != 0
         return self.graph.nodes[node]["width"] == width
 
+    def FilterByColumns(self, node, column: Column):
+        column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
+        #if column == "MAX":
+            #height = self.get_attribute_max("height")
+        if column == "ODD":
+            col = self.get_odd(column)
+            return all(node in col for node in column_nodes) # is the entire object in odd columns
+        elif column == "EVEN":
+            col = self.get_even(column)
+            return all(node in col for node in column_nodes) # is the entire object in even columns
+        if column == "CENTER":
+            col = self.get_center(column)
+            return all(node in col for node in column_nodes) # is the entire object in the center column
+        return False # todo
+
     def FilterBySize(self, node, size: Size):
         """
         return true if node has size equal to given size.
@@ -740,7 +755,24 @@ class ARCGraph:
         """
         return true if node contains a square-shaped hole
         """
-        if shape == Shape.square or shape == "square":
+        if shape == Shape.enclosed or shape == "enclosed":
+            nodes = self.graph.nodes(data=True)[node]['nodes']
+            if not nodes:
+                return False
+            min_x = min(nodes, key=lambda x: x[0])[0]
+            max_x = max(nodes, key=lambda x: x[0])[0]
+            min_y = min(nodes, key=lambda x: x[1])[1]
+            max_y = max(nodes, key=lambda x: x[1])[1]
+            all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+            missing_points = set(all_points) - set(nodes)
+            if len(missing_points) == 0:
+                return False # no holes in the shape
+            edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+            if any(point in edge_points for point in missing_points):
+                return False  # hole points are at the edge
+            else:
+                return True
+        elif shape == Shape.square or shape == "square":
             nodes = self.graph.nodes(data=True)[node]['nodes']
             if not nodes:
                 return False
@@ -771,11 +803,6 @@ class ARCGraph:
             return is_square_formed_by_points(list(missing_points))
         return False
 
-    def FilterByColumns(self, node, column: int):
-        """
-
-        """
-        pass
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
         """
@@ -792,6 +819,42 @@ class ARCGraph:
         if len(list(self.graph.nodes)) == 0:
             return None
         return min([data[attribute_name] for node, data in self.graph.nodes(data=True)])
+
+    def get_center(self, attribute_name):
+        """
+        get the minimum value of the given attribute
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        values = list(set([node[1] for node in self.image.graph.nodes()])) #[node[1] for node in self.graph.nodes]
+        n = len(values)
+        if n % 2 == 1:
+            # If odd, return the single middle element as a list
+            centers = [values[n // 2]]
+        else:
+            # If even, return the two middle elements as a list
+            centers = values[n // 2 - 1:n // 2 + 1]
+        return centers
+
+    def get_even(self, attribute_name):
+        """
+        get the even columns
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        columns = list(set([node[1] for node in self.image.graph.nodes()])) # all columns
+        even_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 == 0]))
+        return even_values
+
+    def get_odd(self, attribute_name):
+        """
+        get the odd columns
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        columns = list(set([node[1] for node in self.image.graph.nodes()])) # all columns
+        even_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 2 != 0]))
+        return even_values
 
     def get_color(self, node):
         """
