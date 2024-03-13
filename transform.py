@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Union, List, Dict, Iterator, Any, Tuple, Optional
 
-
 class Types(Enum):
     TRANSFORMS = "Transforms"
     COLOR = "Color"
@@ -55,11 +54,11 @@ class Color(TransformASTNode, Enum):
     green = "G"
     yellow = "Y"
     grey = "X"
+    cyan = "C"
+    most = "most"
     fuchsia = "F"
     orange = "A"
-    cyan = "C"
     brown = "W"
-    most = "most"
     least = "least"
 
     def __init__(self, value=None):

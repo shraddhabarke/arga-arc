@@ -81,37 +81,45 @@ class ARCGraph:
                 self.graph.nodes[node]["color"] = color
         return self
 
-    def MoveNode(self, node, direction: Dir, n: int = 1):
+    def MoveNode(self, node, direction: Dir, n: Height = 1):
         """
         move node by 1 pixel in a given direction
         """
         assert direction is not None
-        ogpixels = set() # list of pixels which should go back to their original color!
+        ogpixels = set()  # list of pixels which should go back to their original color!
         updated_sub_nodes = set()
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or \
-        direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
+        if direction == "U" or direction == Dir.UP:
             delta_y = -n
-        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or \
-        direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
+        elif direction == "D" or direction == Dir.DOWN:
             delta_y = n
-        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or \
-        direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
+        elif direction == "L" or direction == Dir.LEFT:
             delta_x = -n
-        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or \
-        direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
+        elif direction == "R" or direction == Dir.RIGHT:
             delta_x = n
-
+        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+            delta_x = n
+            delta_y = n
+        elif direction == Dir.DOWN_LEFT or direction == "DL":
+            delta_y = n
+            delta_x = -n
+        elif direction == Dir.UP_LEFT or direction == "UL":
+            delta_x = -n
+            delta_y = -n
+        elif direction == Dir.UP_RIGHT or direction == "UR":
+            delta_x = n
+            delta_y = -n
         for sub_node in self.graph.nodes[node]["nodes"]:
             if sub_node[0] + delta_y == self.width or sub_node[1] + delta_x == self.height:
                 updated_sub_nodes.add((sub_node[0], sub_node[1]))
             elif self.check_inbound((sub_node[0] + delta_y, sub_node[1] + delta_x)):
-                updated_sub_nodes.add((sub_node[0] + delta_y, sub_node[1] + delta_x))
+                updated_sub_nodes.add(
+                    (sub_node[0] + delta_y, sub_node[1] + delta_x))
 
         for sub_node in self.graph.nodes[node]["nodes"]:
             if (sub_node[0] + delta_y == sub_node[0] or sub_node[0] + delta_y == self.width) \
-            and (sub_node[1] + delta_x == sub_node[1] or sub_node[1] + delta_x == self.height) or sub_node in updated_sub_nodes:
+                    and (sub_node[1] + delta_x == sub_node[1] or sub_node[1] + delta_x == self.height) or sub_node in updated_sub_nodes:
                 continue
             else:
                 ogpixels.add(sub_node)
@@ -120,11 +128,11 @@ class ARCGraph:
             new_node_id = self.generate_node_id(self.image.background_color)
             if self.is_multicolor:
                 self.graph.add_node(
-                (node[0], node[1], 0),
-                nodes=list(ogpixels),
-                color=[self.image.background_color for _ in ogpixels],
-                size=len(ogpixels),
-            )
+                    (node[0], node[1], 0),
+                    nodes=list(ogpixels),
+                    color=[self.image.background_color for _ in ogpixels],
+                    size=len(ogpixels),
+                )
             else:
                 self.graph.add_node(
                     (node[0], node[1], 0),
@@ -137,7 +145,7 @@ class ARCGraph:
 
         return self
 
-    def ExtendNode(self, node, direction: Dir, overlap: Overlap = False):
+    def ExtendNode(self, node, direction: Dir, overlap: Overlap = False, n: int = 1):
         """
         extend node in a given direction,
         if overlap is true, extend node even if it overlaps with another node
@@ -147,14 +155,26 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == "UL" or direction == "UR" or direction == Dir.UP or direction == Dir.UP_LEFT or direction == Dir.UP_RIGHT:
-            delta_y = -1
-        elif direction == "D" or direction == "DL" or direction == "DR" or direction == Dir.DOWN or direction == Dir.DOWN_LEFT or direction == Dir.DOWN_RIGHT:
-            delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
-            delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
-            delta_x = 1
+        if direction == "U" or direction == Dir.UP:
+            delta_y = -n
+        elif direction == "D" or direction == Dir.DOWN:
+            delta_y = n
+        elif direction == "L" or direction == Dir.LEFT:
+            delta_x = -n
+        elif direction == "R" or direction == Dir.RIGHT:
+            delta_x = n
+        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+            delta_x = n
+            delta_y = n
+        elif direction == Dir.DOWN_LEFT or direction == "DL":
+            delta_y = n
+            delta_x = -n
+        elif direction == Dir.UP_LEFT or direction == "UL":
+            delta_x = -n
+            delta_y = -n
+        elif direction == Dir.UP_RIGHT or direction == "UR":
+            delta_x = n
+            delta_y = -n
         for sub_node in self.graph.nodes[node]["nodes"]:
             sub_node_y = sub_node[0]
             sub_node_x = sub_node[1]
@@ -176,36 +196,34 @@ class ARCGraph:
         self.graph.nodes[node]["size"] = len(updated_sub_nodes)
         return self
 
-    def MoveNodeMax(self, node, direction: Dir):
+    def MoveNodeMax(self, node, direction: Dir, n: int = 1):
         """
         move node in a given direction until it hits another node or the edge of the image
         """
-        ogpixels = set() # list of pixels which should go back to their original color!
+        ogpixels = set()  # list of pixels which should go back to their original color!
         assert direction is not None
         delta_x = 0
         delta_y = 0
-        if (
-            direction == "U"
-            or direction == "UL"
-            or direction == "UR"
-            or direction == Dir.UP
-            or direction == Dir.UP_LEFT
-            or direction == Dir.UP_RIGHT
-        ):
-            delta_y = -1
-        elif (
-            direction == "D"
-            or direction == "DL"
-            or direction == "DR"
-            or direction == Dir.DOWN
-            or direction == Dir.DOWN_LEFT
-            or direction == Dir.DOWN_RIGHT
-        ):
-            delta_y = 1
-        if direction == "L" or direction == "UL" or direction == "DL" or direction == Dir.LEFT or direction == Dir.UP_LEFT or direction == Dir.DOWN_LEFT:
-            delta_x = -1
-        elif direction == "R" or direction == "UR" or direction == "DR" or direction == Dir.RIGHT or direction == Dir.UP_RIGHT or direction == Dir.DOWN_RIGHT:
-            delta_x = 1
+        if direction == "U" or direction == Dir.UP:
+            delta_y = -n
+        elif direction == "D" or direction == Dir.DOWN:
+            delta_y = n
+        elif direction == "L" or direction == Dir.LEFT:
+            delta_x = -n
+        elif direction == "R" or direction == Dir.RIGHT:
+            delta_x = n
+        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+            delta_x = n
+            delta_y = n
+        elif direction == Dir.DOWN_LEFT or direction == "DL":
+            delta_y = n
+            delta_x = -n
+        elif direction == Dir.UP_LEFT or direction == "UL":
+            delta_x = -n
+            delta_y = -n
+        elif direction == Dir.UP_RIGHT or direction == "UR":
+            delta_x = n
+            delta_y = -n
         max_allowed = 1000
         from copy import deepcopy
         og_graph = deepcopy(self.graph.nodes[node]["nodes"])
@@ -227,11 +245,11 @@ class ARCGraph:
         if ogpixels:
             if self.is_multicolor:
                 self.graph.add_node(
-                (node[0], node[1], 0),
-                nodes=list(ogpixels),
-                color=[self.image.background_color for _ in ogpixels],
-                size=len(ogpixels),
-            )
+                    (node[0], node[1], 0),
+                    nodes=list(ogpixels),
+                    color=[self.image.background_color for _ in ogpixels],
+                    size=len(ogpixels),
+                )
             else:
                 self.graph.add_node(
                     (node[0], node[1], 0),
@@ -483,7 +501,7 @@ class ARCGraph:
             print("No subnodes to flip")
             return self  # Exit the function as there's nothing to flip
 
-        if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL: # todo: check sanity
+        if mirror_direction == "VERTICAL" or mirror_direction == Symmetry_Axis.VERTICAL:  # todo: check sanity
             max_y = max([subnode[0]
                         for subnode in self.graph.nodes[node]["nodes"]])
             min_y = min([subnode[0]
@@ -627,6 +645,24 @@ class ARCGraph:
         else:
             return self.graph.nodes[node]["color"] == color_map[color]
 
+    def FilterByHeight(self, node, height: Height):
+        if height == "MAX":
+            height = self.get_attribute_max("height")
+        elif height == "MIN":
+            height = self.get_attribute_min("height")
+        elif height == "ODD":
+            return self.graph.nodes[node]["height"] % 2 != 0
+        return self.graph.nodes[node]["height"] == height
+
+    def FilterByWidth(self, node, width: Width):
+        if width == "MAX":
+            width = self.get_attribute_max("width")
+        elif width == "MIN":
+            width = self.get_attribute_min("width")
+        elif width == "ODD":
+            return self.graph.nodes[node]["width"] % 2 != 0
+        return self.graph.nodes[node]["width"] == width
+
     def FilterBySize(self, node, size: Size):
         """
         return true if node has size equal to given size.
@@ -700,6 +736,46 @@ class ARCGraph:
                 return True
         return False
 
+    def FilterByShape(self, node, shape: Shape):
+        """
+        return true if node contains a square-shaped hole
+        """
+        if shape == Shape.square or shape == "square":
+            nodes = self.graph.nodes(data=True)[node]['nodes']
+            if not nodes:
+                return False
+            min_x = min(nodes, key=lambda x: x[0])[0]
+            max_x = max(nodes, key=lambda x: x[0])[0]
+            min_y = min(nodes, key=lambda x: x[1])[1]
+            max_y = max(nodes, key=lambda x: x[1])[1]
+            def is_square_formed_by_points(points):
+                if not points:  # Check if the points list is empty
+                    return False
+                if len(points) == 1:
+                    return True
+                x_coords = [p[0] for p in points]
+                y_coords = [p[1] for p in points]
+                min_x, max_x = min(x_coords), max(x_coords)
+                min_y, max_y = min(y_coords), max(y_coords)
+                width = max_x - min_x + 1
+                height = max_y - min_y + 1
+            # Check if the dimensions form a square and if the number of points matches the area of the square
+                if width == height and len(points) == width * height:
+                    return True
+                return False
+            all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+            missing_points = set(all_points) - set(nodes)
+            edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+            if any(point in edge_points for point in missing_points):
+                return False  # Missing points are at the edge
+            return is_square_formed_by_points(list(missing_points))
+        return False
+
+    def FilterByColumns(self, node, column: int):
+        """
+
+        """
+        pass
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
         """
@@ -798,45 +874,105 @@ class ARCGraph:
         return (center_y, center_x)
 
     def get_relative_pos(self, node1, node2):
-        # Determine min and max for x and y for both nodes to find edges
-        min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(
-            node[0] for node in self.graph.nodes[node1]["nodes"])
-        min_x_node1, max_x_node1 = min(node[1] for node in self.graph.nodes[node1]["nodes"]), max(
-            node[1] for node in self.graph.nodes[node1]["nodes"])
-
-        min_y_node2, max_y_node2 = min(node[0] for node in self.graph.nodes[node2]["nodes"]), max(
-            node[0] for node in self.graph.nodes[node2]["nodes"])
-        min_x_node2, max_x_node2 = min(node[1] for node in self.graph.nodes[node2]["nodes"]), max(
-            node[1] for node in self.graph.nodes[node2]["nodes"])
-
-        if min_x_node2 <= min_x_node1 and max_x_node1 <= max_x_node2:  # node-1 is within range
-            if max_y_node1 < max_x_node2:
-                return Dir.DOWN
-            elif max_y_node1 > max_x_node2:
-                return Dir.UP
-        elif min_y_node2 <= min_y_node1 and max_y_node1 <= max_y_node2:  # node-1 is within range
-            if max_x_node1 > max_x_node2:
-                return Dir.LEFT
-            elif max_x_node1 < max_x_node2:
-                return Dir.RIGHT
-
-        elif max_x_node2 < min_x_node1 and max_y_node1 < min_y_node2 and\
-                abs(max_x_node2 - min_x_node1) == abs(min_y_node2 - max_y_node1):
-            return Dir.DOWN_LEFT
-
-        elif max_x_node1 < min_x_node2 and max_y_node1 < min_y_node2 and \
-                abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
-            return Dir.DOWN_RIGHT
-
-        elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
-                abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
-            return Dir.UP_RIGHT
-
-        elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
-                abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
-            return Dir.UP_LEFT
-        else:
+        # when both objects are single pixels
+        if len(self.graph.nodes[node1]["nodes"]) == 0 or len(self.graph.nodes[node2]["nodes"]) == 0:
             return None
+        if len(self.graph.nodes[node1]["nodes"]) == 1 and len(self.graph.nodes[node2]["nodes"]) == 1:
+            for sub_node_1 in self.graph.nodes[node1]["nodes"]:
+                for sub_node_2 in self.graph.nodes[node2]["nodes"]:
+                    if sub_node_1[0] == sub_node_2[0]:
+                        if sub_node_1[1] < sub_node_2[1]:
+                            print("Dir.RIGHT")
+                            return Dir.RIGHT
+                        elif sub_node_1[1] > sub_node_2[1]:
+                            print("Dir.LEFT")
+                            return Dir.LEFT
+                    elif sub_node_1[1] == sub_node_2[1]:
+                        if sub_node_1[0] < sub_node_2[0]:
+                            print("Dir.DOWN")
+                            return Dir.DOWN
+                        elif sub_node_1[0] > sub_node_2[0]:
+                            print("Dir.UP")
+                            return Dir.UP
+                    elif sub_node_1[0] < sub_node_2[0]:  # DOWN
+                        if sub_node_1[1] < sub_node_2[1]:
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.DOWN_RIGHT")
+                                return Dir.DOWN_RIGHT
+                        elif sub_node_1[1] > sub_node_2[1]:
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.DOWN_LEFT")
+                                return Dir.DOWN_LEFT
+                    elif sub_node_1[0] > sub_node_2[0]:  # UP
+                        if sub_node_1[1] < sub_node_2[1]:
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.UP_RIGHT")
+                                return Dir.UP_RIGHT
+                        elif sub_node_1[1] > sub_node_2[1]:
+                            if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
+                                print("single-pixel: Dir.UP_LEFT")
+                                return Dir.UP_LEFT
+        elif len(self.graph.nodes[node1]["nodes"]) == 1 or len(self.graph.nodes[node2]["nodes"]) == 1:
+            # at least one of the objects is single-pixeled
+            min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(
+                node[0] for node in self.graph.nodes[node1]["nodes"])
+            min_x_node1, max_x_node1 = min(node[1] for node in self.graph.nodes[node1]["nodes"]), max(
+                node[1] for node in self.graph.nodes[node1]["nodes"])
+
+            min_y_node2, max_y_node2 = min(node[0] for node in self.graph.nodes[node2]["nodes"]), max(
+                node[0] for node in self.graph.nodes[node2]["nodes"])
+            min_x_node2, max_x_node2 = min(node[1] for node in self.graph.nodes[node2]["nodes"]), max(
+                node[1] for node in self.graph.nodes[node2]["nodes"])
+
+            if min_x_node2 <= min_x_node1 and max_x_node1 <= max_x_node2:  # node-1 is within range
+                if max_y_node1 < max_x_node2:
+                    return Dir.DOWN
+                elif max_y_node1 > max_x_node2:
+                    return Dir.UP
+            elif min_y_node2 <= min_y_node1 and max_y_node1 <= max_y_node2:  # node-1 is within range
+                if max_x_node1 > max_x_node2:
+                    return Dir.LEFT
+                elif max_x_node1 < max_x_node2:
+                    return Dir.RIGHT
+            elif max_x_node2 < min_x_node1 and max_y_node1 < min_y_node2 and \
+                    abs(max_x_node2 - min_x_node1) == abs(min_y_node2 - max_y_node1):
+                return Dir.DOWN_LEFT
+            elif max_x_node1 < min_x_node2 and max_y_node1 < min_y_node2 and \
+                    abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
+                return Dir.DOWN_RIGHT
+            elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
+                    abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
+                return Dir.UP_RIGHT
+            elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
+                    abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
+                return Dir.UP_LEFT
+        else:
+            # node: the case where both objects are not single-pixeled -- diagonal not supported
+            node1_x, node2_x = [node[0] for node in self.graph.nodes[node1]["nodes"]], [
+                node[0] for node in self.graph.nodes[node2]["nodes"]]
+            node1_y, node2_y = [node[1] for node in self.graph.nodes[node1]["nodes"]], [
+                node[1] for node in self.graph.nodes[node2]["nodes"]]
+            common_y_coords = set(node1_y).intersection(set(node2_y))
+            common_x_coords = set(node1_x).intersection(set(node2_x))
+            combined_nodes = list(
+                self.graph.nodes[node1]["nodes"]) + list(self.graph.nodes[node2]["nodes"])
+            common_y = [tup for tup in combined_nodes if tup[1]
+                        in common_y_coords]  # UP or DOWN
+            common_x = [tup for tup in combined_nodes if tup[0]
+                        in common_x_coords]  # LEFT or RIGHT
+            if common_y:
+                max_y = max(common_y)
+                if max_y in self.graph.nodes[node1]["nodes"]:
+                    return Dir.UP
+                else:
+                    return Dir.DOWN
+            if common_x:
+                max_x = max(common_x)
+                if max_x in self.graph.nodes[node1]["nodes"]:
+                    return Dir.LEFT
+                else:
+                    return Dir.RIGHT
+        return None
 
     def get_mirror_axis(self, node1, node2):
         """

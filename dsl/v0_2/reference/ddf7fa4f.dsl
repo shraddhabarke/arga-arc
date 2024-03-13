@@ -1,17 +1,11 @@
 (do
     (rule
-        (with 
-            (this y)
-        )
         (filter 
             (and
-                (== (color this) X)
+                (== (color this) grey)
                 (== (size y) 1)
-                (can_see x y)
+                (neighbor this y)
             )
-        )
-        (apply
-            (updatecolor this (color y))
         )
     )
 )
