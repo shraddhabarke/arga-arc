@@ -241,7 +241,7 @@ def run_synthesis(taskNumber, abstraction):
 
 # todo: add insert 3618c87e
 #4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec, dbc1a6ce
-evals = {"91714a58": "lrg"}
+evals = {"42a50994": "nbccgm"}
 for task, abstraction in evals.items():
     start_time = time.time()
     print("taskNumber:", task)
@@ -259,6 +259,11 @@ class TestEvaluation(unittest.TestCase):
         vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
         self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
         self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsDirectNeighbor, Var.FilterByColor(FColor.red)))'], vf0)
+
+        print("Solving problem 42a50994 with diagonal abstraction")
+        vt01, vf01 = run_synthesis("42a50994", "nbccgm")
+        self.assertCountEqual(['NoOp', 'updateColor(Color.black)'], vt01)
+        self.assertCountEqual(['Not(FilterBySize(SIZE.MIN))', 'FilterBySize(SIZE.MIN)'], vf01)
 
         print("Solving problem ddf7fa4f")
         vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
@@ -314,12 +319,7 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem a5f85a15") # even columns
         ct1, cf1 = run_synthesis("a5f85a15", "nbccg")
         self.assertCountEqual(['NoOp', 'updateColor(Color.yellow)'], ct1)
-        self.assertCountEqual(['FilterByColumns(COLUMN.EVEN)', 'Not(FilterByColumns(COLUMN.EVEN))'], cf1)
-
-        print("Solving problem 91714a58")
-        ct11, cf11 = run_synthesis("91714a58", "lrg")
-        self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], ct11)
-        self.assertCountEqual(['Not(FilterBySize(SIZE.MAX))', 'FilterBySize(SIZE.MAX)'], cf11)
+        self.assertCountEqual(['FilterByColumns(COLUMN.EVEN)', 'FilterByColumns(COLUMN.ODD)'], cf1)
 
         print("Solving problem b2862040")
         #ct2, cf2 = run_synthesis("b2862040", "nbccg")
@@ -461,9 +461,9 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem a61f2674")
         t23, f23 = run_synthesis("a61f2674", "nbccg")
         self.assertCountEqual(
-            ['updateColor(Color.black)', 'updateColor(Color.blue)', 'updateColor(Color.red)'], t23)
+            ['updateColor(Color.red)', 'updateColor(Color.black)', 'updateColor(Color.blue)'], t23)
         self.assertCountEqual(
-        ['Not(Or(FilterBySize(SIZE.MIN), FilterBySize(SIZE.MAX)))', 'FilterBySize(SIZE.MAX)', 'FilterBySize(SIZE.MIN)'], f23)
+        ['FilterBySize(SIZE.MIN)', 'Or(FilterBySize(SIZE.4), FilterByColumns(COLUMN.MOD3))', 'FilterBySize(SIZE.MAX)'], f23)
 
         print("Solving problem 25d8a9c8")
         t17, f17 = run_synthesis("25d8a9c8", "ccg")
@@ -471,6 +471,12 @@ class TestEvaluation(unittest.TestCase):
             ['updateColor(Color.grey)', 'updateColor(Color.black)'], t17)
         self.assertCountEqual(['And(FilterBySize(SIZE.3), FilterByHeight(HEIGHT.MIN))',
         'Not(And(FilterBySize(SIZE.3), FilterByHeight(HEIGHT.MIN)))'], f17)
+
+        print("Solving problem 91714a58")
+        ct11, cf11 = run_synthesis("91714a58", "lrg")
+        self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], ct11)
+        self.assertCountEqual(['Not(FilterBySize(SIZE.MAX))', 'FilterBySize(SIZE.MAX)'], cf11)
+
         print("==================================================MOVEMENT PROBLEMS==================================================")
         print("Solving problem 25ff71a9")
         mt0, mf0 = run_synthesis("25ff71a9", "nbccg")
