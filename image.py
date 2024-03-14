@@ -2,16 +2,20 @@ from networkx.algorithms.components import connected_components
 from ARCGraph import *
 
 class Image:
-    abstractions = ["na", "nbccg", "ccgbr", "ccgbr2", "ccg", "mcccg", "lrg", "nbvcg"]
-    abstraction_ops = {"nbccg": "get_non_black_components_graph",
-                       "ccgbr": "get_connected_components_graph_background_removed",
-                       "ccgbr2": "get_connected_components_graph_background_removed_2",
-                       "ccg": "get_connected_components_graph",
-                       "mcccg": "get_multicolor_connected_components_graph",
-                       "na": "get_no_abstraction_graph",
-                       "nbvcg": "get_non_background_vertical_connected_components_graph",
-                       "nbhcg": "get_non_background_horizontal_connected_components_graph",
-                       "lrg": "get_largest_rectangle_graph"}
+    abstractions = ["na", "nbccg", "ccgbr", "ccgbr2", "ccg", "mcccg", "lrg", "nbvcg", "nbccgm", "sp"]
+    abstraction_ops = {
+        "nbccg": "get_non_black_components_graph",
+        "ccgbr": "get_connected_components_graph_background_removed",
+        "ccgbr2": "get_connected_components_graph_background_removed_2",
+        "ccg": "get_connected_components_graph",
+        "mcccg": "get_multicolor_connected_components_graph",
+        "na": "get_no_abstraction_graph",
+        "nbvcg": "get_non_background_vertical_connected_components_graph",
+        "nbhcg": "get_non_background_horizontal_connected_components_graph",
+        "lrg": "get_largest_rectangle_graph",
+        "nbccgm": "get_non_black_components_graph_moore",
+        "sp": "get_single_pixels_graph"
+    }
     multicolor_abstractions = ["mcccg", "na"]
 
     def __init__(self, task, grid=None, width=None, height=None, graph=None, name="image"):
@@ -535,6 +539,116 @@ class Image:
         no_abs_graph.add_node((0, 0), nodes=sub_nodes, color=sub_nodes_color, size=len(sub_nodes), width=width+1, height=height+1)
 
         return ARCGraph(no_abs_graph, self.name, self, "na")
+
+    def make_moore_neighborhood_graph(self, graph=None):
+        """
+        turns a graph in the nx.grid_2d_graph format into a moore neighborhood graph
+        by adding diagonal edges between nodes
+        """
+        if not graph:
+            graph = self.graph
+
+        moore_neighborhood_graph = graph.copy()
+        for node in graph.nodes:
+            r, c = node
+            for dr, dc in [(-1, -1), (-1, 0), (-1, 1), (0, -1)]:
+                if (r + dr, c + dc) in graph.nodes:
+                    moore_neighborhood_graph.add_edge(node, (r + dr, c + dc))
+        return moore_neighborhood_graph
+
+    def get_non_black_components_graph_moore(self, graph=None):
+        if not graph:
+            graph = self.graph
+        
+        graph = self.make_moore_neighborhood_graph(graph)
+
+        cc_graph = self.get_non_black_components_graph(graph).graph
+
+        return ARCGraph(cc_graph, self.name, self, "nbccgm")
+    
+    # def get_all_same_color_graph(self, graph=None):
+    #     """
+    #     return an abstracted graph where a node is defined as all the pixels of the same color
+    #     """
+    #     if not graph:
+    #         graph = self.graph
+    #     all_same_color_graph = nx.Graph()
+
+    #     # in this case we do not remove the background color
+    #     for color in range(10):
+    #         color_nodes = (node for node, data in graph.nodes(data=True) if data.get("color") == color)
+    #         # all the nodes of the same color become a single node
+    #         all_same_color_graph.add_node(color, nodes=list(color_nodes), color=color, size=len(list(color_nodes)))
+        
+
+    def get_single_pixels_graph(self, graph=None):
+        """
+        return an abstracted graph where a node is defined as a single pixel of non-background color
+        """
+        if not graph:
+            graph = self.graph
+        single_pixels_graph = nx.Graph()
+
+        for node, data in graph.nodes(data=True):
+            if data["color"] != self.background_color:
+                single_pixels_graph.add_node(
+                    node, 
+                    nodes=[node], 
+                    color=data["color"], 
+                    size=1, 
+                    height=1, 
+                    width=1
+                )
+        
+        single_pixels_graph = self.make_visibility_graph(graph, single_pixels_graph)
+
+        return ARCGraph(single_pixels_graph, self.name, self, "sp")
+
+    def make_visibility_graph(self, original_grid, abstracted_graph):
+        """
+        given a graph of objects in the grid, adds edges between nodes that are visible to each other
+        the original nodes are removed
+        """
+        # create a new graph with the same nodes, but no edges
+        visibility_graph = nx.Graph()
+        for node, data in abstracted_graph.nodes(data=True):
+            visibility_graph.add_node(node, **data)
+
+        def visible_pixels(pixel_1, pixel_2):
+            # check for horizontal visibility
+            if pixel_1[0] == pixel_2[0]:
+                for column_index in range(min(pixel_1[1], pixel_2[1]) + 1, max(pixel_1[1], pixel_2[1])):
+                    if original_grid.nodes[pixel_1[0], column_index]["color"] != self.background_color:
+                        break
+                else:
+                    return "horizontal"
+            # check for vertical visibility
+            elif pixel_1[1] == pixel_2[1]:
+                for row_index in range(min(pixel_1[0], pixel_2[0]) + 1, max(pixel_1[0], pixel_2[0])):
+                    if original_grid.nodes[row_index, pixel_1[1]]["color"] != self.background_color:
+                        break
+                else:
+                    return "vertical"
+            return None
+
+        def visible_nodes(node_1, node_2):
+            # we need to iterate over all pairs of pixels in both of the nodes, and check if there is a line of sight
+            # between any of them
+            for pixel_1 in abstracted_graph.nodes[node_1]["nodes"]:
+                for pixel_2 in abstracted_graph.nodes[node_2]["nodes"]:
+                    visibility_direction = visible_pixels(pixel_1, pixel_2)
+                    if visibility_direction:
+                        return visibility_direction
+
+        # add edges between nodes that are visible to each other
+        for node_1, node_2 in combinations(visibility_graph.nodes, 2):
+            visibility_direction = visible_nodes(node_1, node_2)
+            if visibility_direction:
+                visibility_graph.add_edge(node_1, node_2, direction=visibility_direction)
+
+        return visibility_graph
+
+                    
 
     # undo abstraction
     def undo_abstraction(self, arc_graph):
