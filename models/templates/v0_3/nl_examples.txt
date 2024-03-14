@@ -1,0 +1,151 @@
+Now I will show you some example programs in the DSL.
+
+The following program recolors all the objects to color Y:
+```
+(do
+    (rule
+        (with this)
+        (filter)
+        (apply
+            (update_color Y)
+        )
+    )
+)
+```
+
+The following program recolors the 3 smallest objects of color X to colors Y, F and A, in that order:
+```
+(do
+    (rule
+        (with this)
+        (filter
+            (and
+                (filter_by_color this X)
+                (filter_by_size this MIN)
+            )
+        )
+        (apply
+            (update_color Y)
+        )
+    )
+    (rule
+        (with this)
+        (filter
+            (and
+                (filter_by_color this X)
+                (filter_by_size this MIN)
+            )
+        )
+        (apply
+            (update_color F)
+        )
+    )
+    (rule
+        (with this)
+        (filter
+            (and
+                (filter_by_color this X)
+                (filter_by_size this MIN)
+            )
+        )
+        (apply
+            (update_color A)
+        )
+    )
+)
+```
+
+The following program first recolors all objects to color R, then recolors all the objects of size 1 to color R:
+```
+(do
+    (rule
+        (with this)
+        (filter)
+        (apply
+            (update_color R)
+        )
+    )
+    (rule
+        (with this)
+        (filter
+            (filter_by_size this 1)
+        )
+        (apply
+            (update_color R)
+        )
+    )
+)
+```
+
+The following program selects all objects that have a neighbor of size 4, and moves them toward that neighbor:
+```
+(do
+    (rule
+        (with this x)
+        (filter
+            (and
+                (filter_by_size x 4)
+                (is_neighbor this x)
+            )
+        )
+        (apply
+            (move_node_max x)
+        )
+    )
+)
+```
+
+The following program selects all objects of size 1 that have a neighbor or color X, and extends them toward that neighbor:
+```
+(do
+    (rule
+        (with this y)
+        (filter
+            (and
+                (filter_by_size this 1)
+                (filter_by_color y X)
+                (is_neighbor this y)
+            )
+        )
+        (apply
+            (extend_node y false)
+        )
+    )
+)
+```
+
+The following program has 2 rules.
+First, it selects all objects of size 1 that have a neighbor of color X, and for each such object, it recolors it to color R and moves it down.
+Then, it selects all objects of size 1 that have a neighbor of color Y, and for each such object, it recolors it to color B and moves it up.
+```
+(do
+    (rule
+        (with this v)
+        (filter
+            (and
+                (filter_by_size this 1)
+                (filter_by_color v X)
+                (is_neighbor this v)
+            )
+        )
+        (apply
+            (update_color R)
+            (move_node_max D)
+        )
+    )
+    (rule
+        (with this v)
+        (filter
+            (and
+                (filter_by_size this 1)
+                (filter_by_color v Y)
+                (is_neighbor this v)
+            )
+        )
+        (apply
+            (update_color B)
+            (move_node_max U)
+        )
+    )
+)
+```
