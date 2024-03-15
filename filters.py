@@ -3,7 +3,6 @@ from typing import Union, List, Dict
 from transform import Dir
 
 class FilterTypes(Enum):
-    INT = "Int"
     FILTERS = "Filters"
     # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
@@ -12,7 +11,6 @@ class FilterTypes(Enum):
     WIDTH = "Width"
     DEGREE = "Degree"
     RELATION = "Relation"
-    SHAPE = "Shape"
     COLUMN = "Column"
     ROW = "Row"
 
