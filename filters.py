@@ -340,41 +340,6 @@ class Shape(FilterASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
-class Int(FilterASTNode, Enum):
-    one = 1
-    two = 2
-    three = 3
-    four = 4
-    five = 5
-    six = 6
-    seven = 7
-    eight = 8
-
-    def __init__(self, value=None):
-        super().__init__(FilterTypes.INT)
-        self.nodeType = FilterTypes.INT
-        self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
-        self.children = []
-        self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    @classmethod
-    @property
-    def nodeType(cls):
-        return FilterTypes.INT
-
-    def execute(cls, task, children):
-        return cls
-
-    @classmethod
-    def get_all_values(cls):
-        return list(cls.__members__.values())
-
 class Filters(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
@@ -785,7 +750,28 @@ class FilterByShape(Filters):
 class FilterByContainment(Filters):
     pass
 
-#todo
+class FilterByRows(Filters):
+    arity = 1
+    default_size = 1
+    nodeType = FilterTypes.FILTERS
+    size = 1
+    childTypes = [FilterTypes.ROW]
+
+    def __init__(self, row: Row):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.code = f"FilterByRows({row.code})"
+        self.size = self.default_size + row.size
+        self.children = [row]
+        self.childTypes = [FilterTypes.ROW]
+
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0])
+        values = task.filter_values(instance)
+        instance.values = values
+        return instance
+
 class FilterByColumns(Filters):
     arity = 1
     default_size = 1

@@ -3,6 +3,7 @@ from typing import Union, List, Dict, Iterator, Any, Tuple, Optional
 
 class Types(Enum):
     TRANSFORMS = "Transforms"
+    INT = "Int"
     COLOR = "Color"
     DIRECTION = "Dir"
     OVERLAP = "Overlap"
@@ -25,6 +26,33 @@ class TransformASTNode:
 
 # Variable type is for variable objects
 
+class Amount(TransformASTNode, Enum):
+    one = 1
+
+    def __init__(self, value=None):
+        super().__init__(Types.INT)
+        self.code = f"{self.__class__.__name__}.{self.name}"
+        self.size = 1
+        self.children = []
+        self.nodeType = Types.INT
+        self.values = []
+
+    @classmethod
+    @property
+    def arity(cls):
+        return 0
+
+    @classmethod
+    @property
+    def nodeType(cls):
+        return Types.INT
+
+    def apply(self, task, children=None, filter=None):
+        return self
+
+    @classmethod
+    def get_all_values(cls):
+        return list(cls.__members__.values())
 
 class Variable(TransformASTNode):
     nodeType = Types.VARIABLE
@@ -282,6 +310,19 @@ class RelativePosition(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+class HeightValue:
+    arity = 0
+
+    def __init__(self, enum_value):
+        self.value = enum_value.value
+        self.nodeType = Types.HEIGHT
+        self.code = f"HEIGHT.{enum_value.name}"
+        self.size = 1
+        self.children = []
+        self.values = []
+
+    def execute(cls, task, children=None):
+        return cls
 
 class ObjectIdValue:
     arity = 0

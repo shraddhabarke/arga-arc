@@ -668,7 +668,6 @@ class ARCGraph:
         if column == "MOD3":
             col = self.mod_3(column)
             return all(node in col for node in column_nodes)
-            #height = self.get_attribute_max("height")
         elif column == "ODD":
             col = self.get_odd(column)
             return all(node in col for node in column_nodes) # is the entire object in odd columns
@@ -676,8 +675,24 @@ class ARCGraph:
             col = self.get_even(column)
             return all(node in col for node in column_nodes) # is the entire object in even columns
         if column == "CENTER":
-            col = self.get_center(column)
+            col = self.get_center("column")
             return all(node in col for node in column_nodes) # is the entire object in the center column
+        return False
+
+    def FilterByRows(self, node, row: Row):
+        row_nodes = [col[0] for col in self.graph.nodes[node]["nodes"]]
+        if row == "MOD3":
+            r = self.mod_3(row)
+            return all(node in r for node in row_nodes)
+        elif row == "ODD":
+            r = self.get_odd(row)
+            return all(node in r for node in row_nodes) # is the entire object in odd rows
+        elif row == "EVEN":
+            r = self.get_even(row)
+            return all(node in r for node in row_nodes) # is the entire object in even rows
+        if row == "CENTER":
+            r = self.get_center("row")
+            return all(node in r for node in row_nodes) # is the entire object in the center row
         return False
 
     def FilterBySize(self, node, size: Size):
@@ -826,17 +841,30 @@ class ARCGraph:
         """
         get the minimum value of the given attribute
         """
-        if len(list(self.graph.nodes)) == 0:
-            return None
-        values = list(set([node[1] for node in self.image.graph.nodes()])) #[node[1] for node in self.graph.nodes]
-        n = len(values)
-        if n % 2 == 1:
-            # If odd, return the single middle element as a list
-            centers = [values[n // 2]]
-        else:
-            # If even, return the two middle elements as a list
-            centers = values[n // 2 - 1:n // 2 + 1]
-        return centers
+        if attribute_name == "column":
+            if len(list(self.graph.nodes)) == 0:
+                return None
+            values = list(set([node[1] for node in self.image.graph.nodes()])) #[node[1] for node in self.graph.nodes]
+            n = len(values)
+            if n % 2 == 1:
+                # If odd, return the single middle element as a list
+                centers = [values[n // 2]]
+            else:
+                # If even, return the two middle elements as a list
+                centers = values[n // 2 - 1:n // 2 + 1]
+            return centers
+        elif attribute_name == "row":
+            if len(list(self.graph.nodes)) == 0:
+                return None
+            values = list(set([node[0] for node in self.image.graph.nodes()]))
+            n = len(values)
+            if n % 2 == 1:
+                # If odd, return the single middle element as a list
+                centers = [values[n // 2]]
+            else:
+                # If even, return the two middle elements as a list
+                centers = values[n // 2 - 1:n // 2 + 1]
+            return centers
 
     def get_even(self, attribute_name):
         """
@@ -862,8 +890,8 @@ class ARCGraph:
         """
         if len(list(self.graph.nodes)) == 0:
             return None
-        odd_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 3 == 0]))
-        return odd_values
+        mod_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 3 == 0]))
+        return mod_values
 
     def get_color(self, node):
         """
@@ -926,6 +954,10 @@ class ARCGraph:
         """
         get the centroid of a node
         """
+        node_size = self.graph.nodes[node]["size"]
+        if node_size == 0:
+            return None
+
         center_y = (
             sum([n[0] for n in self.graph.nodes[node]["nodes"]])
             + self.graph.nodes[node]["size"] // 2
@@ -1051,6 +1083,8 @@ class ARCGraph:
         get the axis to mirror node1 with given node2
         """
         node2_centroid = self.get_centroid(node2)
+        if node2_centroid is None:
+            return None
 
         if (node1, node2) in self.graph.edges and self.graph.edges[node1, node2]["direction"] == "vertical":
             return (node2_centroid[0], None)

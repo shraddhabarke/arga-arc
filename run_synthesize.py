@@ -14,11 +14,12 @@ from filter_synthesis import FSizeEnumerator
 from transform_synthesis import TSizeEnumerator
 
 # Transform Vocab
-tleaf_makers = [Color, NoOp(), Dir, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
+# todo: FilterbyRows
+tleaf_makers = [Color, NoOp(), Dir, Amount, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
                 Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix! Insert
-f_vocabMakers = [FColor, Int, Degree, Height, Width, Size, Shape, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByShape, FilterByDegree, FilterByHeight,
+f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByShape, FilterByDegree, FilterByHeight,
                 FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
 
 #f_vocabMakers = [Column, FilterByColumns, Not]
@@ -240,8 +241,13 @@ def run_synthesis(taskNumber, abstraction):
                     program for program in filters_sol]
 
 # todo: add insert 3618c87e
-#4093f84a, 7e0986d6, ExtendNode --> 7ddcd7ec, dbc1a6ce
-evals = {"42a50994": "nbccgm"}
+evals = {"1e0a9b12": "nbccg"}
+
+# 4093f84a
+# ExtendNode -->  dbc1a6ce, 7ddcd7ec
+#{"6f8cd79b": "sp"}
+# d406998b, 5521c0d9
+
 for task, abstraction in evals.items():
     start_time = time.time()
     print("taskNumber:", task)
@@ -484,9 +490,14 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['FilterByColor(FColor.least)'], mf0)
 
         print("Solving problem 1e0a9b12")
-        #mt0, mf0 = run_synthesis("1e0a9b12", "nbccg")
-        #self.assertCountEqual(['[moveNodeMax(Dir.DOWN), moveNodeMax(Dir.DOWN)]'], mt1)
-        #self.assertCountEqual(['FilterByColor(FColor.least)'], mf1)
+        mt1, mf1 = run_synthesis("1e0a9b12", "nbccg")
+        self.assertCountEqual(['[moveNodeMax(Dir.DOWN), moveNodeMax(Dir.DOWN)]'], mt1)
+        self.assertCountEqual(['Not(FilterByColor(FColor.black))'], mf1)
+
+        print("Solving problem e9afcf9a")
+        mt1, mf1 = run_synthesis("e9afcf9a", "nbvcg")
+        self.assertCountEqual(['moveNode(Dir.DOWN)', 'NoOp'], mt1)
+        self.assertCountEqual(['Or(FilterByColumns(COLUMN.CENTER), FilterByColumns(COLUMN.ODD))', 'FilterByColumns(COLUMN.EVEN)'], mf1)
 
         print("Solving problem 3c9b0459")
         mt2, mf2 = run_synthesis("3c9b0459", "na")
