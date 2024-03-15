@@ -28,7 +28,6 @@ class ChildrenIterator:
             for t, c in zip(self.childTypes, cost)
         ]
         if any(not lst for lst in childrenListsTemp):
-            #self.exhausted = True
             return
         self.childrenLists = childrenListsTemp
         self.candidates = [

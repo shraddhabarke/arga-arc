@@ -241,12 +241,18 @@ def run_synthesis(taskNumber, abstraction):
                     program for program in filters_sol]
 
 # todo: add insert 3618c87e
-evals = {"1e0a9b12": "nbccg"}
+evals = {"88a10436": "nbccg"}
 
-# 4093f84a
+# ARGA Problems --
+# Color: 63613498
+# Movement: 98cf29f8
+# Augmentation: 29c11459, 67a423a3, 88a10436, 22168020, 25d487eb
+
+# 4093f84a -- [filterbySize(Size.1) -> updateColor(gray), moveNodeMax(Variable)]
 # ExtendNode -->  dbc1a6ce, 7ddcd7ec
 #{"6f8cd79b": "sp"}
 # d406998b, 5521c0d9
+
 
 for task, abstraction in evals.items():
     start_time = time.time()
@@ -627,10 +633,18 @@ class TestEvaluation(unittest.TestCase):
             'fillRectangle(Color.orange, Overlap.TRUE)'], st2)  # todo: post-process
         self.assertCountEqual(['FilterByColor(FColor.blue)', 'Not(FilterByHeight(HEIGHT.ODD))', 'FilterByHeight(HEIGHT.ODD)'], sf2)
 
+        print("Solving problem 60b61512")
+        st3, sf3 = run_synthesis("60b61512", "nbccg")
+        self.assertCountEqual(
+            ['fillRectangle(Color.orange, Overlap.FALSE)'], st3
+        )
+        self.assertCountEqual(['FilterByColor(FColor.yellow)'], sf3)
+
         print("Solving problem 7f4411dc")
         t24, f24 = run_synthesis("7f4411dc", "lrg")
         self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], t24)
         self.assertCountEqual(['FilterBySize(SIZE.MIN)', 'Not(FilterBySize(SIZE.MIN))'], f24)
+
 
 if __name__ == "__main__":
     unittest.main()

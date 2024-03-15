@@ -81,7 +81,7 @@ class TSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 25:  # TODO: test transform sequence
+            if self.costLevel > 25:
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
@@ -96,7 +96,7 @@ class TSizeEnumerator:
                     
                     if children is None:
                         res = prog
-                    elif self.oeManager.is_representative(prog.values):
+                    elif self.oeManager.is_representative(prog.values) or "Var" in prog.code:
                         res = prog
 
             elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
