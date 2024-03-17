@@ -253,7 +253,7 @@ def run_synthesis(taskNumber, abstraction):
 # todo: add insert 3618c87e
 #evals = {"e73095fd": "ccg"}
 #evals = {"7b6016b9": "ccg"}
-evals = {}
+evals = {"5582e5ca": "ccg"}
 # ARGA Problems --
 # Color: 63613498
 # Movement: 98cf29f8
@@ -422,10 +422,10 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(
         ['Not(FilterByColor(FColor.orange))', 'FilterByColor(FColor.orange)'], f19)
 
-        print("Solving problem 5582e5ca")  # todo-eusolver
+        print("Solving problem 5582e5ca")
         t21, f21 = run_synthesis("5582e5ca", "ccg")
-        # self.assertCountEqual(['updateColor(Color.most)'], t21)
-        # self.assertCountEqual(['FilterByNeighborSize(SIZE.MIN)'], f21)
+        self.assertCountEqual(['updateColor(Color.most)'], t21)
+        self.assertCountEqual(['FilterByNeighborSize(SIZE.MIN)'], f21)
 
         print("Solving problem b1948b0a")
         t22, f22 = run_synthesis("b1948b0a", "nbccg")
