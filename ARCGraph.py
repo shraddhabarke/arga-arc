@@ -665,6 +665,7 @@ class ARCGraph:
 
     def FilterByColumns(self, node, column: Column):
         column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
+
         if column == "MOD3":
             col = self.mod_3(column)
             return all(node in col for node in column_nodes)
@@ -674,9 +675,12 @@ class ARCGraph:
         elif column == "EVEN":
             col = self.get_even(column)
             return all(node in col for node in column_nodes) # is the entire object in even columns
-        if column == "CENTER":
+        elif column == "CENTER":
             col = self.get_center("column")
             return all(node in col for node in column_nodes) # is the entire object in the center column
+        elif column == "EVEN_FROM_RIGHT":
+            col = self.get_even_right(column)
+            return all(node in col for node in column_nodes) # is the entire object in even columns
         return False
 
     def FilterByRows(self, node, row: Row):
@@ -774,6 +778,9 @@ class ARCGraph:
         """
         if shape == Shape.enclosed or shape == "enclosed":
             nodes = self.graph.nodes(data=True)[node]['nodes']
+            all_nodes = []
+            for node in self.graph.nodes():
+                all_nodes.extend(self.graph.nodes(data=True)[node]['nodes'])
             if not nodes:
                 return False
             min_x = min(nodes, key=lambda x: x[0])[0]
@@ -781,14 +788,25 @@ class ARCGraph:
             min_y = min(nodes, key=lambda x: x[1])[1]
             max_y = max(nodes, key=lambda x: x[1])[1]
             all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
-            missing_points = set(all_points) - set(nodes)
-            if len(missing_points) == 0:
-                return False # no holes in the shape
-            edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
-            if any(point in edge_points for point in missing_points):
-                return False  # hole points are at the edge
-            else:
-                return True
+            nodes_set = set(nodes)
+            missing_points = all_points - nodes_set
+
+            # Remove edge points from missing set
+            edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | \
+                {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+            missing_points = missing_points - edge_points
+            missing_points = set([point for point in missing_points if point in all_nodes])
+            if not missing_points:
+                return False  # No internal missing points means the shape is fully filled
+
+            combined_set = missing_points | nodes_set
+            for point in missing_points:
+                x, y = point
+                neighbors = {(x-1, y), (x+1, y), (x, y-1), (x, y+1)}
+                if not all(neighbor in combined_set for neighbor in neighbors):
+                    return False  # Found a missing point not fully surrounded by nodes/missing points
+            return True
+
         elif shape == Shape.square or shape == "square":
             nodes = self.graph.nodes(data=True)[node]['nodes']
             if not nodes:
@@ -818,7 +836,6 @@ class ARCGraph:
             if any(point in edge_points for point in missing_points):
                 return False  # Missing points are at the edge
             return is_square_formed_by_points(list(missing_points))
-        return False
 
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
@@ -892,6 +909,20 @@ class ARCGraph:
             return None
         mod_values = list(set([node[1] for node in self.image.graph.nodes() if node[1] % 3 == 0]))
         return mod_values
+
+    def get_even_right(self, attribute_name):
+        """
+        Get the even columns from the right side.
+        """
+        if len(list(self.graph.nodes)) == 0:
+            return None
+        all_columns = list(set([node[1] for node in self.graph.nodes]))
+        total_columns = max(all_columns)
+        right_side_indices = [total_columns - col + 1 for col in all_columns]
+        even_right_values = [col for col in right_side_indices if col % 2 == 0]
+        original_indices_for_even_right = [total_columns - col + 1 for col in even_right_values]
+
+        return original_indices_for_even_right
 
     def get_color(self, node):
         """

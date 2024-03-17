@@ -11,6 +11,7 @@ class FilterTypes(Enum):
     WIDTH = "Width"
     DEGREE = "Degree"
     RELATION = "Relation"
+    SHAPE = "Shape"
     COLUMN = "Column"
     ROW = "Row"
 
@@ -233,7 +234,7 @@ def setup_size_and_degree_based_on_task(task):
     task_columns = [d for d in task.columns[task.abstraction]]
     _column_additional = {f"{item}": int(item) for item in task_columns}
     ColumnEnum = Enum(
-        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD" : "ODD",
+        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD" : "ODD", "EVEN_FROM_RIGHT": "EVEN_FROM_RIGHT",
                        "MOD3" : "MOD3", **_column_additional}
     )
 
@@ -492,7 +493,7 @@ class And(FilterASTNode):
         for i, _ in enumerate(intersected_values):
             filtered_nodes_dict = {node: [] for node in intersected_values[i]}
             res_dict.append(filtered_nodes_dict)
-        if task.spec:
+        if task.current_spec:
             res_dict = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
                                 for key in dict_a if key in dict_b}
                                 for dict_a, dict_b in zip(values1, values2)]
@@ -529,7 +530,6 @@ class VarAnd(FilterASTNode):
                 intersection_values = [value for value in values1 if value in dict2.keys()]
                 intersection_dict[key1] = intersection_values
             res_dict.append(intersection_dict)
-        print("res-dict:", res_dict)
 
         new_instance = cls(children[0], children[1])
         new_instance.values = res_dict
@@ -560,7 +560,7 @@ class Or(FilterASTNode):
             filtered_nodes_dict = {node: [] for node in unioned_values[i]}
             res_dict.append(filtered_nodes_dict)
 
-        if task.spec:
+        if task.current_spec:
             print("filters:", children[0].code, children[1].code)
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
@@ -610,8 +610,8 @@ class Not(FilterASTNode):
             filtered_nodes_dict = {node: [] for node in result[i]}
             res_dict.append(filtered_nodes_dict)
         # todo:
-        #if task.spec:
-            #for i, spec_dict in enumerate(task.spec):
+        #if task.current_spec:
+            #for i, spec_dict in enumerate(task.current_spec):
                 #filtered_nodes_dict = {k: result[i] for k in spec_dict.keys()}
                 #values_dict.append(filtered_nodes_dict)
             #res_dict = values_dict
