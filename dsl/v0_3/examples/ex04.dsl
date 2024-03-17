@@ -1,11 +1,12 @@
 (do
     (rule
-        (with this v)
         (filter
             (and
-                (filter_by_size this 1)
-                (filter_by_color v X)
-                (is_neighbor this v)
+                (filter_by_size 1)
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color X)
+                )
             )
         )
         (apply
@@ -14,12 +15,13 @@
         )
     )
     (rule
-        (with this v)
         (filter
             (and
-                (filter_by_size this 1)
-                (filter_by_color v Y)
-                (is_neighbor this v)
+                (filter_by_size 1)
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color Y)
+                )
             )
         )
         (apply

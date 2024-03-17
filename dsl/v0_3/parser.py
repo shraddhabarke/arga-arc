@@ -26,7 +26,7 @@ if __name__ == '__main__':
     test_dir = "dsl/v0_3/reference"
     test_dirs = [
         "dsl/v0_3/reference",
-        # "dsl/v0_3/examples",
+        "dsl/v0_3/examples",
     ]
     for test_dir in test_dirs:
         print(f"Testing directory {test_dir}...")
