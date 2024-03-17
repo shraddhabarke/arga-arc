@@ -78,7 +78,6 @@ class Image:
             if len(colors) != 0:
                 self.most_common_color = max(set(colors), key=colors.count)
                 self.least_common_color = min(set(colors), key=colors.count)
-
         self.corners = {(0, 0), (0, self.width - 1), (self.height - 1, 0), (self.height - 1, self.width - 1)}
 
     def copy(self):

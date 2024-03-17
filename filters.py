@@ -3,7 +3,6 @@ from typing import Union, List, Dict
 from transform import Dir
 
 class FilterTypes(Enum):
-    INT = "Int"
     FILTERS = "Filters"
     # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
@@ -12,7 +11,6 @@ class FilterTypes(Enum):
     WIDTH = "Width"
     DEGREE = "Degree"
     RELATION = "Relation"
-    SHAPE = "Shape"
     COLUMN = "Column"
     ROW = "Row"
 
@@ -235,7 +233,8 @@ def setup_size_and_degree_based_on_task(task):
     task_columns = [d for d in task.columns[task.abstraction]]
     _column_additional = {f"{item}": int(item) for item in task_columns}
     ColumnEnum = Enum(
-        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", **_column_additional}
+        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD" : "ODD",
+                       "MOD3" : "MOD3", **_column_additional}
     )
 
     task_rows = [d for d in task.rows[task.abstraction]]
@@ -331,41 +330,6 @@ class Shape(FilterASTNode, Enum):
     @property
     def nodeType(cls):
         return FilterTypes.SHAPE
-
-    def execute(cls, task, children):
-        return cls
-
-    @classmethod
-    def get_all_values(cls):
-        return list(cls.__members__.values())
-
-class Int(FilterASTNode, Enum):
-    one = 1
-    two = 2
-    three = 3
-    four = 4
-    five = 5
-    six = 6
-    seven = 7
-    eight = 8
-
-    def __init__(self, value=None):
-        super().__init__(FilterTypes.INT)
-        self.nodeType = FilterTypes.INT
-        self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
-        self.children = []
-        self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    @classmethod
-    @property
-    def nodeType(cls):
-        return FilterTypes.INT
 
     def execute(cls, task, children):
         return cls
@@ -784,7 +748,28 @@ class FilterByShape(Filters):
 class FilterByContainment(Filters):
     pass
 
-#todo
+class FilterByRows(Filters):
+    arity = 1
+    default_size = 1
+    nodeType = FilterTypes.FILTERS
+    size = 1
+    childTypes = [FilterTypes.ROW]
+
+    def __init__(self, row: Row):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.code = f"FilterByRows({row.code})"
+        self.size = self.default_size + row.size
+        self.children = [row]
+        self.childTypes = [FilterTypes.ROW]
+
+    @classmethod
+    def execute(cls, task, children):
+        instance = cls(children[0])
+        values = task.filter_values(instance)
+        instance.values = values
+        return instance
+
 class FilterByColumns(Filters):
     arity = 1
     default_size = 1
