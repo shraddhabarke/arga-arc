@@ -16,7 +16,7 @@ from transform_synthesis import TSizeEnumerator
 # Transform Vocab
 # todo: FilterbyRows
 tleaf_makers = [Color, NoOp(), Dir, Amount, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
-                Symmetry_Axis, ObjectId, Variable('Var'), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
+                Symmetry_Axis, ObjectId, Variable("Var"), UpdateColor, MoveNode, MoveNodeMax, ExtendNode, AddBorder, Mirror,
                 HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
 # todo: add variable back after sequences fix! Insert
 f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
@@ -251,9 +251,10 @@ def run_synthesis(taskNumber, abstraction):
                     program for program in filters_sol]
 
 # todo: add insert 3618c87e
-#evals = {"e73095fd": "ccg"}
-#evals = {"7b6016b9": "ccg"}
-evals = {"5582e5ca": "ccg"}
+evals = {"e73095fd": "ccgbr2"}
+evals = {"7b6016b9": "ccg"}
+
+
 # ARGA Problems --
 # Color: 63613498
 # Movement: 98cf29f8
@@ -261,8 +262,9 @@ evals = {"5582e5ca": "ccg"}
 
 # 4093f84a -- [filterbySize(Size.1) -> updateColor(gray), moveNodeMax(Variable)]
 # ExtendNode -->  dbc1a6ce, 7ddcd7ec
+# moveNode by height --> 5521c0d9
+
 # {"6f8cd79b": "sp"}
-# 5521c0d9
 
 for task, abstraction in evals.items():
     start_time = time.time()
@@ -290,15 +292,15 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['NoOp', 'updateColor(Color.yellow)'], ct1)
         self.assertCountEqual(['FilterByColumns(COLUMN.EVEN)', 'FilterByColumns(COLUMN.ODD)'], cf1)
 
-        print("Solving problem b2862040")
-        ct2, cf2 = run_synthesis("b2862040", "ccgbr")
-        self.assertCountEqual(['updateColor(Color.cyan)', 'NoOp'], ct2)
-        self.assertCountEqual(['FilterByShape(Shape.enclosed)', 'Not(FilterByShape(Shape.enclosed))'], cf2)
-
         print("Solving problem d406998b") # even columns from right
         ct1, cf1 = run_synthesis("d406998b", "nbvcg")
         self.assertCountEqual(['updateColor(Color.green)', 'NoOp'], ct1)
         self.assertCountEqual(['Not(FilterByColumns(COLUMN.EVEN_FROM_RIGHT))', 'FilterByColumns(COLUMN.EVEN_FROM_RIGHT)'], cf1)
+
+        print("Solving problem b2862040")
+        ct2, cf2 = run_synthesis("b2862040", "ccgbr")
+        self.assertCountEqual(['updateColor(Color.cyan)', 'NoOp'], ct2)
+        self.assertCountEqual(['FilterByShape(Shape.enclosed)', 'Not(FilterByShape(Shape.enclosed))'], cf2)
 
         print("Solving problem 810b9b61")
         ct2, cf2 = run_synthesis("810b9b61", "ccgbr")
@@ -309,6 +311,11 @@ class TestEvaluation(unittest.TestCase):
         ct3, cf3 = run_synthesis("ba26e723", "nbvcg")
         self.assertCountEqual(['updateColor(Color.fuchsia)', 'NoOp'], ct3)
         self.assertCountEqual(['FilterByColumns(COLUMN.MOD3)', 'Not(FilterByColumns(COLUMN.MOD3))'], cf3)
+
+        print("Solving problem 7b6016b9")
+        ct3, cf3 = run_synthesis("7b6016b9", "ccg")
+        self.assertCountEqual(['updateColor(Color.red)', 'NoOp', 'updateColor(Color.green)'], ct3)
+        self.assertCountEqual(['Not(Or(FilterByColor(FColor.least), Or(FilterBySize(SIZE.MAX), Or(FilterBySize(SIZE.99), FilterBySize(SIZE.71)))))', 'FilterByColor(FColor.least)', 'Or(FilterBySize(SIZE.MAX), Or(FilterBySize(SIZE.99), FilterBySize(SIZE.71)))'], cf3)
 
         print("Solving problem f76d97a5")
         t0, f0 = run_synthesis("f76d97a5", "nbccg")
