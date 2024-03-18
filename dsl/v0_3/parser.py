@@ -14,6 +14,10 @@ class Parser:
         self.parser = Lark(self.grammar, start="program", ambiguity="explicit")
         self.lib_parser = Lark(self.grammar, start="library", ambiguity="explicit")
 
+    def new():
+        grammar_file = "dsl/v0_3/dsl.lark"
+        return Parser(grammar_file)
+
     def parse_tree(self, program):
         return self.parser.parse(program)
 
