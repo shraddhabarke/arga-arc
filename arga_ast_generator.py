@@ -7,6 +7,7 @@ import typing as t
 # from config import CONFIG
 import os
 import dsl.v0_3.parser as dsl_parser
+from enum import Enum
 
 this_module = sys.modules[__name__]
 
@@ -305,10 +306,194 @@ this_module = sys.modules[__name__]
 #         else:
 #             raise ValueError(f"Unknown operation: {operator}")
 
-
-class ToAst(Transformer):
+@dataclass
+class _Ast(ast_utils.Ast):
     pass
 
+# @dataclass
+# class _Xform(_Ast):
+#     children: List[_Ast]
+
+# class XformList(_Ast):
+#     children: List[_Ast]
+
+@dataclass
+class Color(_Ast):
+    value: str
+
+@dataclass
+class Size(_Ast):
+    value: int | str
+
+@dataclass
+class Direction(_Ast):
+    value: str
+
+@dataclass
+class Overlap(_Ast):
+    value: bool
+
+### Filter relations
+
+@dataclass
+class _FilterRelation(_Ast):
+    pass
+
+@dataclass
+class IsAnyNeighbor(_FilterRelation):
+    pass
+
+@dataclass 
+class IsDirectNeighbor(_FilterRelation):
+    pass
+
+@dataclass
+class IsDiagonalNeighbor(_FilterRelation):
+    pass
+
+### Filter expressions
+
+
+@dataclass
+class _FilterExpr(_Ast):
+    pass
+
+# @dataclass
+# class Filter(_Ast):
+#     filter_expr: _FilterExpr
+
+@dataclass
+class And(_FilterExpr):
+    left: _FilterExpr
+    right: _FilterExpr
+
+@dataclass
+class Or(_Ast):
+    # children: Tuple[_FilterExpr, _FilterExpr]
+    left: _FilterExpr
+    right: _FilterExpr
+
+@dataclass
+class Not(_Ast):
+    child: _FilterExpr
+
+@dataclass
+class VarAnd(_Ast):
+    relation: _FilterRelation
+    filter: _FilterExpr
+
+### Filter primitives
+
+@dataclass
+class FilterByColor(_Ast):
+    color: Color
+
+@dataclass
+class FilterByNeighborSize(_Ast):
+    size: str
+
+### Transforms
+
+@dataclass
+class ExtendNode(_Ast):
+    direction: Direction
+    overlap: Overlap
+
+@dataclass
+class Rule(_Ast):
+    filter: _FilterExpr
+    xforms: List[_Ast]
+
+@dataclass
+class Program(_Ast):
+    rules: List[Rule]
+
+@dataclass
+class Library(_Ast):
+    programs: List[Program]
+
+
+class ToAst(Transformer):
+    # def __default_token__(self, token):
+    #     return token.value
+    
+    def VAR(self, token):
+        return token.value
+    
+    def OVERLAP(self, token):
+        return Overlap(bool(token.value))
+    
+    def COLOR(self, token):
+        return Color(token.value)
+
+    def SIZE(self, token):
+        try:
+            return Size(int(token.value))
+        except ValueError:
+            return Size(token.value)
+    
+    def filter(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            None
+    
+    def filter_expr(self, children):
+        # if this is a single primitive
+        if len(children) == 1:
+            return children[0]
+        else:
+            match children[0]:
+                case "and":
+                    return And(children[1], children[2])
+                case "or":
+                    return Or((children[1], children[2]))
+                case "not":
+                    return Not(children[1])
+                case "varand":
+                    return VarAnd(
+                        relation=children[1],
+                        filter=children[2]
+                    )
+                case _:
+                    # return children
+                    raise ValueError(f"Unknown filter expression: {children[0]}")
+
+        return children
+
+    @v_args(tree=True)
+    def filter_prim(self, tree):
+        children = tree.children
+        match children[0]:
+            case "filter_by_color":
+                return FilterByColor(
+                    color=children[1]
+                )
+            case "filter_by_neighbor_size":
+                return FilterByNeighborSize(
+                    size=children[1]
+                ) 
+            case _:
+                # return tree
+                raise ValueError(f"Unknown filter primitive: {children[0]}")
+    
+    def filter_relation(self, children):
+        match children[0]:
+            case "is_direct_neighbor":
+                return IsDirectNeighbor()
+            case _:
+                raise ValueError(f"Unknown filter relation: {children[0]}")
+    
+    def xform_list(self, children):
+        return children
+
+    def xform(self, children):
+        match children[0]:
+            case "extend_node":
+                return ExtendNode(
+                    direction=self.direction(children[1]), 
+                    overlap=children[2]
+                )
 
 def print_ast_class_names(node, indent=0):
     indent_str = "    " * indent
@@ -367,6 +552,7 @@ if __name__ == "__main__":
     # )
 
     xformer = ast_utils.create_transformer(this_module, ToAst())
+    # xformer = ToAst()
 
     test_file("dsl/v0_3/reference/d43fd935.dsl", parser, xformer)
 
