@@ -19,6 +19,8 @@ class ValuesManager(OEValuesManager):
         self.class_values = set()
 
     def is_representative(self, values) -> bool:
+        if len(values) == 1:
+            values = values[0]
         def process_element(element):
             key, data = element
             return f"{key}-{';'.join([f'{k}:{v}' for k, v in sorted(data.items())])}"

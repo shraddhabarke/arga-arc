@@ -59,7 +59,7 @@ class FSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 10: # TODO: parallelize filter and transform synthesis
+            if self.costLevel > 10: # TODO: parallelize filter and transform synthesis # todo: 12
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()

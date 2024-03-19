@@ -23,6 +23,7 @@ class TransformASTNode:
         self.children: List[TransformASTNode] = children if children else []
         self.childTypes: List[Types] = []
         self.nodeType: Types
+        self.spec = None
 
 # Variable type is for variable objects
 
@@ -334,6 +335,7 @@ class ObjectIdValue:
         self.size = 1
         self.children = []
         self.values = []
+        self.spec = None
 
     def apply(cls, task, children=None, filter=None):
         return cls
@@ -378,6 +380,7 @@ class NoOp(TransformASTNode):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.initialized = False
+            cls.spec = None
         return cls._instance
 
     @classmethod
@@ -394,12 +397,13 @@ class NoOp(TransformASTNode):
             self.values = []
             self.childTypes = []
             self.initialized = True
+            self.spec = None
 
     @classmethod
     def apply(self, task, children=None, filter=None):
         self.code = "NoOp"
         self.size = 1
-        self.values = task.input_abstracted_graphs_original[task.abstraction]
+        self.values = [task.input_abstracted_graphs_original[task.abstraction]]
         return self
 
     @classmethod
@@ -459,6 +463,10 @@ class UpdateColor(Transforms):
             instance.values = task.var_transform_values(filter, instance)
         return instance
 
+    def custom_copy(self):
+        copied_node = UpdateColor(self.children[0])
+        return copied_node
+
 
 class MoveNode(Transforms):
     arity = 1
@@ -486,12 +494,15 @@ class MoveNode(Transforms):
             instance.values = task.var_transform_values(filter, instance)
         return instance
 
+    def custom_copy(self):
+        copied_node = MoveNode(self.children[0])
+        return copied_node
 
 class ExtendNode(Transforms):
     arity = 2
     nodeType = Types.TRANSFORMS
     childTypes = [[Types.DIRECTION, Types.OVERLAP],
-                  [Types.VARIABLE, Types.OVERLAP]]
+                [Types.VARIABLE, Types.OVERLAP]]
     default_size = 1
 
     def __init__(self, dir: Union[Dir, Variable], overlap: Overlap):
@@ -514,6 +525,9 @@ class ExtendNode(Transforms):
             instance.values = task.var_transform_values(filter, instance)
         return instance
 
+    def custom_copy(self):
+        copied_node = ExtendNode(self.children[0], self.children[1])
+        return copied_node
 
 class MoveNodeMax(Transforms):
     arity = 1
@@ -541,6 +555,9 @@ class MoveNodeMax(Transforms):
             instance.values = task.var_transform_values(filter, instance)
         return instance
 
+    def custom_copy(self):
+        copied_node = MoveNodeMax(self.children[0])
+        return copied_node
 
 class RotateNode(Transforms):
     arity = 1
@@ -561,6 +578,10 @@ class RotateNode(Transforms):
         values = task.transform_values(filter, instance)
         instance.values = values
         return instance
+
+    def custom_copy(self):
+        copied_node = RotateNode(self.children[0])
+        return copied_node
 
 
 class AddBorder(Transforms):
@@ -583,6 +604,9 @@ class AddBorder(Transforms):
         instance.values = values
         return instance
 
+    def custom_copy(self):
+        copied_node = AddBorder(self.children[0])
+        return copied_node
 
 class FillRectangle(Transforms):
     arity = 2
@@ -604,6 +628,9 @@ class FillRectangle(Transforms):
         instance.values = values
         return instance
 
+    def custom_copy(self):
+        copied_node = FillRectangle(self.children[0], self.children[1])
+        return copied_node
 
 class HollowRectangle(Transforms):
     arity = 1
@@ -625,6 +652,9 @@ class HollowRectangle(Transforms):
         instance.values = values
         return instance
 
+    def custom_copy(self):
+        copied_node = HollowRectangle(self.children[0])
+        return copied_node
 
 class Mirror(Transforms):
     arity = 1
@@ -647,6 +677,9 @@ class Mirror(Transforms):
             instance.values = task.var_transform_values(filter, instance)
         return instance
 
+    def custom_copy(self):
+        copied_node = Mirror(self.children[0])
+        return copied_node
 
 class Flip(Transforms):
     arity = 1
@@ -670,12 +703,17 @@ class Flip(Transforms):
         instance.values = values
         return instance
 
+    def custom_copy(self):
+        copied_node = Flip(self.children[0])
+        return copied_node
+
 
 class Insert(Transforms):
     arity = 3
     nodeType = Types.TRANSFORMS
     childTypes = [
-        [Types.OBJECT_ID, Types.IMAGE_POINTS, Types.RELATIVE_POSITION]] #[Types.OBJECT_ID, Types.VARIABLE, Types.RELATIVE_POSITION] #todo
+        [Types.OBJECT_ID, Types.IMAGE_POINTS, Types.RELATIVE_POSITION]]
+        #[Types.OBJECT_ID, Types.VARIABLE, Types.RELATIVE_POSITION] #todo
     default_size = 1
 
     def __init__(self, object_id: ObjectId, image_points: ImagePoints, relative_pos: RelativePosition):

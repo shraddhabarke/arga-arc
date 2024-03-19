@@ -561,7 +561,6 @@ class Or(FilterASTNode):
             res_dict.append(filtered_nodes_dict)
 
         if task.current_spec:
-            print("filters:", children[0].code, children[1].code)
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 union_keys = set(dict1.keys()) | set(dict2.keys())  # Union of keys between dict1 and dict2

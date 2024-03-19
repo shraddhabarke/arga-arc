@@ -28,6 +28,10 @@ class TSizeEnumerator:
         self.maxterminals = max(
             [nonleaf.default_size + nonleaf.arity for nonleaf in vocab.nonLeaves()])
 
+        self.dummyProgramCounter = 0
+        self.currentValueSets = []
+        self.currentProgram = None
+
     def hasNext(self) -> bool:
         if self.nextProgram:
             return True
@@ -79,37 +83,59 @@ class TSizeEnumerator:
         return self.advanceRoot()
 
     def getNextProgram(self):
-        res = None
-        while not res:
-            if self.costLevel > 25:
-                break
-            if self.childrenIterator.hasNext():
-                children = self.childrenIterator.next()
-                if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children)
+        if not self.currentValueSets:  # No pending value sets
+            while not self.nextProgram:
+                if self.costLevel > 25:
+                    break
+                if self.childrenIterator.hasNext():
+                    children = self.childrenIterator.next()
+                    if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children)
                                                                         and all(child.nodeType == child_type for child, child_type
                                                                         in zip(children, self.rootMaker.childTypes[self.currentChildIteratorIndex]))):
-                    
-                    prog = self.rootMaker.apply(
-                        self.task, children, self.filter)
-                    print("programs:", prog.code)
-                    print("programs:", [val.graph.nodes(data=True) for val in prog.values])
-                    
-                    if children is None:
-                        res = prog
-                    elif self.oeManager.is_representative(prog.values) or "Var" in prog.code:
-                        res = prog
+                        prog = self.rootMaker.apply(self.task, children, self.filter)
+                        if len(prog.values) > 1:
+                            self.dummyProgramCounter = 0
+                            self.currentProgram = prog  # store the original program with all its value sets
+                            self.currentValueSets = prog.values  # assign multiple value sets
+                            firstvalue = self.currentValueSets.pop(0)
+                            return self.createDummyProgram(firstvalue) # todo: OE
+                        elif children is None or self.oeManager.is_representative(prog.values):
+                            self.nextProgram = prog
+                elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
+                    self.currentChildIteratorIndex += 1
+                    self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
+                elif self.currIter.hasNext():
+                    if (not self.advanceRoot()):
+                        return None
+                else:
+                    if (not self.changeLevel()):
+                        self.changeLevel()
+        else:
+            value = self.currentValueSets.pop(0)
+            return self.createDummyProgram(value)
 
-            elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
-                self.currentChildIteratorIndex += 1
-                self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
-            elif self.currIter.hasNext():
-                if (not self.advanceRoot()):
-                    return None
-            else:
-                if (not self.changeLevel()):
-                    self.changeLevel()
-        self.currLevelProgs.append(res)
-        return res
+        if self.nextProgram:
+            self.currLevelProgs.append(self.nextProgram)
+            res = self.nextProgram
+            self.nextProgram = None
+            return res
+        return None
+
+    def createDummyProgram(self, value_set):
+        code_parts = self.currentProgram.code.rsplit('_', 1)
+        if len(code_parts) > 1 and code_parts[-1].isdigit():
+            base_code = code_parts[0]
+        else:
+            base_code = self.currentProgram.code
+        new_code = f"{base_code}_{self.dummyProgramCounter}"
+        dummy_program = self.currentProgram.custom_copy()
+        dummy_program.spec = self.task.all_specs[self.dummyProgramCounter]
+        dummy_program.values = [value_set]  # ensure values is a list, even with a single set
+        dummy_program.code = new_code
+        dummy_program.apply = self.task.values_to_apply[self.dummyProgramCounter]
+        self.dummyProgramCounter += 1
+        self.currLevelProgs.append(dummy_program)
+        return dummy_program
 
     def updateBank(self, program):
         if program.size not in self.bank:
