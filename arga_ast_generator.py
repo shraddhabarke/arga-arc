@@ -42,6 +42,7 @@ class Width(_Ast):
 class Column(_Ast):
     value: int | str
 
+@dataclass
 class Shape(_Ast):
     value: str
 
@@ -259,6 +260,30 @@ class ToAst(Transformer):
         except ValueError:
             return Size(token.value)
 
+    def ROT_ANGLE(self, token):
+        return RotationAngle(int(token.value))
+
+    def SHAPE(self, token):
+        return Shape(token.value)
+
+    def DEGREE(self, token):
+        try:
+            return Degree(int(token.value))
+        except ValueError:
+            return Degree(token.value)
+    
+    def HEIGHT(self, token):
+        try:
+            return Height(int(token.value))
+        except ValueError:
+            return Height(token.value)
+    
+    def COLUMN(self, token):
+        try:
+            return Column(int(token.value))
+        except ValueError:
+            return Column(token.value)
+
     # def library(self, children):
     #     return Library(children)
     
@@ -277,7 +302,7 @@ class ToAst(Transformer):
                 case "and":
                     return And(children[1], children[2])
                 case "or":
-                    return Or((children[1], children[2]))
+                    return Or(children[1], children[2])
                 case "not":
                     return Not(children[1])
                 case "varand":
@@ -454,25 +479,33 @@ def test_file(filename, parser, xformer):
     # print(ast)
     pprint(ast)
 
+def test_gpt_gens(gens_dir, parser, xformer):
+    for filename in os.listdir(gens_dir):
+        if filename.endswith("_valid.txt"):
+            file_path = os.path.join(gens_dir, filename)
+            test_file(file_path, parser, xformer)
+
 if __name__ == "__main__":
     parser = dsl_parser.Parser.new()
     xformer = ast_utils.create_transformer(this_module, ToAst())
-    # xformer = ToAst()
 
-    # test_file("dsl/v0_3/reference/d43fd935.dsl", parser, xformer)
-    # test_file("dsl/v0_3/examples/ex01.dsl", parser, xformer)
+    # test_dirs = [
+    #     "dsl/v0_3/reference",
+    #     # "dsl/v0_3/examples",
+    # ]
+    # for test_dir in test_dirs:
+    #     print(f"Testing directory {test_dir}...")
+    #     for filename in os.listdir(test_dir):
+    #         if filename.endswith(".dsl"):
+    #             file_path = os.path.join(test_dir, filename)
+    #             # open the file as a library
+    #             # print(f"Testing {file_path}...")
+    #             test_file(file_path, parser, xformer)
+    # print("All tests passed!")
 
-    # test_dir = "dsl/v0_3/reference"
-    test_dirs = [
-        "dsl/v0_3/reference",
-        # "dsl/v0_3/examples",
-    ]
-    for test_dir in test_dirs:
-        print(f"Testing directory {test_dir}...")
-        for filename in os.listdir(test_dir):
-            if filename.endswith(".dsl"):
-                file_path = os.path.join(test_dir, filename)
-                # open the file as a library
-                # print(f"Testing {file_path}...")
-                test_file(file_path, parser, xformer)
-    print("All tests passed!")
+    # gens_dir = "/Users/emmanuel/repos/arc_stuff/arga-arc/models/logs/gens_20240318T224833"
+    # gens_dir = "models/logs/gens_20240318T224833"
+    # gens_dir = "models/logs/gens_20240318T230602"
+    # gens_dir = "models/logs/gens_20240318T231857"
+    gens_dir = "dsl/v0_3/generations/20240318T231857_gpt-4-0125-preview_30"
+    test_gpt_gens(gens_dir, parser, xformer)
