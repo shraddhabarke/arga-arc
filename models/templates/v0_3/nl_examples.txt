@@ -4,7 +4,6 @@ The following program recolors all the objects to color Y:
 ```
 (do
     (rule
-        (with this)
         (filter)
         (apply
             (update_color Y)
@@ -17,11 +16,10 @@ The following program recolors the 3 smallest objects of color X to colors Y, F 
 ```
 (do
     (rule
-        (with this)
         (filter
             (and
-                (filter_by_color this X)
-                (filter_by_size this MIN)
+                (filter_by_color X)
+                (filter_by_size min)
             )
         )
         (apply
@@ -29,11 +27,10 @@ The following program recolors the 3 smallest objects of color X to colors Y, F 
         )
     )
     (rule
-        (with this)
         (filter
             (and
-                (filter_by_color this X)
-                (filter_by_size this MIN)
+                (filter_by_color X)
+                (filter_by_size min)
             )
         )
         (apply
@@ -41,11 +38,10 @@ The following program recolors the 3 smallest objects of color X to colors Y, F 
         )
     )
     (rule
-        (with this)
         (filter
             (and
-                (filter_by_color this X)
-                (filter_by_size this MIN)
+                (filter_by_color X)
+                (filter_by_size min)
             )
         )
         (apply
@@ -59,16 +55,14 @@ The following program first recolors all objects to color R, then recolors all t
 ```
 (do
     (rule
-        (with this)
         (filter)
         (apply
             (update_color R)
         )
     )
     (rule
-        (with this)
         (filter
-            (filter_by_size this 1)
+            (filter_by_size 1)
         )
         (apply
             (update_color R)
@@ -77,19 +71,18 @@ The following program first recolors all objects to color R, then recolors all t
 )
 ```
 
-The following program selects all objects that have a neighbor of size 4, and moves them toward that neighbor:
+The following program selects all objects that have a neighbor of size 4 in a diagonal direction, and moves them toward that neighbor:
 ```
 (do
     (rule
-        (with this x)
         (filter
-            (and
-                (filter_by_size x 4)
-                (is_neighbor this x)
+            (varand
+                (is_diagonal_neighbor)
+                (filter_by_size 4)
             )
         )
         (apply
-            (move_node_max x)
+            (move_node_max var)
         )
     )
 )
@@ -99,33 +92,35 @@ The following program selects all objects of size 1 that have a neighbor or colo
 ```
 (do
     (rule
-        (with this y)
         (filter
             (and
-                (filter_by_size this 1)
-                (filter_by_color y X)
-                (is_neighbor this y)
+                (filter_by_size 1)
+                (varand
+                    (is_any_neighbor)
+                    (filter_by_color X)
+                )
             )
         )
         (apply
-            (extend_node y false)
+            (extend_node var false)
         )
     )
 )
 ```
 
 The following program has 2 rules.
-First, it selects all objects of size 1 that have a neighbor of color X, and for each such object, it recolors it to color R and moves it down.
-Then, it selects all objects of size 1 that have a neighbor of color Y, and for each such object, it recolors it to color B and moves it up.
+First, it selects all objects of size 1 that have a horizontal or vertical neighbor of color X, and for each such object, it recolors it to color R and moves it down.
+Then, it selects all objects of size 1 that have a horizontal or vertical neighbor of color Y, and for each such object, it recolors it to color B and moves it up.
 ```
 (do
     (rule
-        (with this v)
         (filter
             (and
-                (filter_by_size this 1)
-                (filter_by_color v X)
-                (is_neighbor this v)
+                (filter_by_size 1)
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color X)
+                )
             )
         )
         (apply
@@ -134,12 +129,13 @@ Then, it selects all objects of size 1 that have a neighbor of color Y, and for 
         )
     )
     (rule
-        (with this v)
         (filter
             (and
-                (filter_by_size this 1)
-                (filter_by_color v Y)
-                (is_neighbor this v)
+                (filter_by_size 1)
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color Y)
+                )
             )
         )
         (apply

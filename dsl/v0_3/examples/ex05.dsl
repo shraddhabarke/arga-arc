@@ -1,13 +1,16 @@
 (do
     (rule
         (filter
-            (varand
-                (is_diagonal_neighbor)
-                (filter_by_size 4)
+            (and
+                (filter_by_size 1)
+                (varand
+                    (is_any_neighbor)
+                    (filter_by_color X)
+                )
             )
         )
         (apply
-            (move_node_max var)
+            (extend_node var false)
         )
     )
 )

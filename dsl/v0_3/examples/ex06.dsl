@@ -4,13 +4,29 @@
             (and
                 (filter_by_size 1)
                 (varand
-                    (is_any_neighbor)
+                    (is_direct_neighbor)
                     (filter_by_color X)
                 )
             )
         )
         (apply
-            (extend_node var false)
+            (update_color R)
+            (move_node_max D)
+        )
+    )
+    (rule
+        (filter
+            (and
+                (filter_by_size 1)
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color Y)
+                )
+            )
+        )
+        (apply
+            (update_color B)
+            (move_node_max U)
         )
     )
 )
