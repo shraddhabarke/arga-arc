@@ -91,7 +91,8 @@ if __name__ == "__main__":
     task_list_file = args[0]
     n_responses = int(args[1])
     with open(task_list_file, "r") as f:
-        task_ids = f.read().splitlines()
+        task_ids = [id for id in f.read().splitlines() if id]
+
     # model = "gpt-3.5-turbo-0125"
     model = "gpt-4-0125-preview"
     query_task_list(task_ids, n_responses, model)

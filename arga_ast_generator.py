@@ -4,313 +4,441 @@ from lark import Tree
 import sys
 from dataclasses import dataclass, fields, is_dataclass
 import typing as t
-from config import CONFIG
+# from config import CONFIG
+import os
+import dsl.v0_3.parser as dsl_parser
+from enum import Enum
+from pprint import pprint
 
 this_module = sys.modules[__name__]
 
-
+@dataclass
 class _Ast(ast_utils.Ast):
     pass
 
+### Base types
 
 @dataclass
-class Library(_Ast):
-    programs: List["Program"]
-
-
-@dataclass
-class Program(_Ast):
-    rules: List["_Rule"]
-
-
-@dataclass
-class DoOperation(_Ast):
-    rule_list: "RuleList"
-
-
-@dataclass
-class RuleList(_Ast):
-    rules: List["_Rule"]
-
-
-@dataclass
-class _Rule(_Ast):
-    filter_op: "_Filter_Op"
-    transforms: "Transforms"
-
-
-@dataclass
-class Transforms(_Ast, ast_utils.AsList):
-    transforms: List["Transform"]
-
-
-@dataclass
-class _Filter_Op(_Ast):
+class Var():
     pass
 
-
-class Transform(_Ast):
-    pass
-
+@dataclass
+class Size(_Ast):
+    value: int | str
 
 @dataclass
-class Color(_Ast):
+class Degree(_Ast):
+    value: int | str
+
+@dataclass
+class Height(_Ast):
+    value: int | str
+
+@dataclass
+class Width(_Ast):
+    value: int | str
+
+@dataclass
+class Column(_Ast):
+    value: int | str
+
+@dataclass
+class Shape(_Ast):
     value: str
-
 
 @dataclass
 class Direction(_Ast):
     value: str
 
-
 @dataclass
-class Size(_Ast):
+class SymmetryAxis(_Ast):
     value: str
 
+@dataclass
+class RotationAngle(_Ast):
+    value: int
 
 @dataclass
-class Degree(_Ast):
+class Color(_Ast):
     value: str
 
+@dataclass
+class Overlap(_Ast):
+    value: bool
 
 @dataclass
-class Symmetry_Axis(_Ast):
+class ImagePoints(_Ast):
     value: str
 
-
 @dataclass
-class Rotation_Angle(_Ast):
+class RelativePosition(_Ast):
     value: str
 
+### Filter relations
 
 @dataclass
-class UpdateColor(Transform):
+class _FilterRelation(_Ast):
+    pass
+
+@dataclass
+class IsAnyNeighbor(_FilterRelation):
+    pass
+
+@dataclass 
+class IsDirectNeighbor(_FilterRelation):
+    pass
+
+@dataclass
+class IsDiagonalNeighbor(_FilterRelation):
+    pass
+
+### Filter expressions
+
+@dataclass
+class _FilterExpr(_Ast):
+    pass
+
+# @dataclass
+# class Filter(_Ast):
+#     filter_expr: _FilterExpr
+
+@dataclass
+class And(_FilterExpr):
+    left: _FilterExpr
+    right: _FilterExpr
+
+@dataclass
+class Or(_FilterExpr):
+    # children: Tuple[_FilterExpr, _FilterExpr]
+    left: _FilterExpr
+    right: _FilterExpr
+
+@dataclass
+class Not(_FilterExpr):
+    child: _FilterExpr
+
+@dataclass
+class VarAnd(_FilterExpr):
+    relation: _FilterRelation
+    filter: _FilterExpr
+
+### Filter primitives
+
+@dataclass
+class FilterByColor(_Ast):
     color: Color
 
-
 @dataclass
-class MoveNode(Transform):
-    direction: Direction
-
-
-@dataclass
-class ExtendNode(Transform):
-    direction: Direction
-    overlap: Optional[bool] = False
-
-
-@dataclass
-class MoveNodeMax(Transform):
-    direction: Direction
-
-
-@dataclass
-class AddBorder(Transform):
-    color: Color
-
-
-@dataclass
-class HollowRectangle(Transform):
-    color: Color
-
-
-@dataclass
-class FillRectangle(Transform):
-    color: Color
-    overlap: bool
-
-
-@dataclass
-class Flip(Transform):
-    symmetry_axis: Symmetry_Axis
-
-
-@dataclass
-class RotateNode(Transform):
-    rotation_angle: Rotation_Angle
-
-
-@dataclass
-class Mirror(Transform):
-    axis_point: Tuple[Optional[int], Optional[int]]
-
-
-@dataclass
-class Not(_Filter_Op):
-    not_filter: _Filter_Op
-
-
-@dataclass
-class And:
-    filters: List[_Filter_Op]
-
-
-@dataclass
-class Or:
-    filters: List[_Filter_Op]
-
-
-@dataclass
-class FilterByColor(_Filter_Op):
-    color: Color
-
-
-@dataclass
-class FilterByNeighborColor(_Filter_Op):
-    color: Color
-
-
-@dataclass
-class FilterBySize(_Filter_Op):
+class FilterBySize(_Ast):
     size: Size
 
+@dataclass
+class FilterByHeight(_Ast):
+    height: Height
 
 @dataclass
-class FilterByNeighborSize(_Filter_Op):
+class FilterByWidth(_Ast):
+    width: Width
+
+@dataclass
+class FilterByDegree(_Ast):
+    degree: Degree
+
+@dataclass
+class FilterByShape(_Ast):
+    shape: Shape
+
+@dataclass
+class FilterByColumns(_Ast):
+    columns: Column
+
+@dataclass
+class FilterByNeighborSize(_Ast):
     size: Size
 
+@dataclass
+class FilterByNeighborColor(_Ast):
+    color: Color
 
 @dataclass
-class FilterByDegree(_Filter_Op):
+class FilterByNeighborDegree(_Ast):
     degree: Degree
-
 
 @dataclass
-class FilterByNeighborDegree(_Filter_Op):
-    degree: Degree
+class FilterByNeighborSize(_Ast):
+    size: str
+
+### Transforms
+
+@dataclass
+class _Transform(_Ast):
+    pass
+
+@dataclass
+class UpdateColor(_Transform):
+    color: Color | Var
+
+@dataclass
+class MoveNode(_Transform):
+    direction: Direction | Var
+
+@dataclass
+class ExtendNode(_Transform):
+    direction: Direction | Var
+    overlap: Overlap
+
+@dataclass
+class MoveNodeMax(_Transform):
+    direction: Direction | Var
+
+@dataclass
+class RotateNode(_Transform):
+    angle: RotationAngle
+
+@dataclass
+class AddBorder(_Transform):
+    color: Color
+
+@dataclass
+class FillRectangle(_Transform):
+    color: Color
+    overlap: Overlap
+
+@dataclass
+class HollowRectangle(_Transform):
+    color: Color
+
+@dataclass
+class Mirror(_Transform):
+    axis: Var
+
+@dataclass
+class Flip(_Transform):
+    axis: SymmetryAxis
+
+@dataclass
+class Insert(_Transform):
+    source: Var
+    image_points: ImagePoints
+    relative_position: RelativePosition
+
+###
+
+@dataclass
+class Rule(_Ast):
+    filter: _FilterExpr
+    transforms: List[_Transform]
+
+@dataclass
+class Program(_Ast, ast_utils.AsList):
+    rules: List[Rule]
+
+@dataclass
+class Library(_Ast, ast_utils.AsList):
+    programs: List[Program]
 
 
 class ToAst(Transformer):
-    def do_operation(self, rule_list) -> DoOperation:
-        return DoOperation(rule_list=rule_list)
+    # def __default_token__(self, token):
+    #     return token.value
+    
+    def VAR(self, token):
+        return Var()
+    
+    def OVERLAP(self, token):
+        return Overlap(bool(token.value))
+    
+    def COLOR(self, token):
+        return Color(token.value)
 
-    @v_args(inline=True)
-    def rule_list(self, *rules) -> RuleList:
-        return RuleList(rules=list(rules))
+    def DIRECTION(self, token):
+        return Direction(token.value)
 
-    def rule(self, args) -> _Rule:
-        filter_op, transforms = args[0], args[1] if len(args) > 1 else []
-        return _Rule(filter_op=filter_op, transforms=transforms)
+    def SIZE(self, token):
+        try:
+            return Size(int(token.value))
+        except ValueError:
+            return Size(token.value)
 
-    def transforms(self, transforms) -> Transforms:
-        return Transforms(transforms=transforms)
+    def ROT_ANGLE(self, token):
+        return RotationAngle(int(token.value))
 
-    @v_args(inline=True)
-    def color(self, color_token) -> Color:
-        return Color(value=str(color_token))
+    def SHAPE(self, token):
+        return Shape(token.value)
 
-    @v_args(inline=True)
-    def direction(self, direction_token) -> Direction:
-        return Direction(value=str(direction_token))
+    def DEGREE(self, token):
+        try:
+            return Degree(int(token.value))
+        except ValueError:
+            return Degree(token.value)
+    
+    def HEIGHT(self, token):
+        try:
+            return Height(int(token.value))
+        except ValueError:
+            return Height(token.value)
+    
+    def COLUMN(self, token):
+        try:
+            return Column(int(token.value))
+        except ValueError:
+            return Column(token.value)
 
-    @v_args(inline=True)
-    def size(self, size_token) -> Size:
-        return Size(value=str(size_token))
-
-    @v_args(inline=True)
-    def degree(self, degree_token) -> Degree:
-        return Degree(value=str(degree_token))
-
-    @v_args(inline=True)
-    def symmetry_axis(self, axis_token) -> Symmetry_Axis:
-        return Symmetry_Axis(value=str(axis_token))
-
-    @v_args(inline=True)
-    def rotation_angle(self, angle_token) -> Rotation_Angle:
-        return Rotation_Angle(value=str(angle_token))
-
-    def mirror_params(self, params) -> Mirror:
-        axis1, axis2 = params
-        x = None if axis1 == "null" else int(axis1)
-        y = None if axis2 == "null" else int(axis2)
-        return Mirror(axis_point=(x, y))
-
-    @v_args(inline=True)
-    def bool_expr(self, value) -> bool:
-        return bool(value)
-
-    def transform(
-        self, operator
-    ) -> (
-        UpdateColor
-        | MoveNode
-        | ExtendNode
-        | MoveNodeMax
-        | AddBorder
-        | FillRectangle
-        | HollowRectangle
-        | RotateNode
-        | Mirror
-        | Flip
-    ):
-        if operator[0] == "update_color":
-            return UpdateColor(color=self.color(operator[1]))
-        elif operator[0] == "move_node":
-            return MoveNode(direction=self.direction(operator[1]))
-        elif operator[0] == "extend_node":
-            overlap = False
-            if len(operator) == 3:
-                overlap = self.bool_expr(operator[2])
-            return ExtendNode(direction=self.direction(operator[1]), overlap=overlap)
-        elif operator[0] == "move_node_max":
-            return MoveNodeMax(direction=self.direction(operator[1]))
-        elif operator[0] == "add_border":
-            return AddBorder(color=self.color(operator[1]))
-        elif operator[0] == "fill_rectangle":
-            overlap = self.bool_expr(operator[2])
-            return FillRectangle(color=self.color(operator[1]), overlap=operator[2])
-        elif operator[0] == "hollow_rectangle":
-            return HollowRectangle(color=self.color(operator[1]))
-        elif operator[0] == "rotate_node":
-            return RotateNode(rotation_angle=self.rotation_angle(operator[1]))
-        elif operator[0] == "mirror":
-            # TODO: not sure how to fix this transformation
-            return Mirror(axis_point=operator[1])
-        elif operator[0] == "flip":
-            return Flip(symmetry_axis=self.symmetry_axis(operator[1]))
+    # def library(self, children):
+    #     return Library(children)
+    
+    def filter(self, children):
+        if len(children) == 1:
+            return children[0]
         else:
-            raise ValueError(f"Unknown operation: {operator}")
-
-    def filter_op(
-        self, operator
-    ) -> (
-        FilterByColor
-        | FilterByNeighborColor
-        | FilterBySize
-        | FilterByNeighborSize
-        | FilterByDegree
-        | FilterByNeighborDegree
-        | Not
-        | And
-        | Or
-    ):
-        if operator[0] == "filter_by_color":
-            return FilterByColor(color=self.color(operator[1]))
-        elif operator[0] == "filter_by_neighbor_color":
-            return FilterByNeighborColor(color=self.color(operator[1]))
-        elif operator[0] == "filter_by_size":
-            return FilterBySize(size=self.size(operator[1]))
-        elif operator[0] == "filter_by_neighbor_size":
-            return FilterByNeighborSize(size=self.size(operator[1]))
-        elif operator[0] == "filter_by_degree":
-            return FilterByDegree(degree=self.degree(operator[1]))
-        elif operator[0] == "filter_by_neighbor_degree":
-            return FilterByNeighborDegree(degree=self.degree(operator[1]))
-        elif operator[0] == "not":
-            return Not(not_filter=operator[1])
-        elif operator[0] == "and":
-            return And(filters=operator[1:])
-        elif operator[0] == "or":
-            return Or(filters=operator[1:])
+            None
+    
+    def filter_expr(self, children):
+        # if this is a single primitive
+        if len(children) == 1:
+            return children[0]
         else:
-            raise ValueError(f"Unknown operation: {operator}")
+            match children[0]:
+                case "and":
+                    return And(children[1], children[2])
+                case "or":
+                    return Or(children[1], children[2])
+                case "not":
+                    return Not(children[1])
+                case "varand":
+                    return VarAnd(
+                        relation=children[1],
+                        filter=children[2]
+                    )
+                case _:
+                    # return children
+                    raise ValueError(f"Unknown filter expression: {children[0]}")
 
+        return children
+
+    @v_args(tree=True)
+    def filter_prim(self, tree):
+        children = tree.children
+        match children[0]:
+            case "filter_by_color":
+                return FilterByColor(
+                    color=children[1]
+                )
+            case "filter_by_size":
+                return FilterBySize(
+                    size=children[1]
+                )
+            case "filter_by_height":
+                return FilterByHeight(
+                    height=children[1]
+                )
+            case "filter_by_width":
+                return FilterByWidth(
+                    width=children[1]
+                )
+            case "filter_by_degree":
+                return FilterByDegree(
+                    degree=children[1]
+                )
+            case "filter_by_shape":
+                return FilterByShape(
+                    shape=children[1]
+                )
+            case "filter_by_columns":
+                return FilterByColumns(
+                    columns=children[1]
+                )
+            case "filter_by_neighbor_size":
+                return FilterByNeighborSize(
+                    size=children[1]
+                )
+            case "filter_by_neighbor_color":
+                return FilterByNeighborColor(
+                    color=children[1]
+                )
+            case "filter_by_neighbor_degree":
+                return FilterByNeighborDegree(
+                    degree=children[1]
+                )
+            case _:
+                # return tree
+                raise ValueError(f"Unknown filter primitive: {children[0]}")
+    
+    def filter_relation(self, children):
+        match children[0]:
+            case "is_any_neighbor":
+                return IsAnyNeighbor()
+            case "is_direct_neighbor":
+                return IsDirectNeighbor()
+            case "is_diagonal_neighbor":
+                return IsDiagonalNeighbor()
+            case _:
+                raise ValueError(f"Unknown filter relation: {children[0]}")
+    
+    def xform_list(self, children):
+        return children
+
+    def xform(self, children):
+        match children[0]:
+            case "update_color":
+                return UpdateColor(
+                    color=children[1]
+                )
+            case "move_node":
+                return MoveNode(
+                    direction=children[1]
+                )
+
+            case "extend_node":
+                return ExtendNode(
+                    direction=children[1], 
+                    overlap=children[2]
+                )
+            case "move_node_max":
+                return MoveNodeMax(
+                    direction=children[1]
+                )
+            case "rotate_node":
+                return RotateNode(
+                    angle=children[1]
+                )
+            case "add_border":
+                return AddBorder(
+                    color=children[1]
+                )
+            case "fill_rectangle":
+                return FillRectangle(
+                    color=children[1],
+                    overlap=children[2]
+                )
+            case "hollow_rectangle":
+                return HollowRectangle(
+                    color=children[1]
+                )
+            case "mirror":
+                return Mirror(
+                    axis=children[1]
+                )
+            case "flip":
+                return Flip(
+                    axis=children[1]
+                )
+            case "insert":
+                return Insert(
+                    source=children[1],
+                    image_points=children[2],
+                    relative_position=children[3]
+                )
+
+            case _:
+                raise ValueError(f"Unknown transform: {children[0]}")
+    
 
 def print_ast_class_names(node, indent=0):
     indent_str = "    " * indent
     if is_dataclass(node):
         # Print class name
-        print(f"{indent_str}{node.__class__.__name__}", end="")
+        print(f"{indent_str}{node.__class__.__name__}", end="\n")
         if hasattr(node, "value"):
             print(f"(value='{node.value}')", end="")
         for field in fields(node):
@@ -322,27 +450,62 @@ def print_ast_class_names(node, indent=0):
             print_ast_class_names(item, indent + 1)
 
 
-GRAMMAR: t.Optional[Lark] = None
+# GRAMMAR: t.Optional[Lark] = None
 
 
-def __ensure_grammar() -> Lark:
-    global GRAMMAR
-    grammar_file = CONFIG.ROOT_DIR / "dsl" / "dsl.lark"
-    if GRAMMAR is None:
-        with open(grammar_file, "r") as f:
-            arga_dsl_grammar = f.read()
-        GRAMMAR = Lark(
-            arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst()
-        )
-    return GRAMMAR
+# def __ensure_grammar() -> Lark:
+#     global GRAMMAR
+#     grammar_file = CONFIG.ROOT_DIR / "dsl" / "dsl.lark"
+#     if GRAMMAR is None:
+#         with open(grammar_file, "r") as f:
+#             arga_dsl_grammar = f.read()
+#         GRAMMAR = Lark(
+#             arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst()
+#         )
+#     return GRAMMAR
 
 
-def parse(program: str) -> ParseTree:
-    return __ensure_grammar().parse(program)
+# def parse(program: str) -> ParseTree:
+#     return __ensure_grammar().parse(program)
 
+def test_file(filename, parser, xformer):
+    with open(filename, "r") as f:
+        lib = "(" + f.read() + ")"
+    print(f"Testing {filename}...")
+    t = parser.lib_parse_tree(lib)
+    print(t.pretty())
+    ast = xformer.transform(t)
+    # print_ast_class_names(ast)
+    # print(ast)
+    pprint(ast)
+
+def test_gpt_gens(gens_dir, parser, xformer):
+    for filename in os.listdir(gens_dir):
+        if filename.endswith("_valid.txt"):
+            file_path = os.path.join(gens_dir, filename)
+            test_file(file_path, parser, xformer)
 
 if __name__ == "__main__":
-    with open("dsl/gens/gens_20231120/08ed6ac7_correct.txt", "r") as f:
-        program = f.read()
-    ast_program = parse(program)
-    print(ast_program)
+    parser = dsl_parser.Parser.new()
+    xformer = ast_utils.create_transformer(this_module, ToAst())
+
+    # test_dirs = [
+    #     "dsl/v0_3/reference",
+    #     # "dsl/v0_3/examples",
+    # ]
+    # for test_dir in test_dirs:
+    #     print(f"Testing directory {test_dir}...")
+    #     for filename in os.listdir(test_dir):
+    #         if filename.endswith(".dsl"):
+    #             file_path = os.path.join(test_dir, filename)
+    #             # open the file as a library
+    #             # print(f"Testing {file_path}...")
+    #             test_file(file_path, parser, xformer)
+    # print("All tests passed!")
+
+    # gens_dir = "/Users/emmanuel/repos/arc_stuff/arga-arc/models/logs/gens_20240318T224833"
+    # gens_dir = "models/logs/gens_20240318T224833"
+    # gens_dir = "models/logs/gens_20240318T230602"
+    # gens_dir = "models/logs/gens_20240318T231857"
+    gens_dir = "dsl/v0_3/generations/20240318T231857_gpt-4-0125-preview_30"
+    test_gpt_gens(gens_dir, parser, xformer)

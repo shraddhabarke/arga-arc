@@ -1,15 +1,32 @@
 (do
     (rule
-        (with this x)
         (filter
             (and
-                (filter_by_size this 1)
-                (filter_by_color x X)
-                (is_neighbor this x)
+                (filter_by_size 1)
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color X)
+                )
             )
         )
         (apply
-            (extend_node x false)
+            (update_color R)
+            (move_node_max D)
+        )
+    )
+    (rule
+        (filter
+            (and
+                (filter_by_size 1)
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color Y)
+                )
+            )
+        )
+        (apply
+            (update_color B)
+            (move_node_max U)
         )
     )
 )

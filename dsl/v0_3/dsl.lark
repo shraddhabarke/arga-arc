@@ -4,60 +4,72 @@ library: "(" program* ")"
 // There could be no rules, in which case the program does nothing.
 program: "(" "do" rule* ")"
 
-// A rule first defines a the object variables which are used in the filter and transform expressions.
-// Then, it defines a filter that refers to the object variables, and which selects the objects to which the transform will be applied.
-// Finally, it defines a list of transforms that will be applied to the selected objects.
-rule: "(" "rule" params filter transform_list ")"
+// First, it defines a filter expression that an object must satisfy in order to be transformed.
+// This filter expression can also refer to one additional object, which is not transformed,
+// but whose properties can be used by the transform expressions.
+// Then, it defines a list of transforms that will be applied objects that satisfy the filter expression.
+rule: "(" "rule" filter xform_list ")"
 
-// The object variables are used to refer to the objects in the grid.
-// There is a special variable `this` which refers to the object to which the transforms are applied.
-// The `this` variable is always defined.
-// There can be an optional additional variable, which can be also used in the filter and transform expressions,
-// but is not affected by the transforms.
-params: "(" "with" "this" VAR? ")"
-
-VAR: LCASE_LETTER+
+// `var` referst to the additional object, which might or might not be present.
+VAR: "var"
 
 // A filter is a predicate over the objects in the grid.
 // If no filter is given, then all the objects are selected.
 filter: "(" "filter" filter_expr? ")"
 
 // It can be a primitive filter operation, or a boolean expression using the `and`, `or`, and `not` connectives
-// The objects to which the transform will be applied are the ones that can be bound to the `this` variable
-// such that the filter expression is true.
-filter_expr: "(" FL_BY_COLOR VAR COLOR ")"           // select objects of the given color
-           | "(" FL_BY_SIZE VAR SIZE ")"             // select the objects that have the given size
-           | "(" FL_BY_DEGREE VAR DEGREE ")"         // select all objects that have a given number of neighbors i.e degree
-           | "(" FL_IS_NEIGHBOR VAR VAR ")"          // selects objects that are neighbors, i.e. can see each other in the grid
-           | "(" OP_AND filter_expr filter_expr+ ")"   
-           | "(" OP_OR filter_expr filter_expr+ ")"
+// and the `varand` connective, which is used to constrain the optional additional object.
+// The objects that are transformed are the ones that satisfy the filter expression.
+filter_expr: filter_prim
+           | "(" OP_AND filter_expr filter_expr ")"   
+           | "(" OP_OR filter_expr filter_expr ")"
            | "(" OP_NOT filter_expr ")"
+           | "(" OP_VARAND filter_relation filter_expr ")"
+
+filter_prim: "(" FL_BY_COLOR COLOR ")"           // select objects of the given color
+           | "(" FL_BY_SIZE SIZE ")"             // select the objects that have the given size
+           | "(" FL_BY_HEIGHT HEIGHT ")"         // select all objects that have a given height
+           | "(" FL_BY_WIDTH WIDTH ")"           // select all objects that have a given width
+           | "(" FL_BY_DEGREE DEGREE ")"         // select all objects that have a given number of neighbors i.e degree
+           | "(" FL_BY_SHAPE SHAPE ")"           // select all objects that have the given shape
+           | "(" FL_BY_COLUMNS COLUMN ")"        // select all objects that are in the given column
+           | "(" FL_BY_NEIGHBOR_SIZE SIZE ")"    // select all objects that have a neighbor of the given size
+           | "(" FL_BY_NEIGHBOR_COLOR COLOR ")"  // select all objects that have a neighbor of the given color
+           | "(" FL_BY_NEIGHBOR_DEGREE DEGREE ")"// select all objects that have a neighbor of the given degree
+
+filter_relation: "(" REL_ANY_NEIGHBOR ")"      // selects the auxiliary object if it is a neighbor of the main object, in any direction
+               | "(" REL_DIRECT_NEIGHBOR ")"   // selects the auxiliary object if it is a neighbor of the main object, horizontally or vertically
+               | "(" REL_DIAGONAL_NEIGHBOR ")" // selects the auxiliary object if it is a neighbor of the main object, diagonally
 
 // Transforms are applied one after another, in the order they appear.
-transform_list: "(" "apply" transform+ ")"
+xform_list: "(" "apply" xform+ ")"
 
 // A single transform is applied to all the objects that are bound to the `this` variable. 
 // The transform is applied to each such object independently and simultaneously.
-transform: "(" TR_UPDATE_COLOR COLOR ")"             // change this object color to the given color 
-         | "(" TR_UPDATE_COLOR VAR ")"               // or the color of the given object
-         | "(" TR_MOVE_NODE DIRECTION ")"            // move this object in the given direction
-         | "(" TR_MOVE_NODE VAR ")"                  // or the direction of the given object
-         | "(" TR_EXTEND_NODE DIRECTION OVERLAP ")"  // extend (move while leaving a trail) this object in the given direction
-         | "(" TR_EXTEND_NODE VAR OVERLAP ")"        // or the direction of the given object 
-                                                     // if overlap is false, then the object is extended until it hits another object,
-                                                     // otherwise it is extended until the edge of the grid.
-         | "(" TR_MOVE_NODE_MAX DIRECTION ")"        // move this object until it hits another object, in the given direction
-         | "(" TR_MOVE_NODE_MAX VAR ")"              // or this direction of the given object
-         | "(" TR_ROTATE_NODE ROT_ANGLE ")"          // rotate this object by the given angle
-         | "(" TR_ADD_BORDER COLOR ")"               // color this exterior pixels of the object with the given color
-         | "(" TR_FILL_RECTANGLE COLOR OVERLAP ")"   // color this interior of a hollow rectangle with the given color
-         | "(" TR_HOLLOW_RECTANGLE COLOR ")"         // color this interior of a solid rectangle with the given color
-         | "(" TR_MIRROR VAR ")"                     // mirror this object with respect to the given object
-         | "(" TR_FLIP SYMMETRY_AXIS ")"             // flip this object with respect to the given axis
-         | "(" TR_INSERT VAR ")"                     // insert a copy of this object at the position of the given object
+xform: "(" TR_UPDATE_COLOR COLOR ")"                          // change this object color to the given color 
+         | "(" TR_UPDATE_COLOR VAR ")"                            // or the color of the given object
+         | "(" TR_MOVE_NODE DIRECTION ")"                         // move this object in the given direction
+         | "(" TR_MOVE_NODE VAR ")"                               // or the direction of the given object
+         | "(" TR_EXTEND_NODE DIRECTION OVERLAP ")"               // extend (move while leaving a trail) this object in the given direction
+         | "(" TR_EXTEND_NODE VAR OVERLAP ")"                     // or the direction of the given object 
+                                                                  // if overlap is false, then the object is extended until it hits another object,
+                                                                  // otherwise it is extended until the edge of the grid.
+         | "(" TR_MOVE_NODE_MAX DIRECTION ")"                     // move this object until it hits another object, in the given direction
+         | "(" TR_MOVE_NODE_MAX VAR ")"                           // or this direction of the given object
+         | "(" TR_ROTATE_NODE ROT_ANGLE ")"                       // rotate this object by the given angle
+         | "(" TR_ADD_BORDER COLOR ")"                            // color this exterior pixels of the object with the given color
+         | "(" TR_FILL_RECTANGLE COLOR OVERLAP ")"                // color this interior of a hollow rectangle with the given color
+         | "(" TR_HOLLOW_RECTANGLE COLOR ")"                      // color this interior of a solid rectangle with the given color
+         | "(" TR_MIRROR VAR ")"                                  // mirror this object with respect to the given object
+         | "(" TR_FLIP SYMMETRY_AXIS ")"                          // flip this object with respect to the given axis
+         | "(" TR_INSERT VAR IMAGE_POINTS RELATIVE_POSITION ")"   // insert a copy of this object at the position of the given object
 
-SIZE: "MIN" | "MAX" | "ODD" | /[0-9]+/
-DEGREE: "MIN" | "MAX" | "ODD" | /[0-9]+/
+SIZE: "min" | "max" | "odd" | /[0-9]+/
+DEGREE: "min" | "max" | "odd" | /[0-9]+/
+HEIGHT: "min" | "max" | "odd" | /[0-9]+/
+WIDTH: "min" | "max" | "odd" | /[0-9]+/
+COLUMN: "center" | "even" | /[0-9]+/
+SHAPE: "square" | "enclosed"
 
 DIRECTION: "U"
          | "D"
@@ -68,7 +80,7 @@ DIRECTION: "U"
          | "DL"
          | "DR"
 
-SYMMETRY_AXIS: "VERTICAL" | "HORIZONTAL" | "DIAGONAL_LEFT" | "DIAGONAL_RIGHT"
+SYMMETRY_AXIS: "vertical" | "horizontal" | "diagonal_left" | "diagonal_right"
 
 // The angle of clockwise rotation, in degrees.
 ROT_ANGLE: "0" 
@@ -91,14 +103,38 @@ OVERLAP: BOOL
 
 BOOL: "true" | "false"
 
+IMAGE_POINTS: "top"
+            | "bottom"
+            | "left"
+            | "right"
+            | "top_left"
+            | "top_right"
+            | "bottom_left"
+            | "bottom_right"
+
+RELATIVE_POSITION: "source"
+                 | "target"
+                 | "middle"
+
 OP_AND: "and"
 OP_OR: "or"
 OP_NOT: "not"
+OP_VARAND: "varand"
 
 FL_BY_COLOR: "filter_by_color" 
 FL_BY_SIZE: "filter_by_size"
 FL_BY_DEGREE: "filter_by_degree"
-FL_IS_NEIGHBOR: "is_neighbor"
+FL_BY_HEIGHT: "filter_by_height"
+FL_BY_WIDTH: "filter_by_width"
+FL_BY_SHAPE: "filter_by_shape"
+FL_BY_COLUMNS: "filter_by_columns"
+FL_BY_NEIGHBOR_SIZE: "filter_by_neighbor_size"
+FL_BY_NEIGHBOR_COLOR: "filter_by_neighbor_color"
+FL_BY_NEIGHBOR_DEGREE: "filter_by_neighbor_degree"
+
+REL_ANY_NEIGHBOR: "is_any_neighbor"
+REL_DIRECT_NEIGHBOR: "is_direct_neighbor"
+REL_DIAGONAL_NEIGHBOR: "is_diagonal_neighbor"
 
 TR_UPDATE_COLOR: "update_color"
 TR_MOVE_NODE: "move_node"

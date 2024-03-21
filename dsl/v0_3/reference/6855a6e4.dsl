@@ -1,17 +1,16 @@
 (do
     (rule
-        (with this v)
         (filter
             (and
-                (filter_by_color this X)
-                (and
-                    (filter_by_color v R)
-                    (is_neighbor this v)
+                (filter_by_color X)     
+                (varand
+                    (is_direct_neighbor)
+                    (filter_by_color R)
                 )
             )
         )
         (apply
-            (mirror v)
+            (mirror var)
         )
     )
 )

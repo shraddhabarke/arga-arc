@@ -1,10 +1,9 @@
 (do
     (rule
-        (with this)
         (filter
             (and
-                (filter_by_color this X)
-                (filter_by_size this MIN)
+                (filter_by_color X)
+                (filter_by_size min)
             )
         )
         (apply
@@ -12,11 +11,10 @@
         )
     )
     (rule
-        (with this)
         (filter
             (and
-                (filter_by_color this X)
-                (filter_by_size this MIN)
+                (filter_by_color X)
+                (filter_by_size min)
             )
         )
         (apply
@@ -24,11 +22,10 @@
         )
     )
     (rule
-        (with this)
         (filter
             (and
-                (filter_by_color this X)
-                (filter_by_size this MIN)
+                (filter_by_color X)
+                (filter_by_size min)
             )
         )
         (apply

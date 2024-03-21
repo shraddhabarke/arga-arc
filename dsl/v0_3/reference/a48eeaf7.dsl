@@ -1,14 +1,16 @@
 (do
     (rule
-        (with this v)
         (filter
             (and
-                (filter_by_color this X)
-                (filter_by_color v R)
+                (filter_by_color X)
+                (varand
+                    (is_any_neighbor)     
+                    (filter_by_color R)
+                )
             )
         )
         (apply
-            (move_node_max v)
+            (move_node_max var)
         )
     )
 )
