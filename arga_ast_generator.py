@@ -222,6 +222,10 @@ class Insert(_Transform):
     image_points: ImagePoints
     relative_position: RelativePosition
 
+@dataclass
+class NoOp(_Transform):
+    pass
+
 ###
 
 @dataclass
@@ -429,6 +433,8 @@ class ToAst(Transformer):
                     image_points=children[2],
                     relative_position=children[3]
                 )
+            case "noop":
+                return NoOp()        
 
             case _:
                 raise ValueError(f"Unknown transform: {children[0]}")
@@ -449,24 +455,6 @@ def print_ast_class_names(node, indent=0):
         for item in node:
             print_ast_class_names(item, indent + 1)
 
-
-# GRAMMAR: t.Optional[Lark] = None
-
-
-# def __ensure_grammar() -> Lark:
-#     global GRAMMAR
-#     grammar_file = CONFIG.ROOT_DIR / "dsl" / "dsl.lark"
-#     if GRAMMAR is None:
-#         with open(grammar_file, "r") as f:
-#             arga_dsl_grammar = f.read()
-#         GRAMMAR = Lark(
-#             arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst()
-#         )
-#     return GRAMMAR
-
-
-# def parse(program: str) -> ParseTree:
-#     return __ensure_grammar().parse(program)
 
 def test_file(filename, parser, xformer):
     with open(filename, "r") as f:
