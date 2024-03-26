@@ -86,10 +86,10 @@ def task_description(task_id, print_test=False, color_map="id"):
     task = get_task(task_id)
     desc = []
     for i, ex in enumerate(task["train"]):
-        desc.append(f"EXAMPLE {i + 1}")
-        desc.append("INPUT:")
+        #desc.append(f"EXAMPLE {i + 1}")
+        desc.append("INPUT-GRID:")
         desc.append(pretty_grid(ex["input"], color_map=color_map))
-        desc.append("OUTPUT:")
+        desc.append("OUTPUT-GRID:")
         desc.append(pretty_grid(ex["output"], color_map=color_map))
         desc.append("")
     if print_test:

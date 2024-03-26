@@ -1,0 +1,82 @@
+library: "(" program* ")"
+
+// Rules are executed one after another, in the order they appear.
+program: "(" "do" rule* ")"
+
+// First, it defines a filter expression that an object must satisfy in order to be transformed.
+// This filter expression can also refer to a variable object, which is not transformed,
+// but whose properties are used by the transform expressions.
+// Then, it defines a list of transforms that will be applied objects that satisfy the filter expression.
+rule: "(" "rule" filter transform_list ")"
+
+// `var` refers to the variable object, this is optional.
+VAR: "var"
+
+// A filter is a predicate over the objects in the grid.
+filter: "(" "filter" filter_expr? ")"
+
+// It can be a primitive filter operation, or a boolean expression using the `and`, `or`, and `not` connectives
+// and the `varand` connective, which is used to constrain using optional variable object.
+// The objects that are transformed are the ones that satisfy the filter expression.
+filter_expr: filter_prim
+           | "(" "and" filter_expr filter_expr ")"   
+           | "(" "or" filter_expr filter_expr ")"
+           | "(" "not" filter_expr ")"
+           | "(" varand filter_relation filter_expr ")"
+
+filter_prim: "(" filter_by_color COLOR ")"           // select objects of the given color
+           | "(" filter_by_size SIZE ")"             // select the objects that have the given size
+           | "(" filter_by_height HEIGHT ")"         // select all objects that have a given height
+           | "(" filter_by_width WIDTH ")"           // select all objects that have a given width
+           | "(" filter_by_degree DEGREE ")"         // select all objects that have a given number of neighbors i.e degree
+           | "(" filter_by_shape SHAPE ")"           // select all objects that have the given shape
+           | "(" filter_by_columns COLUMN ")"        // select all objects that are in the given column
+           | "(" filter_by_neighbor_size SIZE ")"    // select all objects that have a neighbor of the given size
+           | "(" filter_by_neighbor_color COLOR ")"  // select all objects that have a neighbor of the given color
+           | "(" filter_by_neighbor_degree DEGREE ")"// select all objects that have a neighbor of the given degree
+
+filter_relation: "(" is_any_neighbor ")"      // selects the auxiliary object if it is a neighbor of the main object, in any direction
+               | "(" is_direct_neighbor ")"   // selects the auxiliary object if it is a neighbor of the main object, horizontally or vertically
+               | "(" is_diagonal_neighbor ")" // selects the auxiliary object if it is a neighbor of the main object, diagonally
+
+// Transforms are applied sequentially, in the order they appear.
+transform_list: "(" "apply" transform+ ")"
+
+// A single transform is applied to all the objects that are bound to the `this` variable. 
+transform:  "(" update_color COLOR ")"                          // change this object color to the given color 
+         | "(" update_color VAR ")"                         // change this object to a variable color from other objects
+         | "(" move_node DIRECTION ")"                      // move this object in the given direction
+         | "(" move_node VAR ")"                            // move this object in the direction relative to a variable object
+         | "(" extend_node DIRECTION OVERLAP ")"            // extend (move while leaving a trail) this object in the given direction
+         | "(" extend_node VAR OVERLAP ")"                  // extend the object in the direction of the given object 
+         | "(" move_node_max DIRECTION ")"                  // move this object until it hits another object, in the given direction
+         | "(" move_node_max VAR ")"                        // move this object until it or this direction of the given object
+         | "(" rotate_node ROT_ANGLE ")"                    // rotate this object by the given angle
+         | "(" add_border COLOR ")"                         // color the boundary pixels of the object with the given color
+         | "(" fill_rectangle COLOR OVERLAP ")"             // color the interior of a hollow rectangle with the given color
+         | "(" hollow_rectangle COLOR ")"                   // color the interior of a solid rectangle with the given color
+         | "(" mirror VAR ")"                               // mirror the object with respect to the given object
+         | "(" flip SYMMETRY_AXIS ")"                       // flip the object with respect to the given axis
+         | "(" insert VAR IMAGE_POINTS RELATIVE_POSITION ")"   // insert a copy of this object at the position of the given object
+
+SIZE: "min" | "max" | "odd" | /[0-9]+/
+DEGREE: "min" | "max" | "odd" | /[0-9]+/
+HEIGHT: "min" | "max" | "odd" | /[0-9]+/
+WIDTH: "min" | "max" | "odd" | /[0-9]+/
+COLUMN: "center" | "even" | /[0-9]+/
+SHAPE: "square" | "enclosed"
+
+DIRECTION: "UP" | "DOWN" | "LEFT" | "RIGHT" | "UP_LEFT" | "UP_RIGHT" | "DOWN_LEFT" | "DOWN_RIGHT"
+
+SYMMETRY_AXIS: "vertical" | "horizontal" | "diagonal_left" | "diagonal_right"
+
+// The angle of clockwise rotation, in degrees.
+ROT_ANGLE: "0" | "90" | "180"  | "270"
+
+COLOR: "O" | "B" | "R" | "G" | "Y" | "X" | "F" | "A" | "C" | "W"
+
+OVERLAP: "true" | "false"
+
+IMAGE_POINTS: "top" | "bottom" | "left" | "right" | "top_left" | "top_right" | "bottom_left" | "bottom_right"
+
+RELATIVE_POSITION: "source" | "target" | "middle"
