@@ -288,6 +288,12 @@ class ToAst(Transformer):
         except ValueError:
             return Column(token.value)
 
+    def IMAGE_POINTS(self, token):
+        return ImagePoints(token.value)
+    
+    def RELATIVE_POSITION(self, token):
+        return RelativePosition(token.value)
+
     # def library(self, children):
     #     return Library(children)
     
@@ -461,10 +467,8 @@ def test_file(filename, parser, xformer):
         lib = "(" + f.read() + ")"
     print(f"Testing {filename}...")
     t = parser.lib_parse_tree(lib)
-    print(t.pretty())
+    # print(t.pretty())
     ast = xformer.transform(t)
-    # print_ast_class_names(ast)
-    # print(ast)
     pprint(ast)
 
 def test_gpt_gens(gens_dir, parser, xformer):
@@ -495,5 +499,12 @@ if __name__ == "__main__":
     # gens_dir = "models/logs/gens_20240318T224833"
     # gens_dir = "models/logs/gens_20240318T230602"
     # gens_dir = "models/logs/gens_20240318T231857"
-    gens_dir = "dsl/v0_3/generations/20240318T231857_gpt-4-0125-preview_30"
-    test_gpt_gens(gens_dir, parser, xformer)
+    gens_dir = "dsl/v0_3/generations"
+    # iterate over the directories in gens_dir
+    for dir in os.listdir(gens_dir):
+        dir_path = os.path.join(gens_dir, dir)
+        if os.path.isdir(dir_path):
+            print(f"Testing directory {dir_path}...")
+            test_gpt_gens(dir_path, parser, xformer)
+
+    # test_gpt_gens(gens_dir, parser, xformer)
