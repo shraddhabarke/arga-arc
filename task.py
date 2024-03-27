@@ -243,7 +243,7 @@ class Task:
         # TODO: some issue here for na, mcccg
         for idx, transform in enumerate(all_transforms):
             if "Var" in transform.code: # just store the spec so you don't have to compute it again!
-                transformed_values = transform.apply
+                transformed_values = transform.values_apply
                 for values, input_abstracted_graph in zip(transformed_values, og_graph):
                     input_abstracted_graph.var_apply_all(
                         values, filter, transform)
@@ -322,14 +322,6 @@ class Task:
                         if relative_pos is not None:
                             object_params_dict[node_obj].append(
                                 (relative_pos, node_other))
-            """
-            for node_obj in input_graph.graph.nodes():
-                for neighbor in input_graph.graph.neighbors(node_obj):
-                    relative_pos = input_graph.get_relative_pos(node_obj, neighbor)
-                    object_params.append(relative_pos)
-                    if relative_pos is not None:
-                        object_params_dict[node_obj].append((relative_pos, neighbor))
-            """
         elif "Flip" in transformation.code:
             for node_obj in input_graph.graph.nodes():
                 for node_other, _ in input_graph.graph.nodes(data=True):
@@ -418,7 +410,7 @@ class Task:
 
         self.all_specs = all_spec_values
         self.values_to_apply = final_values_to_apply
-        print("ALL_SPECS:", len(self.all_specs), self.all_specs)
+        print("ALL_SPECS:", len(self.all_specs)) #self.all_specs)
         return final_values_to_apply, all_spec_values # cartesian product across all tasks
 
     def var_transform_values(

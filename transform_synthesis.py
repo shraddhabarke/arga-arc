@@ -96,11 +96,14 @@ class TSizeEnumerator:
                         if len(prog.values) > 1:
                             self.dummyProgramCounter = 0
                             self.currentProgram = prog  # store the original program with all its value sets
-                            self.currentValueSets = prog.values  # assign multiple value sets
+                            self.currentValueSets = prog.values
                             firstvalue = self.currentValueSets.pop(0)
                             return self.createDummyProgram(firstvalue) # todo: OE
                         elif children is None or self.oeManager.is_representative(prog.values):
                             self.nextProgram = prog
+                            if children is not None:
+                                if any(child.nodeType == Types.VARIABLE for child in children):
+                                    self.nextProgram.values_apply = self.task.values_to_apply[0]
                 elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
                     self.currentChildIteratorIndex += 1
                     self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
@@ -132,7 +135,7 @@ class TSizeEnumerator:
         dummy_program.spec = self.task.all_specs[self.dummyProgramCounter]
         dummy_program.values = [value_set]  # ensure values is a list, even with a single set
         dummy_program.code = new_code
-        dummy_program.apply = self.task.values_to_apply[self.dummyProgramCounter]
+        dummy_program.values_apply = self.task.values_to_apply[self.dummyProgramCounter]
         self.dummyProgramCounter += 1
         self.currLevelProgs.append(dummy_program)
         return dummy_program

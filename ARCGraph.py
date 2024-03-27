@@ -1017,17 +1017,17 @@ class ARCGraph:
                 for sub_node_2 in self.graph.nodes[node2]["nodes"]:
                     if sub_node_1[0] == sub_node_2[0]:
                         if sub_node_1[1] < sub_node_2[1]:
-                            print("Dir.RIGHT")
+                            print("single-pixel: Dir.RIGHT")
                             return Dir.RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
-                            print("Dir.LEFT")
+                            print("single-pixel: Dir.LEFT")
                             return Dir.LEFT
                     elif sub_node_1[1] == sub_node_2[1]:
                         if sub_node_1[0] < sub_node_2[0]:
-                            print("Dir.DOWN")
+                            print("single-pixel: Dir.DOWN")
                             return Dir.DOWN
                         elif sub_node_1[0] > sub_node_2[0]:
-                            print("Dir.UP")
+                            print("single-pixel: Dir.UP")
                             return Dir.UP
                     elif sub_node_1[0] < sub_node_2[0]:  # DOWN
                         if sub_node_1[1] < sub_node_2[1]:
@@ -1049,38 +1049,55 @@ class ARCGraph:
                                 return Dir.UP_LEFT
         elif len(self.graph.nodes[node1]["nodes"]) == 1 or len(self.graph.nodes[node2]["nodes"]) == 1:
             # at least one of the objects is single-pixeled
+            is_node1_single_pixeled = len(self.graph.nodes[node1]["nodes"]) == 1
+            is_node2_single_pixeled = not is_node1_single_pixeled  # If not node1, then it must be node2
+
+            if is_node2_single_pixeled:
+                node1, node2 = node2, node1
             min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(
                 node[0] for node in self.graph.nodes[node1]["nodes"])
             min_x_node1, max_x_node1 = min(node[1] for node in self.graph.nodes[node1]["nodes"]), max(
                 node[1] for node in self.graph.nodes[node1]["nodes"])
-
             min_y_node2, max_y_node2 = min(node[0] for node in self.graph.nodes[node2]["nodes"]), max(
                 node[0] for node in self.graph.nodes[node2]["nodes"])
             min_x_node2, max_x_node2 = min(node[1] for node in self.graph.nodes[node2]["nodes"]), max(
                 node[1] for node in self.graph.nodes[node2]["nodes"])
 
             if min_x_node2 <= min_x_node1 and max_x_node1 <= max_x_node2:  # node-1 is within range
-                if max_y_node1 < max_x_node2:
-                    return Dir.DOWN
-                elif max_y_node1 > max_x_node2:
-                    return Dir.UP
-            elif min_y_node2 <= min_y_node1 and max_y_node1 <= max_y_node2:  # node-1 is within range
-                if max_x_node1 > max_x_node2:
-                    return Dir.LEFT
-                elif max_x_node1 < max_x_node2:
-                    return Dir.RIGHT
+                if min_y_node2 > max_y_node1:
+                    if is_node1_single_pixeled:
+                        return Dir.DOWN
+                elif max_y_node2 < min_y_node1:
+                    if is_node1_single_pixeled:
+                        return Dir.UP
+            elif min_y_node2 <= min_y_node1 <= max_y_node2 and max_y_node1 <= max_y_node2:  # node-1 is within range
+                if max_x_node2 < min_x_node1:
+                    if is_node1_single_pixeled:
+                        return Dir.LEFT
+                elif max_x_node1 < min_x_node2:
+                    if is_node1_single_pixeled:
+                        return Dir.RIGHT
             elif max_x_node2 < min_x_node1 and max_y_node1 < min_y_node2 and \
                     abs(max_x_node2 - min_x_node1) == abs(min_y_node2 - max_y_node1):
                 return Dir.DOWN_LEFT
             elif max_x_node1 < min_x_node2 and max_y_node1 < min_y_node2 and \
                     abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
-                return Dir.DOWN_RIGHT
+                if is_node1_single_pixeled:
+                    return Dir.DOWN_RIGHT
+                if is_node2_single_pixeled:
+                    return Dir.UP_LEFT
             elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
                     abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
-                return Dir.UP_RIGHT
+                if is_node1_single_pixeled:
+                    return Dir.UP_RIGHT
+                if is_node2_single_pixeled:
+                    return Dir.DOWN_LEFT
             elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
                     abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
-                return Dir.UP_LEFT
+                if is_node1_single_pixeled:
+                    return Dir.UP_LEFT
+                if is_node2_single_pixeled:
+                    return Dir.DOWN_RIGHT
         else:
             # node: the case where both objects are not single-pixeled -- diagonal not supported
             node1_x, node2_x = [node[0] for node in self.graph.nodes[node1]["nodes"]], [

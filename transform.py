@@ -19,11 +19,19 @@ class Types(Enum):
 class TransformASTNode:
     def __init__(self, children=None):
         self.code: str = self.__class__.__name__
-        self.size: int = 1
+        self._size: int = 1
         self.children: List[TransformASTNode] = children if children else []
         self.childTypes: List[Types] = []
         self.nodeType: Types
         self.spec = None
+    
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
 
 # Variable type is for variable objects
 
@@ -93,7 +101,6 @@ class Color(TransformASTNode, Enum):
     def __init__(self, value=None):
         super().__init__(Types.COLOR)
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []  # Explicitly set children to an empty list
         self.nodeType = Types.COLOR
         self.values = []
@@ -115,6 +122,20 @@ class Color(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+    
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Color":
+                _, enum_name = parts
+                for color in cls:
+                    if color.value == enum_name:
+                        cls._sizes[color.name] = size
+                        break
 
 class Dir(TransformASTNode, Enum):
     UP = "U"
@@ -132,7 +153,6 @@ class Dir(TransformASTNode, Enum):
         self.children = []
         self.nodeType = Types.DIRECTION
         self.values = []
-        self.size = 1
 
     @classmethod
     @property
@@ -151,6 +171,20 @@ class Dir(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+    
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Direction":
+                _, enum_name = parts
+                for dir in cls:
+                    if dir.value == enum_name:
+                        cls._sizes[dir.name] = size
+                        break
 
 class Overlap(TransformASTNode, Enum):
     TRUE = True
@@ -159,7 +193,6 @@ class Overlap(TransformASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.OVERLAP)
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []
         self.nodeType = Types.OVERLAP
         self.values = []
@@ -181,6 +214,22 @@ class Overlap(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+    
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            print("parts:", parts)
+            if len(parts) == 2 and parts[0] == "Overlap":
+                _, enum_name = parts
+                for overlap in cls:
+                    if str(overlap.value) == str(enum_name):
+                        print("size:", size)
+                        cls._sizes[overlap.name] = size
+                        break
 
 class Rotation_Angle(TransformASTNode, Enum):
     CCW = "90"
@@ -190,7 +239,6 @@ class Rotation_Angle(TransformASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.ROTATION_ANGLE)
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []
         self.nodeType = Types.ROTATION_ANGLE
         self.values = []
@@ -212,6 +260,24 @@ class Rotation_Angle(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+    
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            print("parts:", parts)
+            if len(parts) == 2 and parts[0] == "Rotation_Angle":
+                _, enum_name = parts
+                for overlap in cls:
+                    print("overlap:", overlap.value, enum_name)
+                    if overlap.value == enum_name:
+                        print("size:", size)
+                        cls._sizes[overlap.name] = size
+                        break
+
 
 class Symmetry_Axis(TransformASTNode, Enum):
     VERTICAL = "VERTICAL"
@@ -222,7 +288,6 @@ class Symmetry_Axis(TransformASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.SYMMETRY_AXIS)
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []
         self.nodeType = Types.SYMMETRY_AXIS
         self.values = []
@@ -244,6 +309,21 @@ class Symmetry_Axis(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+    
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            print("parts:", parts)
+            if len(parts) == 2 and parts[0] == "Symmetry_Axis":
+                _, enum_name = parts
+                for axis in cls:
+                    if axis.value.lower() == enum_name.lower():
+                        cls._sizes[axis.name] = size
+                        break
 
 class ImagePoints(TransformASTNode, Enum):
     TOP = "TOP"
@@ -258,7 +338,6 @@ class ImagePoints(TransformASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.IMAGE_POINTS)
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []
         self.nodeType = Types.IMAGE_POINTS
         self.values = []
@@ -280,6 +359,21 @@ class ImagePoints(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+    
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            print("parts:", parts)
+            if len(parts) == 2 and parts[0] == "ImagePoints":
+                _, enum_name = parts
+                for imagepoint in cls:
+                    if imagepoint.value.lower() == enum_name.lower():
+                        cls._sizes[imagepoint.name] = size
+                        break
 
 class RelativePosition(TransformASTNode, Enum):
     SOURCE = "SOURCE"
@@ -289,7 +383,6 @@ class RelativePosition(TransformASTNode, Enum):
     def __init__(self, value):
         super().__init__(Types.RELATIVE_POSITION)
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []
         self.nodeType = Types.RELATIVE_POSITION
         self.values = []
@@ -311,6 +404,21 @@ class RelativePosition(TransformASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+    
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "RelativePosition":
+                _, enum_name = parts
+                for relativepos in cls:
+                    if relativepos.value.lower() == enum_name.lower():
+                        cls._sizes[relativepos.name] = size
+                        break
+
 class HeightValue:
     arity = 0
 
@@ -327,18 +435,33 @@ class HeightValue:
 
 class ObjectIdValue:
     arity = 0
+    _sizes = {}
 
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = Types.OBJECT_ID
         self.code = f"OBJECT_ID.{enum_value.name}"
-        self.size = 1
         self.children = []
         self.values = []
         self.spec = None
 
     def apply(cls, task, children=None, filter=None):
         return cls
+
+    @property
+    def size(self):
+        return self._sizes.get(self.value, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "ObjectId":
+                _, enum_name = parts
+                for objectid in ObjectId._all_values:
+                    if str(objectid.value) == str(enum_name):
+                        cls._sizes[objectid.value] = size
+                        break
 
 
 class ObjectId(TransformASTNode):

@@ -3,27 +3,34 @@ from typing import Union, List, Dict
 from transform import Dir
 
 class FilterTypes(Enum):
-    INT = "Int"
     FILTERS = "Filters"
     # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
     SIZE = "Size"
+    DEGREE = "Degree"
+    SHAPE = "Shape"
+    ROW = "Row"
+    COLUMN = "Column"
     HEIGHT = "Height"
     WIDTH = "Width"
-    DEGREE = "Degree"
     RELATION = "Relation"
-    SHAPE = "Shape"
-    COLUMN = "Column"
-    ROW = "Row"
 
 class FilterASTNode:
     def __init__(self, children=None):
         self.nodeType: FilterTypes
         self.code: str = self.__class__.__name__
-        self.size: int = 1
+        self._size: int = 1
         self.children: List[FilterASTNode] = children if children else []
         self.childTypes: List[FilterTypes] = []
         self.values = None
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
 
 class Size(FilterASTNode):
     _all_values = set()
@@ -41,63 +48,118 @@ class Size(FilterASTNode):
 
 class SizeValue:
     arity = 0
+    _sizes = {}
 
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.SIZE
         self.code = f"SIZE.{enum_value.name}"
-        self.size = 1
         self.children = []
         self.values = []
 
     def execute(cls, task, children=None):
         return cls
 
+    @property
+    def size(self):
+        return self._sizes.get(self.value, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Size":
+                _, enum_name = parts
+                for degree in Degree._all_values:
+                    if str(degree.value) == str(enum_name):
+                        cls._sizes[degree.value] = size
+                        break
 
 class DegreeValue:
     arity = 0
+    _sizes = {}
 
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.DEGREE
         self.code = f"DEGREE.{enum_value.name}"
-        self.size = 1
         self.children = []
         self.values = []
 
     def execute(cls, task, children=None):
         return cls
 
+    @property
+    def size(self):
+        return self._sizes.get(self.value, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Degree":
+                _, enum_name = parts
+                for degree in Degree._all_values:
+                    if str(degree.value) == str(enum_name):
+                        cls._sizes[degree.value] = size
+                        break
 
 class HeightValue:
     arity = 0
+    _sizes = {}
 
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.HEIGHT
         self.code = f"HEIGHT.{enum_value.name}"
-        self.size = 1
         self.children = []
         self.values = []
 
     def execute(cls, task, children=None):
         return cls
 
+    @property
+    def size(self):
+        return self._sizes.get(self.value, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Height":
+                _, enum_name = parts
+                for height in Height._all_values:
+                    if str(height.value) == str(enum_name):
+                        cls._sizes[height.value] = size
+                        break
 
 class WidthValue:
     arity = 0
-
+    _sizes = {}
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.WIDTH
         self.code = f"WIDTH.{enum_value.name}"
-        self.size = 1
         self.children = []
         self.values = []
 
     def execute(cls, task, children=None):
         return cls
 
+    @property
+    def size(self):
+        return self._sizes.get(self.value, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Width":
+                _, enum_name = parts
+                for width in Width._all_values:
+                    if str(width.value) == str(enum_name):
+                        cls._sizes[width.value] = size
+                        break
 
 class Height(FilterASTNode):
     _all_values = set()
@@ -112,7 +174,6 @@ class Height(FilterASTNode):
     @classmethod
     def get_all_values(cls):
         return list(cls._enum_members)
-
 
 class Width(FilterASTNode):
     _all_values = set()
@@ -158,20 +219,34 @@ class Column(FilterASTNode):
     def get_all_values(cls):
         return list(cls._enum_members)
 
-
 class ColumnValue:
     arity = 0
+    _sizes = {}
 
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.COLUMN
         self.code = f"COLUMN.{enum_value.name}"
-        self.size = 1
         self.children = []
         self.values = []
 
     def execute(cls, task, children=None):
         return cls
+
+    @property
+    def size(self):
+        return self._sizes.get(self.value, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Column":
+                _, enum_name = parts
+                for column in Column._all_values:
+                    if str(column.value) == str(enum_name):
+                        cls._sizes[column.value] = size
+                        break
 
 class Row(FilterASTNode):
     _all_values = set()
@@ -187,19 +262,35 @@ class Row(FilterASTNode):
     def get_all_values(cls):
         return list(cls._enum_members)
 
+
 class RowValue:
     arity = 0
+    _sizes = {}
 
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.ROW
         self.code = f"ROW.{enum_value.name}"
-        self.size = 1
         self.children = []
         self.values = []
 
     def execute(cls, task, children=None):
         return cls
+
+    @property
+    def size(self):
+        return self._sizes.get(self.value, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Row":
+                _, enum_name = parts
+                for row in Row._all_values:
+                    if str(row.value) == str(enum_name):
+                        cls._sizes[row.value] = size
+                        break
 
 
 def setup_size_and_degree_based_on_task(task):
@@ -290,7 +381,7 @@ class FColor(FilterASTNode, Enum):
         super().__init__(FilterTypes.COLOR)
         self.nodeType = FilterTypes.COLOR
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
+        #self.size = 1
         self.children = []
         self.values = []
 
@@ -311,6 +402,21 @@ class FColor(FilterASTNode, Enum):
     def get_all_values(cls):
         return list(cls.__members__.values())
 
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "FColor":
+                _, enum_name = parts
+                for color in cls:
+                    if color.value == enum_name:
+                        cls._sizes[color.name] = size
+                        break
+
 class Shape(FilterASTNode, Enum):
     square = "square"
     enclosed = "enclosed"
@@ -319,7 +425,6 @@ class Shape(FilterASTNode, Enum):
         super().__init__(FilterTypes.SHAPE)
         self.nodeType = FilterTypes.SHAPE
         self.code = f"{self.__class__.__name__}.{self.name}"
-        self.size = 1
         self.children = []
         self.values = []
 
@@ -339,6 +444,21 @@ class Shape(FilterASTNode, Enum):
     @classmethod
     def get_all_values(cls):
         return list(cls.__members__.values())
+
+    @property
+    def size(self):
+        return self._sizes.get(self.name, 1)
+
+    @classmethod
+    def set_sizes(cls, new_sizes):
+        for key, size in new_sizes.items():
+            parts = key.split('.')
+            if len(parts) == 2 and parts[0] == "Shape":
+                _, enum_name = parts
+                for shape in cls:
+                    if shape.value == enum_name:
+                        cls._sizes[shape.name] = size
+                        break
 
 class Filters(FilterASTNode):
     arity = 2
@@ -596,7 +716,6 @@ class Not(FilterASTNode):
     def execute(cls, task, children):
         values = children[0].values
         nodes_with_data, values_dict, res_dict = [], [], []
-        # TODO: Optimize
         for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
             local_data = []
             for node, _ in input_abstracted_graphs.graph.nodes(data=True):
@@ -743,10 +862,6 @@ class FilterByShape(Filters):
         values = task.filter_values(instance)
         instance.values = values
         return instance
-
-#todo
-class FilterByContainment(Filters):
-    pass
 
 class FilterByRows(Filters):
     arity = 1

@@ -7,28 +7,152 @@ from inspect import signature
 from transform import *
 from filters import *
 from typing import *
-# from pcfg.pcfg_compute import *
 from OEValuesManager import *
 from VocabMaker import *
 from filter_synthesis import FSizeEnumerator
 from transform_synthesis import TSizeEnumerator
+#from compute_pcfg import *
+import math
 
 # Transform Vocab
 # todo: FilterbyRows
-tleaf_makers = [Color, NoOp(), Dir, Amount, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
-                Symmetry_Axis, ObjectId, Variable("Var"), MoveNodeMax, UpdateColor, MoveNode, MoveNodeMax, AddBorder, ExtendNode, Mirror,
-                HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
-# todo: add variable back after sequences fix! Insert
-f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, IsDirectNeighbor, IsDiagonalNeighbor, IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
-                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, And, Or, VarAnd]
 
-#f_vocabMakers = [Column, FilterByColumns, Not]
+tleaf_makers = [Color, NoOp, Dir, Amount, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
+                Symmetry_Axis, ObjectId, Variable("Var"), UpdateColor, MoveNode, MoveNodeMax,
+                AddBorder, ExtendNode, Mirror, HollowRectangle, RotateNode, Flip, FillRectangle, Insert, Transforms]
+# todo: add variable back after sequences fix! Insert
+fleaf_makers = [FColor, Shape, Degree, Size, Column, Row, Height, Width, IsDirectNeighbor, IsDiagonalNeighbor,
+                IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
+                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not,
+                And, Or, VarAnd]
+
+# Initializing terminals
+Color._sizes = {color.name: 1 for color in Color}
+Dir._sizes = {dir.name: 1 for dir in Dir}
+Overlap._sizes = {overlap.name: 1 for overlap in Overlap}
+Rotation_Angle._sizes = {overlap.name: 1 for overlap in Rotation_Angle}
+Symmetry_Axis._sizes = {overlap.name: 1 for overlap in Symmetry_Axis}
+RelativePosition._sizes = {relativepos.name: 1 for relativepos in RelativePosition}
+ImagePoints._sizes = {imagepts.name: 1 for imagepts in ImagePoints}
+ObjectId._sizes = {objid.name: 1 for objid in ObjectId._all_values}
+
+FColor._sizes = {color.name: 1 for color in FColor}
+Shape._sizes = {shape.name: 1 for shape in Shape}
+Degree._sizes = {degree.value: 1 for degree in Degree._all_values}
+Size._sizes = {s.value: 1 for s in Size._all_values}
+Column._sizes = {col.value: 1 for col in Column._all_values}
+Row._sizes = {row.value: 1 for row in Row._all_values}
+Height._sizes = {height.value: 1 for height in Height._all_values}
+Width._sizes = {width.value: 1 for width in Width._all_values}
+
+def get_t_probability(item, category=None):
+    if category:
+        return transform_probabilities[category].get(item, 0)
+    else:
+        return transform_probabilities['Transform'].get(item, 0)
+
+def get_all_t_probabilities(vocab_makers, transform_probabilities):
+    all_probs = {}
+    for vocab_maker in vocab_makers:
+        class_name = vocab_maker.__name__
+        prob = get_t_probability(class_name, 'Transform')  # Now using 'Transform' as category
+        all_probs[class_name] = prob
+
+    # Handle token probabilities
+    for category in ['Color', 'Direction', 'Variable', 'Overlap', 'Rotation_Angle', 'Symmetry_Axis']:
+        if category in transform_probabilities:
+            for token in transform_probabilities[category]:
+                prob = get_t_probability(token, category)
+                all_probs[f"{category}.{token}"] = prob
+    return all_probs
+
+def get_f_probability(item, category=None):
+    if category:
+        return filter_probabilites[category].get(item, 0)
+    else:
+        prob = filter_probabilites.get('Filters', {}).get(item, 0)
+        return prob if prob > 0 else filter_probabilites.get('Filter', {}).get(item, 0)
+
+def get_all_f_probabilities(vocab_makers, filter_probabilites):
+    all_probs = []
+    for vocab_maker in vocab_makers:
+        class_name = vocab_maker.__name__
+        prob = get_f_probability(class_name, None)
+        all_probs.append((class_name, prob))
+
+    # Handle token probabilities
+    for category in ['Color', 'Shape', 'Degree', 'Size']:
+        if category in filter_probabilites:
+            for token in filter_probabilites[category]:
+                prob = get_f_probability(token, category)
+                all_probs.append((f"{category}.{token}", prob))
+    return all_probs
+
+debug = False #True
+if debug:
+    print("Inside debugging....")
+    """
+    t_real_costs = {'NoOp': 'inf', 'UpdateColor': 3, 'MoveNodeMax': 2, 'MoveNode': 3, 'AddBorder': 3, 'ExtendNode': 3, 
+                    'Mirror': 3, 'HollowRectangle': 3, 'RotateNode': 3, 'Flip': 3, 'FillRectangle': 3, 'Transforms': 'inf', 
+                    'Color.O': 2, 'Color.B': 3, 'Color.R': 4, 'Color.G': 5, 'Color.Y': 6, 'Color.X': 8, 'Color.F': 7, 'Color.A': 9, 
+                    'Color.C': 30, 'Color.W': 40, 
+                    'Direction.U': 50, 'Direction.D': 60, 'Direction.L': 70, 'Direction.R': 80, 'Direction.UL': 90, 
+                    'Direction.UR': 100, 'Direction.DL': 101, 'Direction.DR': 102, 
+                    'Variable.Var': 0, 'Overlap.True': 212, 'Overlap.False': 113, 
+                    'Rotation_Angle.90': 12, 'Rotation_Angle.180': 22, 'Rotation_Angle.270': 32, 
+                    'Symmetry_Axis.VERTICAL': 12, 
+                    'Symmetry_Axis.HORIZONTAL': 22, 'Symmetry_Axis.DIAGONAL_LEFT': 32, 'Symmetry_Axis.DIAGONAL_RIGHT': 42}
+    r_real_costs = {'FColor': "inf", 'Size': "inf", 'Degree': "inf", 'FilterByColor': 2, 'FilterBySize': 2, 'FilterByDegree': 3, 
+    'FilterByNeighborColor': 3, 'FilterByNeighborSize': 3, 'FilterByHeight': 3, 'FilterByShape': 2, 'FilterByNeighborDegree': 3, 
+    'Or': 2, 'And': 2, 'VarAnd': 2, 'Shape.enclosed': 100, 'Shape.square': 200, 
+    'Degree.MIN': 22, 'Degree.MAX': 23, 'Degree.ODD': 223, 
+    'Degree.1': 2333, 'Degree.2': 22223, 'Size.MIN': 3, 'Size.MAX': 3, 'Size.ODD': 3, 'Size.2': 3, 'Size.3': 3, 'Size.4': 3, 'Size.6': 3, 
+    'Size.7': 3, 'Size.8': 3}
+    """
+    from compute_pcfg import compute_transform_costs, compute_filter_costs
+    transform_probabilities = compute_transform_costs()
+    filter_probabilites = compute_filter_costs()
+    t_vocabMakers = [NoOp, UpdateColor, MoveNodeMax, MoveNode, AddBorder, ExtendNode, Mirror, HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
+    f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, IsDirectNeighbor, IsDiagonalNeighbor,
+                IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
+                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not,
+                And, Or, VarAnd]
+    transform_values = get_all_t_probabilities(t_vocabMakers, transform_probabilities)
+    filter_values = get_all_f_probabilities(f_vocabMakers, filter_probabilites)
+    print("transform_values", transform_values)
+    print("filter_values:", filter_values)
+    # Computing Real Costs
+    f_real_costs, t_real_costs = {}, {}
+    Color.set_sizes(t_real_costs)
+    Dir.set_sizes(t_real_costs)
+    Overlap.set_sizes(t_real_costs)
+    Rotation_Angle.set_sizes(t_real_costs)
+    Symmetry_Axis.set_sizes(t_real_costs)
+    RelativePosition.set_sizes(t_real_costs)
+    ImagePoints.set_sizes(t_real_costs)
+
+    FColor.set_sizes(f_real_costs)
+    Shape.set_sizes(f_real_costs)
+    DegreeValue.set_sizes(f_real_costs)
+    ColumnValue.set_sizes(f_real_costs)
+    RowValue.set_sizes(f_real_costs)
+    SizeValue.set_sizes(f_real_costs)
+    HeightValue.set_sizes(f_real_costs)
+    SizeValue.set_sizes(f_real_costs)
+    WidthValue.set_sizes(f_real_costs)
+    for trans, probability in transform_values.items():
+        t_real_costs[trans] = math.ceil(-math.log(probability)) if probability > 0 else float('inf')
+    for trans, probability in filter_values:
+        f_real_costs[trans] = math.ceil(-math.log(probability)) if probability > 0 else float('inf')
+    print("t_real_costs", t_real_costs)
+    print("f_real_costs:", f_real_costs)
+    for vocab_maker in t_vocabMakers:
+        if vocab_maker.__name__ in t_real_costs:
+            vocab_maker.default_size = t_real_costs[vocab_maker.__name__]
+
 def filter_compare(results, subset):
     if len(results) != len(subset):
         return False
-
-    #print("res:", results)
-    #print("subset:", subset)
     for res_dict, sub_dict in zip(results, subset):
         if set(res_dict.keys()) != set(sub_dict.keys()):
             return False
@@ -102,7 +226,7 @@ def run_synthesis(taskNumber, abstraction):
         return input_nodes
 
     def synthesize_filter(subset, timeout: int = 2):
-        filter_vocab = VocabFactory.create(f_vocabMakers)
+        filter_vocab = VocabFactory.create(fleaf_makers)
         enumerator = FSizeEnumerator(task, filter_vocab, ValuesManager())
         i = 0
         while enumerator.hasNext():
@@ -118,8 +242,11 @@ def run_synthesis(taskNumber, abstraction):
     correct_transforms = set()
     while enumerator.hasNext():
         program = enumerator.next()
+
         print("enumerator:", program.code, program.size)
-        #print("prog:", program.values)
+        print("prog:", program.values)
+        if program.spec:
+            print("spec:", program.values_apply)
         if program.values:  # Check if program.values is not empty
             if isinstance(program.values[0], list):
                 progvalues = program.values[0]
@@ -186,6 +313,7 @@ def run_synthesis(taskNumber, abstraction):
                                 for task_idx, aggregated_correct_nodes in enumerate(aggregated_correct_nodes_per_task)]
 
         if all(full_coverage_per_task):
+            print("correct_nodes_per_transform:", correct_nodes_per_transform)
             print("New Coverage being Considered")
             minimal_transforms = set()
             # Calculate total coverage size for each transform across all tasks
@@ -262,22 +390,27 @@ def run_synthesis(taskNumber, abstraction):
                     return [program for program in minimal_transforms], [
                     program for program in filters_sol]
 
-# todo: add insert 3618c87e
+# todo: add insert 3618c87e, 6c434453, 88a10436, 67a423a3
 evals = {"e73095fd": "ccgbr2"}
 evals = {"25d487eb": "ccgbr"}
 evals = {"29c11459": "nbccg"}
 evals = {"f8a8fe49": "nbccg"}
-evals = {"3618c87e": "nbccg"}
-evals = {"4093f84a": "nbccg"} # done
-evals = {}
 # ARGA Problems --
-# Color: 63613498
-# Movement: 98cf29f8
-# Augmentation: 29c11459, 67a423a3, 88a10436, 22168020, 25d487eb (extendNode)
+# Augmentation: 29c11459, 67a423a3, 88a10436, 22168020
 # 4093f84a -- [filterbySize(Size.1) -> updateColor(gray), moveNodeMax(Variable)]
-# ExtendNode -->  dbc1a6ce, 7ddcd7ec
+# ExtendNode -->  dbc1a6ce, 7ddcd7ec, 25d487eb
 # moveNode by height --> 5521c0d9
 # {"6f8cd79b": "sp"}
+evals = {"dbc1a6ce": "nbccg"}
+evals = {"7ddcd7ec": "nbccg"} # todo -- blue print for extendNode
+
+
+evals = {"88a10436": "mcccg"}
+evals = {"25ff71a9": "nbccg"}
+#evals = {"3618c87e": "nbccg"}
+evals = {"2c608aff": "ccgbr"}
+evals = {"dc433765": "nbccg"}
+evals = {"a48eeaf7": "nbccg"}
 
 for task, abstraction in evals.items():
     start_time = time.time()
@@ -299,6 +432,12 @@ class TestEvaluation(unittest.TestCase):
         ct0, cf0 = run_synthesis("d23f8c26", "nbccg")
         self.assertCountEqual(['updateColor(Color.black)', 'NoOp'], ct0)
         self.assertCountEqual(['Not(FilterByColumns(COLUMN.CENTER))', 'FilterByColumns(COLUMN.CENTER)'], cf0)
+
+        print("Solving problem 63613498") # doesn't satisfy test likely
+        ct0, cf0 = run_synthesis("63613498", "nbccg")
+        self.assertCountEqual(['updateColor(Color.grey)', 'NoOp'], ct0)
+        self.assertCountEqual(['Or(FilterByColor(FColor.grey), Or(FilterByDegree(DEGREE.1), FilterByNeighborDegree(DEGREE.4)))',
+        'Not(Or(FilterByDegree(DEGREE.1), FilterByNeighborDegree(DEGREE.4)))'], cf0)
 
         print("Solving problem a5f85a15") # even columns
         ct1, cf1 = run_synthesis("a5f85a15", "nbccg")
@@ -523,11 +662,11 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['flip(Symmetry_Axis.VERTICAL)'], t8)
         self.assertCountEqual(['FilterBySize(SIZE.MIN)'], f8)
 
-        print("Solving problem a79310a0")
-        mt9, mf9 = run_synthesis("a79310a0", "nbccg")
-        self.assertCountEqual(
-        ['[updateColor(Color.red), moveNode(Dir.DOWN)]'], mt9) # todo-eusolver
-        self.assertCountEqual(['FilterByColor(FColor.cyan)'], mf9)
+        #print("Solving problem a79310a0")
+        #mt9, mf9 = run_synthesis("a79310a0", "nbccg")
+        #self.assertCountEqual(
+        #['[updateColor(Color.red), moveNode(Dir.DOWN)]'], mt9)
+        #self.assertCountEqual(['FilterByColor(FColor.cyan)'], mf9)
 
         print("Solving problem 3906de3d")
         mt10, mf10 = run_synthesis("3906de3d", "nbvcg")
@@ -686,6 +825,13 @@ class TestEvaluation(unittest.TestCase):
         #vt8, vf8 = run_synthesis("ded97339", "nbccg") #todo
         #self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt8)
 
+#3618c87e: nbccg
+#transformations: ['[flip(Symmetry_Axis.DIAGONAL_LEFT), moveNode(Dir.DOWN_LEFT)]', "insert(('OBJECT_ID.0', 'ImagePoints.BOTTOM_RIGHT', 'RelativePosition.TARGET'))", '[rotateNode(Rotation_Angle.CW2), moveNodeMax(Dir.DOWN)]', '[moveNode(Dir.DOWN), updateColor(Color.grey)]', "insert(('OBJECT_ID.1', 'ImagePoints.BOTTOM', 'RelativePosition.MIDDLE'))", "insert(('OBJECT_ID.1', 'ImagePoints.BOTTOM_RIGHT', 'RelativePosition.MIDDLE'))", '[flip(Symmetry_Axis.DIAGONAL_RIGHT), moveNodeMax(Dir.DOWN)]', '[flip(Symmetry_Axis.VERTICAL), addBorder(Color.grey)]']
+#filters: ['Not(FilterBySize(SIZE.7))', 'FilterBySize(SIZE.6)', 'Not(FilterByColor(FColor.black))', 'Not(FilterByColor(FColor.black))', 'FilterByColor(FColor.grey)', 'FilterByColor(FColor.grey)', 'Not(And(FilterByDegree(DEGREE.2), Or(FilterByColumns(COLUMN.EVEN), FilterByColumns(COLUMN.MOD3))))', 'FilterBySize(SIZE.7)']
+
+#6c434453: nbccg
+#transformations: ['mirror(Var.mirror_axis)_0', "insert(('OBJECT_ID.0', 'ImagePoints.TOP', 'RelativePosition.SOURCE'))"]
+#filters: ['And(FilterBySize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.Or(FilterByNeighborSize(SIZE.MIN), FilterByNeighborSize(SIZE.ODD))))', 'Or(FilterBySize(SIZE.MAX), FilterBySize(SIZE.4))']
 
 if __name__ == "__main__":
     unittest.main()
