@@ -10,7 +10,7 @@
             )
         )
         (apply
-            (move_node_max var)
+            (move_node_max var_move_node_max)
         )
     )
 )

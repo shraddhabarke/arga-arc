@@ -16,11 +16,41 @@ this_module = sys.modules[__name__]
 class _Ast(ast_utils.Ast):
     pass
 
-### Base types
+### Var types
+
+# @dataclass
+# class Var():
+#     pass
 
 @dataclass
-class Var():
+class VarUpdateColor(_Ast):
     pass
+
+@dataclass
+class VarMoveNode(_Ast):
+    pass
+
+@dataclass
+class VarExtendNode(_Ast):
+    pass
+
+@dataclass
+class VarMoveNodeMax(_Ast):
+    pass
+
+@dataclass
+class VarMirror(_Ast):
+    pass
+
+@dataclass
+class VarInsert(_Ast):
+    pass
+
+@dataclass
+class ObjectId(_Ast):
+    value: int
+
+### Base types
 
 @dataclass
 class Size(_Ast):
@@ -176,20 +206,20 @@ class _Transform(_Ast):
 
 @dataclass
 class UpdateColor(_Transform):
-    color: Color | Var
+    color: Color | VarUpdateColor
 
 @dataclass
 class MoveNode(_Transform):
-    direction: Direction | Var
+    direction: Direction | VarMoveNode
 
 @dataclass
 class ExtendNode(_Transform):
-    direction: Direction | Var
+    direction: Direction | VarExtendNode
     overlap: Overlap
 
 @dataclass
 class MoveNodeMax(_Transform):
-    direction: Direction | Var
+    direction: Direction | VarMoveNodeMax
 
 @dataclass
 class RotateNode(_Transform):
@@ -210,7 +240,7 @@ class HollowRectangle(_Transform):
 
 @dataclass
 class Mirror(_Transform):
-    axis: Var
+    axis: VarMirror | SymmetryAxis
 
 @dataclass
 class Flip(_Transform):
@@ -218,7 +248,7 @@ class Flip(_Transform):
 
 @dataclass
 class Insert(_Transform):
-    source: Var
+    source: VarInsert | ObjectId
     image_points: ImagePoints
     relative_position: RelativePosition
 
@@ -243,12 +273,34 @@ class Library(_Ast, ast_utils.AsList):
 
 
 class ToAst(Transformer):
-    # def __default_token__(self, token):
-    #     return token.value
+    # def VAR(self, token):
+    #     return Var()
+
+    # Var types
+
+    def VAR_UPDATE_COLOR(self, token):
+        return VarUpdateColor()
     
-    def VAR(self, token):
-        return Var()
+    def VAR_MOVE_NODE(self, token):
+        return VarMoveNode()
     
+    def VAR_EXTEND_NODE(self, token):
+        return VarExtendNode()
+    
+    def VAR_MOVE_NODE_MAX(self, token):
+        return VarMoveNodeMax()
+    
+    def VAR_MIRROR(self, token):
+        return VarMirror()
+    
+    def VAR_INSERT(self, token):
+        return VarInsert()
+
+    def OBJECT_ID(self, token):
+        return ObjectId(int(token.value))
+    
+    # Base types
+
     def OVERLAP(self, token):
         return Overlap(bool(token.value))
     
@@ -471,29 +523,9 @@ def test_file(filename, parser, xformer):
     ast = xformer.transform(t)
     pprint(ast)
 
-def test_gpt_gens(gens_dir, parser, xformer):
-    for filename in os.listdir(gens_dir):
-        if filename.endswith("_valid.txt"):
-            file_path = os.path.join(gens_dir, filename)
-            test_file(file_path, parser, xformer)
-
-if __name__ == "__main__":
+def test_gpt_gens():
     parser = dsl_parser.Parser.new()
     xformer = ast_utils.create_transformer(this_module, ToAst())
-
-    # test_dirs = [
-    #     "dsl/v0_3/reference",
-    #     # "dsl/v0_3/examples",
-    # ]
-    # for test_dir in test_dirs:
-    #     print(f"Testing directory {test_dir}...")
-    #     for filename in os.listdir(test_dir):
-    #         if filename.endswith(".dsl"):
-    #             file_path = os.path.join(test_dir, filename)
-    #             # open the file as a library
-    #             # print(f"Testing {file_path}...")
-    #             test_file(file_path, parser, xformer)
-    # print("All tests passed!")
 
     # gens_dir = "/Users/emmanuel/repos/arc_stuff/arga-arc/models/logs/gens_20240318T224833"
     # gens_dir = "models/logs/gens_20240318T224833"
@@ -505,6 +537,29 @@ if __name__ == "__main__":
         dir_path = os.path.join(gens_dir, dir)
         if os.path.isdir(dir_path):
             print(f"Testing directory {dir_path}...")
-            test_gpt_gens(dir_path, parser, xformer)
+            for filename in os.listdir(dir_path):
+                if filename.endswith("_valid.txt"):
+                    file_path = os.path.join(dir_path, filename)
+                    test_file(file_path, parser, xformer)
 
-    # test_gpt_gens(gens_dir, parser, xformer)
+
+def test_reference_programs():
+    parser = dsl_parser.Parser.new()
+    xformer = ast_utils.create_transformer(this_module, ToAst())
+
+    test_dirs = [
+        "dsl/v0_3/reference",
+        "dsl/v0_3/examples",
+    ]
+    for test_dir in test_dirs:
+        print(f"Testing directory {test_dir}...")
+        for filename in os.listdir(test_dir):
+            if filename.endswith(".dsl"):
+                file_path = os.path.join(test_dir, filename)
+                # open the file as a library
+                # print(f"Testing {file_path}...")
+                test_file(file_path, parser, xformer)
+
+if __name__ == "__main__":
+    # test_gpt_gens()
+    test_reference_programs()

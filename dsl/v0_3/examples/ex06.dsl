@@ -11,7 +11,7 @@
         )
         (apply
             (update_color R)
-            (move_node_max D)
+            (move_node_max down)
         )
     )
     (rule
@@ -26,7 +26,7 @@
         )
         (apply
             (update_color B)
-            (move_node_max U)
+            (move_node_max up)
         )
     )
 )

@@ -10,7 +10,7 @@
             )
         )
         (apply
-            (mirror var)
+            (mirror var_mirror)
         )
     )
 )
