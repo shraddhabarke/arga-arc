@@ -538,7 +538,7 @@ def test_gpt_gens():
         if os.path.isdir(dir_path):
             print(f"Testing directory {dir_path}...")
             for filename in os.listdir(dir_path):
-                if filename.endswith("_valid.txt"):
+                if filename.endswith("_valid_programs.txt"):
                     file_path = os.path.join(dir_path, filename)
                     test_file(file_path, parser, xformer)
 
@@ -561,5 +561,5 @@ def test_reference_programs():
                 test_file(file_path, parser, xformer)
 
 if __name__ == "__main__":
-    # test_gpt_gens()
-    test_reference_programs()
+    test_gpt_gens()
+    # test_reference_programs()

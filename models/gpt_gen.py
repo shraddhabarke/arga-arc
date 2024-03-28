@@ -44,7 +44,8 @@ def process_responses_json(responses):
     # We want to extract the last code snippet from the "code" field and try to parse it
     valid_programs, valid_responses, invalid_responses = [], [], []
     for response in responses:
-        code = response["code"]
+        jobject = json.loads(response)
+        code = jobject["code"]
         if is_parseable(code):
             valid_programs.append(code)
             valid_responses.append(response)

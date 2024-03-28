@@ -1,0 +1,39 @@
+{
+    "nl_description": "Swap the position of all X objects with their nearest O objects located directly above them.",
+    "code": "(do\n    (rule\n        (filter (filter_by_color X))\n        (apply\n            (insert 0 top source)\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each pair, swap the positions of each pair of X objects, with their horizontally contiguous neighbors.",
+    "code": "(do\n    (rule\n        (filter (filter_by_color X))\n        (apply (move_node_max left))\n    )\n    (rule\n        (filter\n            (and (filter_by_color O) (varand (is_direct_neighbor) (filter_by_color X)))\n        )\n        (apply (move_node_max right))\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all X objects to O and extend the R objects down until they hit an X object or the edge of the grid.",
+    "code": "(do (rule (filter (filter_by_color X)) (apply (update_color O))) (rule (filter (filter_by_color R)) (apply (extend_node down true))))"
+}
+
+{
+    "nl_description": "Remove all objects except the largest one, then move objects of size 2 or 3 towards the largest object without overlap.",
+    "code": "(do\n    (rule\n        (filter (filter_by_size max))\n        (apply (noop))\n    )\n    (rule\n        (filter\n            (or (filter_by_size 2) (filter_by_size 3))\n        )\n        (apply\n            (move_node_max var_move_node_max)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all objects except the object in the center surrounded by X, and reflect the same configuration in the top part of the grid.",
+    "code": "(do\n    (rule\n        (filter (not (filter_by_neighbor_color X)))\n        (apply (noop))\n    )\n    (rule\n        (filter (filter_by_neighbor_color X))\n        (apply\n            (mirror var_mirror)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all X objects above an R object without any object in-between, and ensure no two X objects are in the same column as an R object below them.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_color X)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color R)\n                )\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Shift all R objects down by one position if there is an X object vertically aligned with them.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_color R)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each row containing the object X, move all objects in the same row one cell to the left if the leftmost object is not X, otherwise move all objects one cell to the right.",
+    "code": "(do\n    (rule\n        (filter (filter_by_color X))\n        (apply\n            (insert 0 top_left source)\n        )\n    )\n    (rule\n        (filter (filter_by_columns 0))\n        (apply\n            (move_node right)\n        )\n    )\n    (rule\n        (filter (filter_by_color X))\n        (apply\n            (noop)\n        )\n    )\n    (rule\n        (filter)\n        (apply\n            (move_node left)\n        )\n    )\n)"
+}

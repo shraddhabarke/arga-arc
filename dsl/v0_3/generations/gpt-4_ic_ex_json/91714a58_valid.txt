@@ -1,0 +1,39 @@
+{
+    "nl_description": "Remove all objects except those forming a horizontal or vertical line of size greater than 1.",
+    "code": "(do\n    (rule\n        (filter\n            (not\n                (or\n                    (filter_by_size min)\n                    (varand\n                        (is_any_neighbor)\n                        (filter_by_degree odd)\n                    )\n                )\n            )\n        )\n        (apply\n            (noop)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Keep only objects that have the maximum height in the grid, and remove all other objects.",
+    "code": "(do\n    (rule\n        (filter\n            (not (filter_by_height max))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all objects except those forming the largest contiguous area of the same color, in each grid.",
+    "code": "(do\n    (rule\n        (filter\n            (filter_by_size max)\n        )\n        (apply\n            (noop)\n        )\n    )\n    (rule\n        (filter\n           (not (filter_by_size max))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Delete all the objects except for the largest object in each grid.",
+    "code": "(do\n    (rule\n        (filter\n            (not (filter_by_size max))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all objects except the largest object in the central part of each pair, maintaining its original position.",
+    "code": "(do\n    (rule\n        (filter\n            (not\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_size max)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all objects except for the largest object in each grid, which should be left in the center.",
+    "code": "(do\n    (rule\n        (filter\n            (not (filter_by_size max))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n    (rule\n        (filter\n            (filter_by_size max)\n        )\n        (apply\n            (move_node_max left)\n            (move_node_max up)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all objects, except for those forming a contiguous block greater than or equal to size 9.",
+    "code": "(do\n    (rule\n        (filter\n            (not\n                (filter_by_size 9)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Keep only the largest contiguous object of color F and remove all other objects.",
+    "code": "(do\n    (rule\n        (filter\n            (not (filter_by_color F))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}

@@ -1,0 +1,44 @@
+{
+    "nl_description": "Recolor the first row above a solid row of X to color X.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_color X)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_columns center)\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects one unit down in the bottom half of the grid, and recolor all R objects to X in the top half of the grid.",
+    "code": "(do\n    (rule\n        (filter (filter_by_columns center))\n        (apply (move_node_max down))\n    )\n    (rule\n        (filter (filter_by_color R))\n        (apply (update_color X))\n    )\n)"
+}
+
+{
+    "nl_description": "For objects of color O above the row of objects of color X, move them to the row of objects of color X, and then recolor objects of color O in the row of objects of color X to color X.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_color O)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n    (rule\n        (filter\n            (filter_by_columns center)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor objects that are horizontally or vertically aligned with X to color X.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (not (filter_by_color X))\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all objects directly above, below, or to the side of a row entirely filled with color X to X.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (not (filter_by_color X))\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_columns center)\n                )\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Change the color of all objects above the largest contiguous area of color X to X, except if an object is of color G, then extend it instead.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (varand (is_any_neighbor) (filter_by_color X))\n                (not (filter_by_color G))\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (filter\n            (and\n                (varand (is_any_neighbor) (filter_by_color X))\n                (filter_by_color G)\n            )\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For all objects in the top half of the grid, move each object down until it reaches an object of color X or the bottom of the grid. Then, change the color of these moved objects to color X.",
+    "code": "(do\n    (rule\n        (filter\n            (filter_by_columns even)\n        )\n        (apply\n            (move_node_max down)\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all small objects above the large X object to color X",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_color O)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object starting from the second row, if it is of color O or R, change its color to X. Leave the first row unchanged.",
+    "code": "(do\n    (rule\n        (filter\n            (or\n                (filter_by_color O)\n                (filter_by_color R)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
