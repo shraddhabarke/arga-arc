@@ -39,6 +39,19 @@ def get_last_code_snippet(response:str) -> str:
             return block
     return None
 
+def process_responses_json(responses):
+    # Each response is a JSON object that has two keys: "nl_description" and "code"
+    # We want to extract the last code snippet from the "code" field and try to parse it
+    valid_programs, valid_responses, invalid_responses = [], [], []
+    for response in responses:
+        code = response["code"]
+        if is_parseable(code):
+            valid_programs.append(code)
+            valid_responses.append(response)
+        else:
+            invalid_responses.append(response)
+    return valid_programs, valid_responses, invalid_responses
+
 def query_task(task_id, n_responses, output_dir, model):
     """
     Returns a list of n_responses responses to the prompt
