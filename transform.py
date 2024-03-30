@@ -13,7 +13,7 @@ class Types(Enum):
     RELATIVE_POSITION = "RelativePosition"
     OBJECT_ID = "ObjectId"
     NO_OP = "No_Op"
-    MIRROR_AXIS = "Mirror"
+    MIRROR_AXIS = "Mirror_Axis"
 
 
 class TransformASTNode:
@@ -35,7 +35,6 @@ class TransformASTNode:
 
 # Variable type is for variable objects
 
-
 class Mirror_Axis(TransformASTNode, Enum):
     Variable = "VarMirror"
 
@@ -54,7 +53,7 @@ class Mirror_Axis(TransformASTNode, Enum):
     @classmethod
     @property
     def nodeType(cls):
-        return Types.MIRROR
+        return Types.MIRROR_AXIS
 
     def apply(self, task, children=None, filter=None):
         return self
@@ -768,7 +767,7 @@ class Mirror(Transforms):
         super().__init__()
         self.children = [mirror_axis]
         self.size = self.default_size + mirror_axis.size
-        self.code = f"mirror({mirror_axis.code}.mirror_axis)"
+        self.code = f"mirror({mirror_axis.code})"
         self.childTypes = [Types.MIRROR_AXIS]
 
     @classmethod
