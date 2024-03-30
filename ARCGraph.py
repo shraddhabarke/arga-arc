@@ -90,24 +90,24 @@ class ARCGraph:
         updated_sub_nodes = set()
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == Dir.UP:
+        if direction == "UP" or direction == Dir.UP:
             delta_y = -n
-        elif direction == "D" or direction == Dir.DOWN:
+        elif direction == "DOWN" or direction == Dir.DOWN:
             delta_y = n
-        elif direction == "L" or direction == Dir.LEFT:
+        elif direction == "LEFT" or direction == Dir.LEFT:
             delta_x = -n
-        elif direction == "R" or direction == Dir.RIGHT:
+        elif direction == "RIGHT" or direction == Dir.RIGHT:
             delta_x = n
-        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+        elif direction == Dir.DOWN_RIGHT or direction == "DOWN_RIGHT":
             delta_x = n
             delta_y = n
-        elif direction == Dir.DOWN_LEFT or direction == "DL":
+        elif direction == Dir.DOWN_LEFT or direction == "DOWN_LEFT":
             delta_y = n
             delta_x = -n
-        elif direction == Dir.UP_LEFT or direction == "UL":
+        elif direction == Dir.UP_LEFT or direction == "UP_LEFT":
             delta_x = -n
             delta_y = -n
-        elif direction == Dir.UP_RIGHT or direction == "UR":
+        elif direction == Dir.UP_RIGHT or direction == "UP_RIGHT":
             delta_x = n
             delta_y = -n
         for sub_node in self.graph.nodes[node]["nodes"]:
@@ -155,24 +155,24 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == Dir.UP:
+        if direction == "UP" or direction == Dir.UP:
             delta_y = -n
-        elif direction == "D" or direction == Dir.DOWN:
+        elif direction == "DOWN" or direction == Dir.DOWN:
             delta_y = n
-        elif direction == "L" or direction == Dir.LEFT:
+        elif direction == "LEFT" or direction == Dir.LEFT:
             delta_x = -n
-        elif direction == "R" or direction == Dir.RIGHT:
+        elif direction == "RIGHT" or direction == Dir.RIGHT:
             delta_x = n
-        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+        elif direction == Dir.DOWN_RIGHT or direction == "DOWN_RIGHT":
             delta_x = n
             delta_y = n
-        elif direction == Dir.DOWN_LEFT or direction == "DL":
+        elif direction == Dir.DOWN_LEFT or direction == "DOWN_LEFT":
             delta_y = n
             delta_x = -n
-        elif direction == Dir.UP_LEFT or direction == "UL":
+        elif direction == Dir.UP_LEFT or direction == "UP_LEFT":
             delta_x = -n
             delta_y = -n
-        elif direction == Dir.UP_RIGHT or direction == "UR":
+        elif direction == Dir.UP_RIGHT or direction == "UP_RIGHT":
             delta_x = n
             delta_y = -n
         for sub_node in self.graph.nodes[node]["nodes"]:
@@ -204,24 +204,24 @@ class ARCGraph:
         assert direction is not None
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == Dir.UP:
+        if direction == "UP" or direction == Dir.UP:
             delta_y = -n
-        elif direction == "D" or direction == Dir.DOWN:
+        elif direction == "DOWN" or direction == Dir.DOWN:
             delta_y = n
-        elif direction == "L" or direction == Dir.LEFT:
+        elif direction == "LEFT" or direction == Dir.LEFT:
             delta_x = -n
-        elif direction == "R" or direction == Dir.RIGHT:
+        elif direction == "RIGHT" or direction == Dir.RIGHT:
             delta_x = n
-        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+        elif direction == Dir.DOWN_RIGHT or direction == "DOWN_RIGHT":
             delta_x = n
             delta_y = n
-        elif direction == Dir.DOWN_LEFT or direction == "DL":
+        elif direction == Dir.DOWN_LEFT or direction == "DOWN_LEFT":
             delta_y = n
             delta_x = -n
-        elif direction == Dir.UP_LEFT or direction == "UL":
+        elif direction == Dir.UP_LEFT or direction == "UP_LEFT":
             delta_x = -n
             delta_y = -n
-        elif direction == Dir.UP_RIGHT or direction == "UR":
+        elif direction == Dir.UP_RIGHT or direction == "UP_RIGHT":
             delta_x = n
             delta_y = -n
         max_allowed = 1000
@@ -467,7 +467,7 @@ class ARCGraph:
             )
         return self
 
-    def Mirror(self, node, mirror_axis):
+    def Mirror(self, node, mirror_axis: Mirror_Axis):
         """
         mirroring a node with respect to the given axis.
         mirror_axis takes the form of (y, x) where one of y, x equals None to
@@ -1050,10 +1050,6 @@ class ARCGraph:
         elif len(self.graph.nodes[node1]["nodes"]) == 1 or len(self.graph.nodes[node2]["nodes"]) == 1:
             # at least one of the objects is single-pixeled
             is_node1_single_pixeled = len(self.graph.nodes[node1]["nodes"]) == 1
-            is_node2_single_pixeled = not is_node1_single_pixeled  # If not node1, then it must be node2
-
-            if is_node2_single_pixeled:
-                node1, node2 = node2, node1
             min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(
                 node[0] for node in self.graph.nodes[node1]["nodes"])
             min_x_node1, max_x_node1 = min(node[1] for node in self.graph.nodes[node1]["nodes"]), max(
@@ -1084,20 +1080,14 @@ class ARCGraph:
                     abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
                 if is_node1_single_pixeled:
                     return Dir.DOWN_RIGHT
-                if is_node2_single_pixeled:
-                    return Dir.UP_LEFT
             elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
                     abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
                 if is_node1_single_pixeled:
                     return Dir.UP_RIGHT
-                if is_node2_single_pixeled:
-                    return Dir.DOWN_LEFT
             elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
                     abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
                 if is_node1_single_pixeled:
                     return Dir.UP_LEFT
-                if is_node2_single_pixeled:
-                    return Dir.DOWN_RIGHT
         else:
             # node: the case where both objects are not single-pixeled -- diagonal not supported
             node1_x, node2_x = [node[0] for node in self.graph.nodes[node1]["nodes"]], [

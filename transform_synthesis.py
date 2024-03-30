@@ -102,7 +102,7 @@ class TSizeEnumerator:
                         elif children is None or self.oeManager.is_representative(prog.values):
                             self.nextProgram = prog
                             if children is not None:
-                                if any(child.nodeType == Types.VARIABLE for child in children):
+                                if any("Var" in child.code for child in children):
                                     self.nextProgram.values_apply = self.task.values_to_apply[0]
                 elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
                     self.currentChildIteratorIndex += 1
