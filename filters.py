@@ -4,7 +4,6 @@ from transform import Dir
 
 class FilterTypes(Enum):
     FILTERS = "Filters"
-    # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
     SIZE = "Size"
     DEGREE = "Degree"
@@ -728,17 +727,12 @@ class Not(FilterASTNode):
         for i, _ in enumerate(result):
             filtered_nodes_dict = {node: [] for node in result[i]}
             res_dict.append(filtered_nodes_dict)
-        # todo:
-        #if task.current_spec:
-            #for i, spec_dict in enumerate(task.current_spec):
-                #filtered_nodes_dict = {k: result[i] for k in spec_dict.keys()}
-                #values_dict.append(filtered_nodes_dict)
-            #res_dict = values_dict
         new_instance = cls(children[0])
         new_instance.values = res_dict
         return new_instance
 
-class FilterByColor(Filters):
+
+class ColorEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
     default_size = 1
@@ -746,7 +740,7 @@ class FilterByColor(Filters):
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByColor({color.code})"
+        self.code = f"Color_Of(Obj) == {color.code}"
         self.size = self.default_size + color.size
         self.children = [color]
         self.childTypes = [FilterTypes.COLOR]
@@ -759,7 +753,7 @@ class FilterByColor(Filters):
         return instance
 
 
-class FilterBySize(Filters):
+class SizeEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
     default_size = 1
@@ -767,7 +761,7 @@ class FilterBySize(Filters):
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterBySize({size.code})"
+        self.code = f"Size_Of(Obj) == {size.code}"
         self.size = self.default_size + size.size
         self.children = [size]
         self.childTypes = [FilterTypes.SIZE]
@@ -780,7 +774,7 @@ class FilterBySize(Filters):
         return instance
 
 
-class FilterByHeight(Filters):
+class HeightEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.HEIGHT]
     default_size = 1
@@ -788,7 +782,7 @@ class FilterByHeight(Filters):
     def __init__(self, height: Height):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByHeight({height.code})"
+        self.code = f"Height_Of(Obj) == {height.code}"
         self.size = self.default_size + height.size
         self.children = [height]
         self.childTypes = [FilterTypes.HEIGHT]
@@ -801,7 +795,7 @@ class FilterByHeight(Filters):
         return instance
 
 
-class FilterByWidth(Filters):
+class WidthEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.WIDTH]
     default_size = 1
@@ -809,7 +803,7 @@ class FilterByWidth(Filters):
     def __init__(self, width: Width):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByWidth({width.code})"
+        self.code = f"Width_Of(Obj) == {width.code}"
         self.size = self.default_size + width.size
         self.children = [width]
         self.childTypes = [FilterTypes.WIDTH]
@@ -822,7 +816,7 @@ class FilterByWidth(Filters):
         return instance
 
 
-class FilterByDegree(Filters):
+class DegreeEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
     default_size = 1
@@ -830,7 +824,7 @@ class FilterByDegree(Filters):
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByDegree({degree.code})"
+        self.code = f"Degree_Of(Obj) == {degree.code}"
         self.size = self.default_size + degree.size
         self.children = [degree]
         self.childTypes = [FilterTypes.DEGREE]
@@ -842,7 +836,7 @@ class FilterByDegree(Filters):
         instance.values = values
         return instance
 
-class FilterByShape(Filters):
+class ShapeEqual(Filters):
     arity = 1
     default_size = 1
     size = 1
@@ -851,7 +845,7 @@ class FilterByShape(Filters):
     def __init__(self, shape: Shape):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByShape({shape.code})"
+        self.code = f"Shape_Of(Obj) == {shape.code}"
         self.size = self.default_size + shape.size
         self.children = [shape]
         self.childTypes = [FilterTypes.SHAPE]
@@ -907,7 +901,7 @@ class FilterByColumns(Filters):
         instance.values = values
         return instance
 
-class FilterByNeighborSize(Filters):
+class NeighborSizeEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
     default_size = 1
@@ -915,7 +909,7 @@ class FilterByNeighborSize(Filters):
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborSize({size.code})"
+        self.code = f"Neighbor_Size_Of(Obj) == {size.code}"
         self.size = self.default_size + size.size
         self.children = [size]
         self.childTypes = [FilterTypes.SIZE]
@@ -928,7 +922,7 @@ class FilterByNeighborSize(Filters):
         return instance
 
 
-class FilterByNeighborColor(Filters):
+class NeighborColorEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
     default_size = 1
@@ -936,7 +930,7 @@ class FilterByNeighborColor(Filters):
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborColor({color.code})"
+        self.code = f"Neighbor_Color_Of(Obj) == {color.code}"
         self.size = self.default_size + color.size
         self.children = [color]
         self.childTypes = [FilterTypes.COLOR]
@@ -949,7 +943,7 @@ class FilterByNeighborColor(Filters):
         return instance
 
 
-class FilterByNeighborDegree(Filters):
+class NeighborDegreeEqual(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
     default_size = 1
@@ -957,7 +951,7 @@ class FilterByNeighborDegree(Filters):
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborDegree({degree.code})"
+        self.code = f"Neighbor_Degree_Of(Obj) == {degree.code}"
         self.size = self.default_size + degree.size
         self.children = [degree]
         self.childTypes = [FilterTypes.DEGREE]

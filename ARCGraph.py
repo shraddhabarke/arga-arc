@@ -621,7 +621,8 @@ class ARCGraph:
 
     # ------------------------------------- filters ------------------------------------------
     #  filters take the form of filter(node, params), return true if node satisfies filter
-    def FilterByColor(self, node, color: Color):
+
+    def ColorEqual(self, node, color: Color):
         """
         return true if node has given color.
         if exclude, return true if node does not have given color.
@@ -641,11 +642,11 @@ class ARCGraph:
             "W": 9,
         }
         if self.is_multicolor:
-            return color in self.graph.nodes[node]["color"]
+            return color in self.graph.nodes[node]["color"] # ColorOf(Obj)
         else:
             return self.graph.nodes[node]["color"] == color_map[color]
 
-    def FilterByHeight(self, node, height: Height):
+    def HeightEqual(self, node, height: Height):
         if height == "MAX":
             height = self.get_attribute_max("height")
         elif height == "MIN":
@@ -654,7 +655,7 @@ class ARCGraph:
             return self.graph.nodes[node]["height"] % 2 != 0
         return self.graph.nodes[node]["height"] == height
 
-    def FilterByWidth(self, node, width: Width):
+    def WidthEqual(self, node, width: Width):
         if width == "MAX":
             width = self.get_attribute_max("width")
         elif width == "MIN":
@@ -665,7 +666,6 @@ class ARCGraph:
 
     def FilterByColumns(self, node, column: Column):
         column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
-
         if column == "MOD3":
             col = self.mod_3(column)
             return all(node in col for node in column_nodes)
@@ -699,7 +699,7 @@ class ARCGraph:
             return all(node in r for node in row_nodes) # is the entire object in the center row
         return False
 
-    def FilterBySize(self, node, size: Size):
+    def SizeEqual(self, node, size: Size):
         """
         return true if node has size equal to given size.
         if exclude, return true if node does not have size equal to given size.
@@ -712,14 +712,14 @@ class ARCGraph:
             return self.graph.nodes[node]["size"] % 2 != 0
         return self.graph.nodes[node]["size"] == size
 
-    def FilterByDegree(self, node, degree: Degree):
+    def DegreeEqual(self, node, degree: Degree):
         """
         return true if node has degree equal to given degree.
         if exclude, return true if node does not have degree equal to given degree.
         """
         return self.graph.degree[node] == degree
 
-    def FilterByNeighborSize(self, node, size: Size):
+    def NeighborSizeEqual(self, node, size: Size):
         """
         return true if node has a neighbor of a given size.
         if exclude, return true if node does not have a neighbor of a given size.
@@ -738,7 +738,7 @@ class ARCGraph:
                     return True
         return False
 
-    def FilterByNeighborColor(self, node, color: Color):
+    def NeighborColorEqual(self, node, color: Color):
         """
         return true if node has a neighbor of a given color.
         if exclude, return true if node does not have a neighbor of a given color.
@@ -762,7 +762,7 @@ class ARCGraph:
                 return True
         return False
 
-    def FilterByNeighborDegree(self, node, degree: Degree):
+    def NeighborDegreeEqual(self, node, degree: Degree):
         """
         return true if node has a neighbor of a given degree.
         if exclude, return true if node does not have a neighbor of a given degree.
@@ -772,7 +772,7 @@ class ARCGraph:
                 return True
         return False
 
-    def FilterByShape(self, node, shape: Shape):
+    def ShapeEqual(self, node, shape: Shape):
         """
         return true if node contains a square-shaped hole
         """
@@ -1017,36 +1017,29 @@ class ARCGraph:
                 for sub_node_2 in self.graph.nodes[node2]["nodes"]:
                     if sub_node_1[0] == sub_node_2[0]:
                         if sub_node_1[1] < sub_node_2[1]:
-                            print("single-pixel: Dir.RIGHT")
                             return Dir.RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
-                            print("single-pixel: Dir.LEFT")
                             return Dir.LEFT
                     elif sub_node_1[1] == sub_node_2[1]:
                         if sub_node_1[0] < sub_node_2[0]:
-                            print("single-pixel: Dir.DOWN")
                             return Dir.DOWN
                         elif sub_node_1[0] > sub_node_2[0]:
-                            print("single-pixel: Dir.UP")
                             return Dir.UP
                     elif sub_node_1[0] < sub_node_2[0]:  # DOWN
                         if sub_node_1[1] < sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.DOWN_RIGHT")
                                 return Dir.DOWN_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.DOWN_LEFT")
                                 return Dir.DOWN_LEFT
                     elif sub_node_1[0] > sub_node_2[0]:  # UP
                         if sub_node_1[1] < sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.UP_RIGHT")
                                 return Dir.UP_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.UP_LEFT")
                                 return Dir.UP_LEFT
+
         elif len(self.graph.nodes[node1]["nodes"]) == 1 or len(self.graph.nodes[node2]["nodes"]) == 1:
             # at least one of the objects is single-pixeled
             is_node1_single_pixeled = len(self.graph.nodes[node1]["nodes"]) == 1
@@ -1216,7 +1209,7 @@ class ARCGraph:
                     f"Method for filter '{filter_name}' not found in ARCGraph'"
                 )
 
-    def update_abstracted_graph(self, affected_nodes):
+    def update_abstracted_graph(self):
         """
         update the abstracted graphs so that they remain consistent after transformation
         """
