@@ -664,7 +664,7 @@ class ARCGraph:
             return self.graph.nodes[node]["width"] % 2 != 0
         return self.graph.nodes[node]["width"] == width
 
-    def Columns_Of(self, node, column: Column):
+    def Column_Of(self, node, column: Column):
         column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
         if column == "MOD3":
             col = self.mod_3(column)
@@ -683,7 +683,7 @@ class ARCGraph:
             return all(node in col for node in column_nodes) # is the entire object in even columns
         return False
 
-    def Rows_Of(self, node, row: Row):
+    def Row_Of(self, node, row: Row):
         row_nodes = [col[0] for col in self.graph.nodes[node]["nodes"]]
         if row == "MOD3":
             r = self.mod_3(row)
