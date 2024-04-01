@@ -54,8 +54,8 @@ def processtask(taskNumber):
     setup_size_and_degree_based_on_task(task)
     setup_objectids(task)
     vocabMakers = [ObjectId, FColor, Degree, Height, Width, Size, Shape, Row, Column, 
-                Neighbor_Of, ColorEqual, SizeEqual, DegreeEqual, ShapeEqual, HeightEqual,
-                ColumnsEqual, NeighborColorEqual, NeighborSizeEqual, NeighborDegreeEqual, Not, 
+                Neighbor_Of, Color_Of, Size_Of, Degree_Of, Shape_Of, Height_Of,
+                Column_Of, Neighbor_Color_Of, Neighbor_Size_Of, Neighbor_Degree_Of, Not, 
                 And, Or]
     vocab = VocabFactory.create(vocabMakers)
     for leaf in list(vocab.leaves()):
@@ -221,11 +221,11 @@ def compute_transform_costs(taskNumber):
     return t_smoothed_probabilities
 
 taskNumber = "6855a6e4"
-compute_transform_costs(taskNumber)
+#compute_transform_costs(taskNumber)
 
 ##--------------------- Computing filter probabilities ---------------------------------------------------------
-filter_operations = {'ColorEqual', 'SizeEqual', 'DegreeEqual', 'FilterByNeighborColor', 'FilterByNeighborSize', 'FilterByNeighborDegree', 
-                    'FilterByShape', 'FilterByColumns', 'HeightEqual', 'FilterByRows', 'FilterByWidth', 'Or', 'And', 'Not', 'VarAnd'}
+filter_operations = {'Color_Of', 'Size_Of', 'Degree_Of', 'Neighbor_Of', 'Neighbor_Size_Of', 'Neighbor_Degree_Of', 'Neighbor_Color_Of',
+                    'Shape_Of', 'Column_Of', 'Height_Of', 'Row_Of', 'Width_Of', 'Or', 'And', 'Not'}
 
 # Filter grammar rules
 filter_rules = {
@@ -235,17 +235,19 @@ filter_rules = {
         'Or'
     ],
     'Filter': [
-        'ColorEqual',
-        'SizeEqual',
-        'DegreeEqual',
-        'HeightEqual',
-        'FilterByShape',
+        'Color_Of',
+        'Size_Of',
+        'Degree_Of',
+        'Height_Of',
+        'Shape_Of',
+        'Neighbor_Size_Of',
+        'Neighbor_Degree_Of',
+        'Neighbor_Color_Of',
         'FilterByColumns',
-        #FilterByRows,
-        #FilterByWidth
-        'FilterByNeighborColor',
-        'FilterByNeighborSize',
-        'FilterByNeighborDegree',
+        'Neighbor_Of',
+        "Column_Of",
+        'Row_Of',
+        'Width_Of'
     ],
     'FColor': [
         'O', 'B', 'R', 'G', 'Y', 'X', 'F', 'A', 'C', 'W', 'most', 'least'
@@ -253,13 +255,11 @@ filter_rules = {
     'Shape': ['enclosed', 'square'],
     'Size': size_values,
     'Degree': degree_values,
-    'Relation': ['IsAnyNeighbor', 'IsDirectNeighbor', 'IsDiagonalNeighbor'],
     'Height': height_values,
     'Width': width_values,
     'Column': column_values,
     'Row': row_values
 }
-init_filter_pcfg = initialize_uniform_pcfg(filter_rules)
 
 def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filter=None):
     if isinstance(node, list):
@@ -277,7 +277,7 @@ def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filte
         for field_name, _ in node.__dataclass_fields__.items():
             field_value = getattr(node, field_name)
             if isinstance(field_value, str) and current_filter:
-                token_rules_count[(current_filter, field_value)] += 1
+                token_rules_count[(class_name, field_value)] += 1
             else:
                 f_extract_rules_from_ast(field_value, rules_count, token_rules_count, current_filter)
         if class_name in filter_operations:
@@ -288,8 +288,11 @@ def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filte
 def laplace_smoothing_for_filters(computed_probabilities, alpha=1):
     smoothed_probabilities = defaultdict(dict)
     # Handle filters and their sub-rules
+    init_filter_pcfg = initialize_uniform_pcfg(filter_rules)
+    print("computed_probabilities:", computed_probabilities)
     for category, rules in init_filter_pcfg.items():
-        if category in ['FColor', 'Size', 'Degree', 'Shape', 'Row', 'Column', 'Height', 'Width', 'Relation']:  # Skip token categories
+        print("token-category!!", category)
+        if category in ['FColor', 'Size', 'Degree', 'Shape', 'Row', 'Column', 'Height', 'Width']:  # Skip token categories
             continue
         total_category_counts = sum(computed_probabilities.get((category, rule_key), 0) for rule_key in rules.keys())
         total_category_rules = len(rules)
@@ -301,10 +304,8 @@ def laplace_smoothing_for_filters(computed_probabilities, alpha=1):
             print(f"P('{rule}' in '{category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[category][rule]:.2f}")
             print(f"Filter: {rule}, Category: {category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
 
-    # Handle token categories (Color, Size, Degree, Shape)
-    for token_category, token_values in init_filter_pcfg.items():
-        print("token-category", token_category)
-        if token_category not in ['FColor', 'Size', 'Degree', 'Shape', 'Row', 'Column', 'Height', 'Width', 'Relation']:
+    for token_category, token_values in init_filter_pcfg.items(): # todo: FColor
+        if token_category not in ['FColor', 'Size', 'Degree', 'Shape', 'Row', 'Column', 'Height', 'Width']:
             continue
         # Correctly iterating over token values for the current category
         total_tokens_of_type = sum(computed_probabilities.get((token_category, token_value), 0) for token_value in token_values)
@@ -322,17 +323,14 @@ def compute_filter_costs(taskNumber):
     ast_program = processtask(taskNumber)
     print("ast:", ast_program)
     filter_rules_count, f_token_rules_count, f_token_type_counts = defaultdict(int), defaultdict(int), defaultdict(int)
-    print("init_filter_pcfg:", init_filter_pcfg)
     f_extract_rules_from_ast(ast_program, filter_rules_count, f_token_rules_count)
     print("filter_rules_count:", filter_rules_count)
     print("token_rules_count:", f_token_rules_count) # Count of non-terminals
     for ((token_type, _)), count in f_token_rules_count.items():
         f_token_type_counts[token_type] += count
-    print("f_token_type_counts:", f_token_type_counts)
     f_probabilities = compute_probabilities(filter_rules_count, f_token_rules_count, f_token_type_counts)
-    print("pre-smoothing-f_probabilities:", f_probabilities)
     f_smoothed_probabilities = laplace_smoothing_for_filters(f_probabilities, alpha=1)
     print("smoothed_probs:", f_smoothed_probabilities)
     return f_smoothed_probabilities
 
-#compute_filter_costs(taskNumber)
+compute_filter_costs(taskNumber)

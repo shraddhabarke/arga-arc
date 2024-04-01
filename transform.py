@@ -33,7 +33,7 @@ class TransformASTNode:
     def size(self, value):
         self._size = value
 
-# Variable type is for variable objects
+# Variable type is for Variable objects
 
 class Mirror_Axis(TransformASTNode, Enum):
     Variable = "VarMirror"

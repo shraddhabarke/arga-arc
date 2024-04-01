@@ -622,7 +622,7 @@ class ARCGraph:
     # ------------------------------------- filters ------------------------------------------
     #  filters take the form of filter(node, params), return true if node satisfies filter
 
-    def ColorEqual(self, node, color: Color):
+    def Color_Of(self, node, color: Color):
         """
         return true if node has given color.
         if exclude, return true if node does not have given color.
@@ -646,7 +646,7 @@ class ARCGraph:
         else:
             return self.graph.nodes[node]["color"] == color_map[color]
 
-    def HeightEqual(self, node, height: Height):
+    def Height_Of(self, node, height: Height):
         if height == "MAX":
             height = self.get_attribute_max("height")
         elif height == "MIN":
@@ -655,7 +655,7 @@ class ARCGraph:
             return self.graph.nodes[node]["height"] % 2 != 0
         return self.graph.nodes[node]["height"] == height
 
-    def WidthEqual(self, node, width: Width):
+    def Width_Of(self, node, width: Width):
         if width == "MAX":
             width = self.get_attribute_max("width")
         elif width == "MIN":
@@ -664,7 +664,7 @@ class ARCGraph:
             return self.graph.nodes[node]["width"] % 2 != 0
         return self.graph.nodes[node]["width"] == width
 
-    def FilterByColumns(self, node, column: Column):
+    def Columns_Of(self, node, column: Column):
         column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
         if column == "MOD3":
             col = self.mod_3(column)
@@ -683,7 +683,7 @@ class ARCGraph:
             return all(node in col for node in column_nodes) # is the entire object in even columns
         return False
 
-    def FilterByRows(self, node, row: Row):
+    def Rows_Of(self, node, row: Row):
         row_nodes = [col[0] for col in self.graph.nodes[node]["nodes"]]
         if row == "MOD3":
             r = self.mod_3(row)
@@ -699,7 +699,7 @@ class ARCGraph:
             return all(node in r for node in row_nodes) # is the entire object in the center row
         return False
 
-    def SizeEqual(self, node, size: Size):
+    def Size_Of(self, node, size: Size):
         """
         return true if node has size equal to given size.
         if exclude, return true if node does not have size equal to given size.
@@ -712,14 +712,14 @@ class ARCGraph:
             return self.graph.nodes[node]["size"] % 2 != 0
         return self.graph.nodes[node]["size"] == size
 
-    def DegreeEqual(self, node, degree: Degree):
+    def Degree_Of(self, node, degree: Degree):
         """
         return true if node has degree equal to given degree.
         if exclude, return true if node does not have degree equal to given degree.
         """
         return self.graph.degree[node] == degree
 
-    def NeighborSizeEqual(self, node, size: Size):
+    def Neighbor_Size_Of(self, node, size: Size):
         """
         return true if node has a neighbor of a given size.
         if exclude, return true if node does not have a neighbor of a given size.
@@ -738,7 +738,7 @@ class ARCGraph:
                     return True
         return False
 
-    def NeighborColorEqual(self, node, color: Color):
+    def Neighbor_Color_Of(self, node, color: Color):
         """
         return true if node has a neighbor of a given color.
         if exclude, return true if node does not have a neighbor of a given color.
@@ -762,7 +762,7 @@ class ARCGraph:
                 return True
         return False
 
-    def NeighborDegreeEqual(self, node, degree: Degree):
+    def Neighbor_Degree_Of(self, node, degree: Degree):
         """
         return true if node has a neighbor of a given degree.
         if exclude, return true if node does not have a neighbor of a given degree.
@@ -772,7 +772,7 @@ class ARCGraph:
                 return True
         return False
 
-    def ShapeEqual(self, node, shape: Shape):
+    def Shape_Of(self, node, shape: Shape):
         """
         return true if node contains a square-shaped hole
         """
@@ -1209,7 +1209,7 @@ class ARCGraph:
                     f"Method for filter '{filter_name}' not found in ARCGraph'"
                 )
 
-    def update_abstracted_graph(self):
+    def update_abstracted_graph(self, affected_nodes):
         """
         update the abstracted graphs so that they remain consistent after transformation
         """
