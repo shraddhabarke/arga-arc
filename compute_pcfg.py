@@ -12,7 +12,7 @@ with open("dsl/v0_3/dsl.lark", "r") as f:
 
 parser = dsl_parser.Parser.new()
 xformer = ast_utils.create_transformer(this_module, ToAst())
-gens_dir = "dsl/v0_3/generations/20240318T231857_gpt-4-0125-preview_30"
+gens_dir = "dsl/v0_3/generations/gpt-4_nl_ex/"
 
 # get the AST program from the generations directory
 def test_file(filename, parser, xformer):
@@ -30,11 +30,12 @@ Rotation_Angle._sizes = {overlap.name: 1 for overlap in Rotation_Angle}
 Symmetry_Axis._sizes = {overlap.name: 1 for overlap in Symmetry_Axis}
 RelativePosition._sizes = {relativepos.name: 1 for relativepos in RelativePosition}
 ImagePoints._sizes = {imagepts.name: 1 for imagepts in ImagePoints}
+Mirror_Axis._sizes = {mirror_axis.name: 1 for mirror_axis in Mirror_Axis}
 
 FColor._sizes = {color.name: 1 for color in FColor}
-Shape._sizes = {shape.name: 1 for shape in Shape}
-Degree._sizes = {degree.value: 1 for degree in Degree._all_values}
 Size._sizes = {s.value: 1 for s in Size._all_values}
+Degree._sizes = {degree.value: 1 for degree in Degree._all_values}
+Shape._sizes = {shape.name: 1 for shape in Shape}
 Column._sizes = {col.value: 1 for col in Column._all_values}
 Row._sizes = {row.value: 1 for row in Row._all_values}
 Height._sizes = {height.value: 1 for height in Height._all_values}
@@ -52,10 +53,10 @@ def processtask(taskNumber):
     task.get_static_object_attributes(task.abstraction)
     setup_size_and_degree_based_on_task(task)
     setup_objectids(task)
-    vocabMakers = [ObjectId, FColor, Degree, Height, Width, Size, Shape, Row, Column, IsDirectNeighbor, IsDiagonalNeighbor, 
-                IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
-                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not, 
-                And, Or, VarAnd]
+    vocabMakers = [ObjectId, FColor, Degree, Height, Width, Size, Shape, Row, Column, 
+                Neighbor_Of, ColorEqual, SizeEqual, DegreeEqual, ShapeEqual, HeightEqual,
+                ColumnsEqual, NeighborColorEqual, NeighborSizeEqual, NeighborDegreeEqual, Not, 
+                And, Or]
     vocab = VocabFactory.create(vocabMakers)
     for leaf in list(vocab.leaves()):
         if isinstance(leaf, SizeValue) and not isinstance(leaf, enum.Enum):
@@ -74,14 +75,12 @@ def processtask(taskNumber):
             object_ids.append(str(leaf.value))
     file_path = f"output.txt"
     ast_program = test_file(file_path, parser, xformer)
-    print("print:", ast_program)
-    print("object-ids:", object_ids)
     return ast_program
 
 ##--------------------- Computing transform probabilities ---------------------------------------------------------
 transform_operations = {'UpdateColor', 'HollowRectangle', 'FillRectangle', 'AddBorder', 'MoveNode', 
-                        'ExtendNode', 'MoveNodeMax', 'Mirror', 'Flip', 'RotateNode', 'NoOp', 'Insert', 'Transforms'}
-
+                        'ExtendNode', 'MoveNodeMax', 'Mirror', 'Flip', 'RotateNode', 'NoOp', 'Insert', 
+                        'Transforms'}
 # Transform grammar rules
 transform_rules = {
     'Transform': [
@@ -100,15 +99,15 @@ transform_rules = {
         'Transforms'
     ],
     'Color': [
-        'O', 'B', 'R', 'G', 'Y', 'X', 'F', 'A', 'C', 'W', 'most', 'least'
+        'O', 'B', 'R', 'G', 'Y', 'X', 'F', 'A', 'C', 'W', 'most', 'least', 'VarColor'
     ],
-    'Direction': ['U', 'D', 'L', 'R', 'UL', 'UR', 'DL', 'DR'],
-    'Variable': ['Var'],
+    'Direction': ['UP', 'DOWN', 'LEFT', 'RIGHT', 'UP_LEFT', 'UP_RIGHT', 'DOWN_LEFT', 'DOWN_RIGHT', 'VarDirection'],
     'Overlap': ['True', 'False'],
     'Rotation_Angle': ['90', '180', '270'],
     'Symmetry_Axis': ['VERTICAL', 'HORIZONTAL', 'DIAGONAL_LEFT', 'DIAGONAL_RIGHT'],
-    'ImagePoints': ['TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_LEFT', 'BOTTOM_RIGHT'],
+    'ImagePoints': ['TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'TOP_LEFT', 'TOP_RIGHT', 'BOTTOM_LEFT', 'BOTTOM_RIGHT', 'VarImagePoints'],
     'RelativePosition': ['SOURCE', 'TARGET', 'MIDDLE'],
+    'Mirror_Axis': ['VarMirror'],
     'ObjectId': object_ids
 }
 
@@ -121,9 +120,7 @@ def initialize_uniform_pcfg(grammar_rules):
             pcfg[non_terminal][production] = uniform_prob
     return pcfg
 
-init_transform_pcfg = initialize_uniform_pcfg(transform_rules)
-
-def increment_transforms(program, init_transform_pcfg):
+def increment_transforms(program):
     """
     Increment the 'Transforms' count in init_transform_pcfg if a rule has more than one transformation.
     """
@@ -137,22 +134,21 @@ def increment_transforms(program, init_transform_pcfg):
 def t_extract_rules_from_ast(node, rules_count, token_rules_count, current_transform=None):
     if isinstance(node, list):
         for item in node:
-            print("item:", item)
             t_extract_rules_from_ast(item, rules_count, token_rules_count, current_transform)
     elif isinstance(node, dict):
         for child in node.children:
             t_extract_rules_from_ast(child, rules_count, token_rules_count, current_transform)
     elif hasattr(node, '__dataclass_fields__'):
         class_name = node.__class__.__name__
-        print("class-name:", class_name)
         if class_name in transform_operations:
             current_transform = class_name
             if any(class_name == rule for rule in transform_rules['Transform']):
                 rules_count[class_name] += 1
-        for field_name, _ in node.__dataclass_fields__.items():
+        for field_name, value in node.__dataclass_fields__.items():
             field_value = getattr(node, field_name)
             if isinstance(field_value, str) and current_transform:
-                token_rules_count[(current_transform, field_value)] += 1
+                token_rules_count[(class_name, field_value.lower())] += 1
+                print(f"Counting Token: {(class_name, field_value)}")  # Debug print
             else:
                 t_extract_rules_from_ast(field_value, rules_count, token_rules_count, current_transform)
         if class_name in transform_operations:
@@ -165,12 +161,12 @@ def compute_probabilities(rules_count, token_rules_count, token_type_counts):
     probabilities = {}
     total = sum(rules_count.values())
     for rule, count in rules_count.items():
-        if rule == 'Not' or rule == 'Or' or rule == 'And' or rule == 'VarAnd':
-            division = f"{count} / 4"
+        if rule == 'Not' or rule == 'Or' or rule == 'And':
+            division = f"{count} / 3"
             probabilities[rule] = count / total
         else:
             division = f"{count} / {total}"
-            probabilities[rule] = count / total # TODO: more fine-grained
+            probabilities[rule] = count / total
         print(f"Rule: {rule}, Count: {count}, Division: {division}, Probability: {probabilities[rule]}")
 
     for ((token_type, token_value)), count in token_rules_count.items():
@@ -183,10 +179,9 @@ def compute_probabilities(rules_count, token_rules_count, token_type_counts):
 def laplace_smoothing_transforms(computed_probabilities, alpha=1):
     smoothed_probabilities = defaultdict(dict)
     # Handle transform rules
-    print("computed_probabilities:", computed_probabilities)
+    init_transform_pcfg = initialize_uniform_pcfg(transform_rules)
     total_transforms = sum(value for key, value in computed_probabilities.items() if isinstance(key, str))
     total_transform_rules = len(init_transform_pcfg['Transform'])
-
     for rule, _ in init_transform_pcfg['Transform'].items():
         computed_count = computed_probabilities.get(str(rule), 0)
         smoothed_count = computed_count + alpha
@@ -200,7 +195,7 @@ def laplace_smoothing_transforms(computed_probabilities, alpha=1):
         total_tokens_of_type = sum(value for key, value in computed_probabilities.items() if isinstance(key, tuple) and key[0] == category)
         total_category_rules = len(rules)
         for rule, _ in rules.items():
-            computed_count = computed_probabilities.get((category, rule), 0)
+            computed_count = computed_probabilities.get((category, rule.lower()), 0)
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_tokens_of_type + alpha * total_category_rules
             smoothed_probabilities[category][rule] = round(smoothed_count / total_smoothed_count, 2)
@@ -211,9 +206,8 @@ def compute_transform_costs(taskNumber):
     ast_program = processtask(taskNumber)
     print("ast:", ast_program)
     transform_rules_count, t_token_rules_count, t_token_type_counts = defaultdict(int), defaultdict(int), defaultdict(int)
-    print("init_transform_pcfg:", init_transform_pcfg)
     t_extract_rules_from_ast(ast_program, transform_rules_count, t_token_rules_count)
-    transform_rules_count['Transforms'] = increment_transforms(ast_program, init_transform_pcfg)
+    transform_rules_count['Transforms'] = increment_transforms(ast_program)
     print("transform_rules_count:", transform_rules_count)
 
     print("token_rules_count:", t_token_rules_count) # Count of non-terminals
@@ -228,24 +222,23 @@ def compute_transform_costs(taskNumber):
 
 taskNumber = "6855a6e4"
 compute_transform_costs(taskNumber)
-# todo: variable
+
 ##--------------------- Computing filter probabilities ---------------------------------------------------------
-filter_operations = {'FilterByColor', 'FilterBySize', 'FilterByDegree', 'FilterByNeighborColor', 'FilterByNeighborSize', 'FilterByNeighborDegree', 
-                    'FilterByShape', 'FilterByColumns', 'FilterByHeight', 'FilterByRows', 'FilterByWidth', 'Or', 'And', 'Not', 'VarAnd'}
+filter_operations = {'ColorEqual', 'SizeEqual', 'DegreeEqual', 'FilterByNeighborColor', 'FilterByNeighborSize', 'FilterByNeighborDegree', 
+                    'FilterByShape', 'FilterByColumns', 'HeightEqual', 'FilterByRows', 'FilterByWidth', 'Or', 'And', 'Not', 'VarAnd'}
 
 # Filter grammar rules
 filter_rules = {
     'Filters': [
         'Not',
         'And',
-        'Or',
-        'VarAnd'
+        'Or'
     ],
     'Filter': [
-        'FilterByColor',
-        'FilterBySize',
-        'FilterByDegree',
-        'FilterByHeight',
+        'ColorEqual',
+        'SizeEqual',
+        'DegreeEqual',
+        'HeightEqual',
         'FilterByShape',
         'FilterByColumns',
         #FilterByRows,
@@ -342,4 +335,4 @@ def compute_filter_costs(taskNumber):
     print("smoothed_probs:", f_smoothed_probabilities)
     return f_smoothed_probabilities
 
-compute_filter_costs(taskNumber)
+#compute_filter_costs(taskNumber)
