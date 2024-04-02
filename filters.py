@@ -549,7 +549,7 @@ class Neighbor_Of(Filters):
             task = task.reset_task()
             instance.values = [
                 {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
-                 for node in input_graph.graph.nodes()}
+                for node in input_graph.graph.nodes()}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
 
         if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
@@ -586,9 +586,11 @@ class And(FilterASTNode):
         for i, _ in enumerate(intersected_values):
             filtered_nodes_dict = {node: [] for node in intersected_values[i]}
             res_dict.append(filtered_nodes_dict)
+        new_instance.values = res_dict
 
         if children[0].__class__.__name__ == "Neighbor_Of" and children[1].__class__.__name__ == "Neighbor_Of":
             res_dict = {}  # undefined semantics
+            new_instance.values = res_dict
         elif children[0].__class__.__name__ == "Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
@@ -600,6 +602,7 @@ class And(FilterASTNode):
                 res_dict.append(intersection_dict)
             new_code = children[1].code.replace("Obj", "X")
             new_instance.code = f"And({children[0].code}, {new_code})"
+            new_instance.values = res_dict
         elif children[1].__class__.__name__ == "Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
@@ -611,19 +614,20 @@ class And(FilterASTNode):
                 res_dict.append(intersection_dict)
             new_code = children[0].code.replace("Obj", "X")
             new_instance.code = f"And({new_code}, {children[1].code})"
+            new_instance.values = res_dict
         elif task.current_spec:
             res_dict = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
                         for key in dict_a if key in dict_b}
                         for dict_a, dict_b in zip(values1, values2)]
             res_dict = []
+            res_dict_test = []
             for dict1, dict2 in zip(values1, values2):
-                # Find common keys between dict1 and dict2
+                # Find common objects between dict1 and dict2
                 common_keys = set(dict1.keys()) & set(dict2.keys())
                 common_dict = {key: dict1[key] + dict2[key]
-                            for key in common_keys}
+                            for key in common_keys} # intersection of objects while preserving the relationships
                 res_dict.append(common_dict)
-
-        new_instance.values = res_dict
+            new_instance.values = res_dict
         return new_instance
 
 
@@ -652,23 +656,50 @@ class Or(FilterASTNode):
             filtered_nodes_dict = {node: [] for node in unioned_values[i]}
             res_dict.append(filtered_nodes_dict)
 
+        new_instance = cls(children[0], children[1])
+        new_instance.values = res_dict
+
         if children[0].__class__.__name__ == "Neighbor_Of" and children[1].__class__.__name__ == "Neighbor_Of":
             res_dict = {}  # undefined semantics
+            new_instance.values = res_dict
+        elif children[0].__class__.__name__ == "Neighbor_Of":
+            res_dict = []
+            for dict1, dict2 in zip(values1, values2): # neighbors of object and have other properties
+                union_dict = {}
+                for key1, values1 in dict1.items():
+                    union_values = set(values1)
+                    if key1 in dict2:
+                        union_values.update(dict2[key1])
+                    union_dict[key1] = list(union_values)
+                res_dict.append(union_dict)
+            new_code = children[1].code.replace("Obj", "X")
+            new_instance.code = f"Or({children[0].code}, {new_code})"
+            new_instance.values = res_dict
+        elif children[1].__class__.__name__ == "Neighbor_Of":
+            res_dict = []
+            for dict1, dict2 in zip(values1, values2):
+                union_dict = {}
+                for key2, values2 in dict2.items():
+                    union_values = set(values2)
+                    if key2 in dict1:
+                        union_values.update(dict1[key2])
+                    union_dict[key2] = list(union_values)
+                res_dict.append(union_dict)
+            new_code = children[0].code.replace("Obj", "X")
+            new_instance.code = f"Or({new_code}, {children[1].code})"
+            new_instance.values = res_dict
         elif task.current_spec:
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
-                # Union of keys between dict1 and dict2
+                # union of keys between dict1 and dict2
                 union_keys = set(dict1.keys()) | set(dict2.keys())
                 union_dict = {}
                 for key in union_keys:
                     values1 = dict1.get(key, [])
                     values2 = dict2.get(key, [])
-                    combined_values = list(set(values1) | set(values2))
+                    combined_values = list(set(values1) | set(values2)) # always preserve relationships
                     union_dict[key] = combined_values
                 res_dict.append(union_dict)
-
-        new_instance = cls(children[0], children[1])
-        new_instance.values = res_dict
 
         return new_instance
 
@@ -705,6 +736,16 @@ class Not(FilterASTNode):
             res_dict.append(filtered_nodes_dict)
         new_instance = cls(children[0])
         new_instance.values = res_dict
+        if children[0].__class__.__name__ == "Neighbor_Of":
+            adjusted_values = []
+            for graph_index, node_dict in enumerate(values):
+                adjusted_node_dict = {}
+                for node, neighbors in node_dict.items():
+                    not_neighbors = [neighbor for neighbor in nodes_with_data[graph_index] if neighbor not in neighbors]
+                    adjusted_node_dict[node] = not_neighbors # not neighbors, includes self-reference
+                adjusted_values.append(adjusted_node_dict)
+            new_instance.code =  f"Not(Neighbor_Of(Obj) == X)"
+            new_instance.values = adjusted_values
         return new_instance
 
 

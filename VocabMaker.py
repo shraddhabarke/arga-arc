@@ -43,11 +43,15 @@ class TestVocabFactory(unittest.TestCase):
 class TestFilterVocabFactory(unittest.TestCase):
     def setUp(self):
         self.leaf_makers = [FColor]
-        self.node_makers = [Not, And, Or, ColorEqual, ColorEqual, SizeEqual, DegreeEqual, NeighborSizeEqual, NeighborColorEqual, NeighborDegreeEqual]
+        self.node_makers = [Color_Of, Size_Of, Degree_Of, Shape_Of, Height_Of, Row_Of,
+                Column_Of, Neighbor_Color_Of, Neighbor_Size_Of, Neighbor_Degree_Of, Not,
+                And, Or]
         self.vocab_factory = VocabFactory(self.leaf_makers, self.node_makers)
 
     def test_create(self):
-        all_filter_classes = [Degree, FColor, Not, And, Or, ColorEqual, SizeEqual, DegreeEqual, NeighborSizeEqual, NeighborColorEqual, NeighborDegreeEqual]
+        all_filter_classes = [Degree, FColor, Not, And, Or, Color_Of, Size_Of, Degree_Of, Shape_Of, Height_Of, Row_Of,
+                Column_Of, Neighbor_Color_Of, Neighbor_Size_Of, Neighbor_Degree_Of, Not,
+                And, Or]
         #vocab_factory_from_create = VocabFactory.create(all_filter_classes)
         #self.assertEqual(list(vocab_factory_from_create.leaves()), self.leaf_makers)
         #self.assertEqual(list(vocab_factory_from_create.nonLeaves()), self.node_makers)
@@ -58,7 +62,7 @@ if __name__ == "__main__":
     task = Task("dataset/" + taskNumber + ".json")
     task.abstraction = "nbccg"
     task.input_abstracted_graphs_original[task.abstraction] = [getattr(input, Image.abstraction_ops[task.abstraction])() for
-                                                               input in task.train_input]
+                                                            input in task.train_input]
     task.get_static_object_attributes(task.abstraction)
     setup_size_and_degree_based_on_task(task)
     #unittest.main()

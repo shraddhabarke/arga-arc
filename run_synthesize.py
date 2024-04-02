@@ -15,16 +15,15 @@ from transform_synthesis import TSizeEnumerator
 import math
 
 # Transform Vocab
-# todo: FilterbyRows
 
-tleaf_makers = [Color, NoOp, Dir, Amount, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
-                Symmetry_Axis, ObjectId, Variable("Var"), UpdateColor, MoveNode, MoveNodeMax,
-                AddBorder, ExtendNode, Mirror, HollowRectangle, RotateNode, Flip, FillRectangle, Insert, Transforms]
-# todo: add variable back after sequences fix! Insert
-fleaf_makers = [FColor, Shape, Degree, Size, Column, Row, Height, Width, IsDirectNeighbor, IsDiagonalNeighbor,
-                IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
-                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not,
-                And, Or, VarAnd]
+tleaf_makers = [NoOp, Color, Dir, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
+                Symmetry_Axis, ObjectId, UpdateColor, MoveNode, MoveNodeMax, AddBorder, ExtendNode, Mirror, Mirror_Axis,
+                HollowRectangle, RotateNode, Flip, FillRectangle, Insert, Transforms]
+
+fleaf_makers = [FColor, Shape, Degree, Size, Column, Row, Height, Width, Neighbor_Of,
+                Color_Of, Size_Of, Degree_Of, Shape_Of, Height_Of, Row_Of,
+                Column_Of, Neighbor_Color_Of, Neighbor_Size_Of, Neighbor_Degree_Of, Not,
+                And, Or]
 
 # Initializing terminals
 Color._sizes = {color.name: 1 for color in Color}
@@ -35,7 +34,7 @@ Symmetry_Axis._sizes = {overlap.name: 1 for overlap in Symmetry_Axis}
 RelativePosition._sizes = {relativepos.name: 1 for relativepos in RelativePosition}
 ImagePoints._sizes = {imagepts.name: 1 for imagepts in ImagePoints}
 ObjectId._sizes = {objid.name: 1 for objid in ObjectId._all_values}
-
+Mirror_Axis._sizes = {axis.name: 1 for axis in Mirror_Axis}
 FColor._sizes = {color.name: 1 for color in FColor}
 Shape._sizes = {shape.name: 1 for shape in Shape}
 Degree._sizes = {degree.value: 1 for degree in Degree._all_values}
@@ -59,7 +58,7 @@ def get_all_t_probabilities(vocab_makers, transform_probabilities):
         all_probs[class_name] = prob
 
     # Handle token probabilities
-    for category in ['Color', 'Direction', 'Variable', 'Overlap', 'Rotation_Angle', 'Symmetry_Axis']:
+    for category in ['Color', 'Direction', 'Overlap', 'Rotation_Angle', 'Symmetry_Axis']:
         if category in transform_probabilities:
             for token in transform_probabilities[category]:
                 prob = get_t_probability(token, category)
@@ -81,7 +80,7 @@ def get_all_f_probabilities(vocab_makers, filter_probabilites):
         all_probs.append((class_name, prob))
 
     # Handle token probabilities
-    for category in ['Color', 'Shape', 'Degree', 'Size']:
+    for category in ['Color', 'Shape', 'Degree', 'Size', 'Column', 'Row', 'Width', 'Height']:
         if category in filter_probabilites:
             for token in filter_probabilites[category]:
                 prob = get_f_probability(token, category)
@@ -109,14 +108,14 @@ if debug:
     'Degree.1': 2333, 'Degree.2': 22223, 'Size.MIN': 3, 'Size.MAX': 3, 'Size.ODD': 3, 'Size.2': 3, 'Size.3': 3, 'Size.4': 3, 'Size.6': 3, 
     'Size.7': 3, 'Size.8': 3}
     """
+
     from compute_pcfg import compute_transform_costs, compute_filter_costs
     transform_probabilities = compute_transform_costs()
     filter_probabilites = compute_filter_costs()
     t_vocabMakers = [NoOp, UpdateColor, MoveNodeMax, MoveNode, AddBorder, ExtendNode, Mirror, HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
-    f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, IsDirectNeighbor, IsDiagonalNeighbor,
-                IsAnyNeighbor, FilterByColor, FilterBySize, FilterByDegree, FilterByShape, FilterByHeight,
-                FilterByColumns, FilterByNeighborColor, FilterByNeighborSize, FilterByNeighborDegree, Not,
-                And, Or, VarAnd]
+    f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, Neighbor_Of,
+                Color_Of, Size_Of, Degree_Of, Shape_Of, Height_Of, Column_Of, Neighbor_Color_Of,
+                Neighbor_Size_Of, Neighbor_Degree_Of, Not, And, Or]
     transform_values = get_all_t_probabilities(t_vocabMakers, transform_probabilities)
     filter_values = get_all_f_probabilities(f_vocabMakers, filter_probabilites)
     print("transform_values", transform_values)
@@ -233,9 +232,9 @@ def run_synthesis(taskNumber, abstraction):
             program = enumerator.next()
             i += 1
             results = program.values
-            #print(f"Program: {program.code}: {results, program.size}")
+            print(f"Filter-Program: {program.code}: {results, program.size}")
             #print("subset:", subset)
-            #print("results:", results)
+            print("results:", results)
             if filter_compare(results, subset):
                 return program.code
             
@@ -243,8 +242,8 @@ def run_synthesis(taskNumber, abstraction):
     while enumerator.hasNext():
         program = enumerator.next()
 
-        print("enumerator:", program.code, program.size)
-        print("prog:", program.values)
+        #print("enumerator:", program.code, program.size)
+        #print("prog:", program.values)
         if program.spec:
             print("spec:", program.values_apply)
         if program.values:  # Check if program.values is not empty
@@ -257,7 +256,7 @@ def run_synthesis(taskNumber, abstraction):
 
         if progvalues is None:
             continue
-        print("values:", [val.graph.nodes(data=True) for val in progvalues])
+        #print("values:", [val.graph.nodes(data=True) for val in progvalues])
         # transformed graph values of the current program enumerated
         blue_prints = [val.graph.nodes(data=True) for val in progvalues]
         actual_values = progvalues
@@ -408,9 +407,16 @@ evals = {"7ddcd7ec": "nbccg"} # todo -- blue print for extendNode
 evals = {"88a10436": "mcccg"}
 evals = {"25ff71a9": "nbccg"}
 #evals = {"3618c87e": "nbccg"}
-evals = {"2c608aff": "ccgbr"}
 evals = {"dc433765": "nbccg"}
-evals = {"a48eeaf7": "nbccg"}
+#evals = {"a48eeaf7": "nbccg"}
+evals = {"bb43febb": "nbccg"}
+evals = {"f8a8fe49": "nbccg"}
+
+evals = {"2c608aff": "ccgbr"}
+evals = {"d43fd935": "nbccg"}
+evals = {"ddf7fa4f": "nbccg"}
+evals = {"6855a6e4": "nbccg"}
+evals = {"ae3edfdc": "nbccg"}
 
 for task, abstraction in evals.items():
     start_time = time.time()
@@ -777,36 +783,41 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem 6855a6e4")
         vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
         self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
+        # And(Color_Of(Obj) == FColor.grey, And(Neighbor_Of(Obj) == X, Color_Of(X) == FColor.red))
         self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsDirectNeighbor, Var.FilterByColor(FColor.red)))'], vf0)
 
         print("Solving problem dc433765")
         vt3, vf3 = run_synthesis("dc433765", "nbccg")
-        self.assertCountEqual(['moveNode(Var.direction)'], vt3)
+        self.assertCountEqual(['moveNode(Dir.Variable)'], vt3)
         self.assertCountEqual(['And(FilterByColor(FColor.green), VarAnd(Var.IsAnyNeighbor, Var.FilterByColor(FColor.yellow)))'], vf3)
 
         print("Solving problem a48eeaf7")
         vt6, vf6 = run_synthesis("a48eeaf7", "nbccg")
-        self.assertCountEqual(['moveNodeMax(Var.direction)'], vt6)
+        self.assertCountEqual(['moveNodeMax(Dir.Variable)'], vt6)
         self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsAnyNeighbor, Var.FilterByColor(FColor.red)))'], vf6)
 
         print("Solving problem ddf7fa4f")
         vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
         self.assertCountEqual(['updateColor(Var.color)_137'], vt1)
+        #And(Color_Of(Obj) == FColor.grey, And(Neighbor_Of(Obj) == X, Size_Of(X) == SIZE.MIN))
         self.assertCountEqual(['And(FilterByColor(FColor.grey), VarAnd(Var.IsDirectNeighbor, Var.FilterBySize(SIZE.MIN)))'], vf1)
 
         print("Solving problem 2c608aff")
         vt6, vf6 = run_synthesis("2c608aff", "ccgbr")
         self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)_2'], vt6)
+        # And(Neighbor_Size_Of(Obj) == SIZE.MAX, And(Neighbor_Of(Obj) == X, Size_Of(X) == SIZE.MAX))
         self.assertCountEqual(['And(FilterByNeighborSize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.FilterBySize(SIZE.MAX)))'], vf6)
 
         print("Solving problem d43fd935")
         vt5, vf5 = run_synthesis("d43fd935", "nbccg")
         self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)_34'], vt5)
+        # And(Neighbor_Size_Of(Obj) == SIZE.MAX, And(Neighbor_Of(Obj) == X, Color_Of(Obj) == FColor.green))
         self.assertCountEqual(['And(FilterByNeighborSize(SIZE.MAX), VarAnd(Var.IsDirectNeighbor, Var.FilterByColor(FColor.green)))'], vf5)
 
         print("Solving problem ae3edfdc")
         vt4, vf4 = run_synthesis("ae3edfdc", "nbccg")
         self.assertCountEqual(['moveNodeMax(Var.direction)_421'], vt4)
+        #And(Not(Neighbor_Degree_Of(Obj) == DEGREE.1), And(Neighbor_Of(Obj) == X, Neighbor_Degree_Of(X) == DEGREE.1))
         self.assertCountEqual(['And(Not(FilterByNeighborDegree(DEGREE.1)), VarAnd(Var.IsDirectNeighbor, Var.FilterByNeighborDegree(DEGREE.1)))'], vf4)
 
         print("Solving problem 05f2a901")
