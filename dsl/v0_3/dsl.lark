@@ -10,9 +10,6 @@ program: "(" "do" rule* ")"
 // Then, it defines a list of transforms that will be applied objects that satisfy the filter expression.
 rule: "(" "rule" filter xform_list ")"
 
-// `var` referst to the additional object, which might or might not be present.
-VAR: "var"
-
 // A filter is a predicate over the objects in the grid.
 // If no filter is given, then all the objects are selected.
 filter: "(" "filter" filter_expr? ")"
@@ -24,7 +21,6 @@ filter_expr: filter_prim
            | "(" OP_AND filter_expr filter_expr ")"   
            | "(" OP_OR filter_expr filter_expr ")"
            | "(" OP_NOT filter_expr ")"
-           | "(" OP_VARAND filter_relation filter_expr ")"
 
 filter_prim: "(" FL_BY_COLOR COLOR ")"           // select objects of the given color
            | "(" FL_BY_SIZE SIZE ")"             // select the objects that have the given size
@@ -47,23 +43,33 @@ xform_list: "(" "apply" xform+ ")"
 // A single transform is applied to all the objects that are bound to the `this` variable. 
 // The transform is applied to each such object independently and simultaneously.
 xform: "(" TR_UPDATE_COLOR COLOR ")"                          // change this object color to the given color 
-         | "(" TR_UPDATE_COLOR VAR ")"                            // or the color of the given object
+         | "(" TR_UPDATE_COLOR VAR_UPDATE_COLOR ")"                            // or the color of the given object
          | "(" TR_MOVE_NODE DIRECTION ")"                         // move this object in the given direction
-         | "(" TR_MOVE_NODE VAR ")"                               // or the direction of the given object
+         | "(" TR_MOVE_NODE VAR_MOVE_NODE ")"                               // or the direction of the given object
          | "(" TR_EXTEND_NODE DIRECTION OVERLAP ")"               // extend (move while leaving a trail) this object in the given direction
-         | "(" TR_EXTEND_NODE VAR OVERLAP ")"                     // or the direction of the given object 
+         | "(" TR_EXTEND_NODE VAR_EXTEND_NODE OVERLAP ")"                     // or the direction of the given object 
                                                                   // if overlap is false, then the object is extended until it hits another object,
                                                                   // otherwise it is extended until the edge of the grid.
          | "(" TR_MOVE_NODE_MAX DIRECTION ")"                     // move this object until it hits another object, in the given direction
-         | "(" TR_MOVE_NODE_MAX VAR ")"                           // or this direction of the given object
+         | "(" TR_MOVE_NODE_MAX VAR_MOVE_NODE_MAX ")"                           // or this direction of the given object
          | "(" TR_ROTATE_NODE ROT_ANGLE ")"                       // rotate this object by the given angle
          | "(" TR_ADD_BORDER COLOR ")"                            // color this exterior pixels of the object with the given color
          | "(" TR_FILL_RECTANGLE COLOR OVERLAP ")"                // color this interior of a hollow rectangle with the given color
          | "(" TR_HOLLOW_RECTANGLE COLOR ")"                      // color this interior of a solid rectangle with the given color
-         | "(" TR_MIRROR VAR ")"                                  // mirror this object with respect to the given object
+         | "(" TR_MIRROR VAR_MIRROR ")"                                  // mirror this object with respect to the given object
          | "(" TR_FLIP SYMMETRY_AXIS ")"                          // flip this object with respect to the given axis
-         | "(" TR_INSERT VAR IMAGE_POINTS RELATIVE_POSITION ")"   // insert a copy of this object at the position of the given object
+         | "(" TR_INSERT VAR_INSERT IMAGE_POINTS RELATIVE_POSITION ")"   // insert a copy of this object at the position of the given object
+         | "(" TR_INSERT OBJECT_ID IMAGE_POINTS RELATIVE_POSITION ")"   // insert a copy of this object at the position of the given object
          | "(" TR_NOOP ")"                                        // do nothing
+
+VAR_UPDATE_COLOR: "var_update_color" 
+VAR_MOVE_NODE: "var_move_node"
+VAR_EXTEND_NODE: "var_extend_node"
+VAR_MOVE_NODE_MAX: "var_move_node_max"
+VAR_MIRROR: "var_mirror"
+VAR_INSERT: "var_insert"
+
+OBJECT_ID: /[0-9]+/
 
 SIZE: "min" | "max" | "odd" | /[0-9]+/
 DEGREE: "min" | "max" | "odd" | /[0-9]+/
@@ -72,14 +78,14 @@ WIDTH: "min" | "max" | "odd" | /[0-9]+/
 COLUMN: "center" | "even" | /[0-9]+/
 SHAPE: "square" | "enclosed"
 
-DIRECTION: "U"
-         | "D"
-         | "L"
-         | "R"
-         | "UL"
-         | "UR"
-         | "DL"
-         | "DR"
+DIRECTION: "up"
+         | "down"
+         | "left"
+         | "right"
+         | "up_left"
+         | "up_right"
+         | "down_left"
+         | "down_right"
 
 SYMMETRY_AXIS: "vertical" | "horizontal" | "diagonal_left" | "diagonal_right"
 
@@ -120,18 +126,17 @@ RELATIVE_POSITION: "source"
 OP_AND: "and"
 OP_OR: "or"
 OP_NOT: "not"
-OP_VARAND: "varand"
 
-FL_BY_COLOR: "filter_by_color" 
-FL_BY_SIZE: "filter_by_size"
-FL_BY_DEGREE: "filter_by_degree"
-FL_BY_HEIGHT: "filter_by_height"
-FL_BY_WIDTH: "filter_by_width"
-FL_BY_SHAPE: "filter_by_shape"
-FL_BY_COLUMNS: "filter_by_columns"
-FL_BY_NEIGHBOR_SIZE: "filter_by_neighbor_size"
-FL_BY_NEIGHBOR_COLOR: "filter_by_neighbor_color"
-FL_BY_NEIGHBOR_DEGREE: "filter_by_neighbor_degree"
+FL_BY_COLOR: "color_of"
+FL_BY_SIZE: "size_of"
+FL_BY_DEGREE: "degree_of"
+FL_BY_HEIGHT: "height_of"
+FL_BY_WIDTH: "width_of"
+FL_BY_SHAPE: "shape_of"
+FL_BY_COLUMNS: "column_of"
+FL_BY_NEIGHBOR_SIZE: "neighbor_size_of"
+FL_BY_NEIGHBOR_COLOR: "neighbor_color_of"
+FL_BY_NEIGHBOR_DEGREE: "neighbor_degree_of"
 
 REL_ANY_NEIGHBOR: "is_any_neighbor"
 REL_DIRECT_NEIGHBOR: "is_direct_neighbor"

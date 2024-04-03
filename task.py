@@ -274,7 +274,7 @@ class Task:
 
         return [self.input_abstracted_graphs_original[self.abstraction]]
 
-    def filter_values(self, filter: FilterASTNode):
+    def filter_values(self, filter: FilterASTNode): # returns the objects that satisfy the filter
         filtered_nodes, filtered_nodes_dict_list = [], []
         self.input_abstracted_graphs_original[self.abstraction] = [
             getattr(input, Image.abstraction_ops[self.abstraction])()
@@ -322,6 +322,7 @@ class Task:
                         if relative_pos is not None:
                             object_params_dict[node_obj].append(
                                 (relative_pos, node_other))
+
         elif "Flip" in transformation.code:
             for node_obj in input_graph.graph.nodes():
                 for node_other, _ in input_graph.graph.nodes(data=True):

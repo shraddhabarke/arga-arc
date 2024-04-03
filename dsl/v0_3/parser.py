@@ -3,8 +3,6 @@ import sys
 
 from lark import Lark
 
-# sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
 import defs
 
 class Parser:

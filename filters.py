@@ -2,18 +2,17 @@ from enum import Enum
 from typing import Union, List, Dict
 from transform import Dir
 
+
 class FilterTypes(Enum):
     FILTERS = "Filters"
-    # FILTER_OPS = "Filter_Ops"
     COLOR = "FColor"
     SIZE = "Size"
     DEGREE = "Degree"
     SHAPE = "Shape"
-    ROW = "Row"
     COLUMN = "Column"
+    ROW = "Row"
     HEIGHT = "Height"
     WIDTH = "Width"
-    RELATION = "Relation"
 
 class FilterASTNode:
     def __init__(self, children=None):
@@ -32,6 +31,7 @@ class FilterASTNode:
     def size(self, value):
         self._size = value
 
+
 class Size(FilterASTNode):
     _all_values = set()
     arity = 0
@@ -45,6 +45,7 @@ class Size(FilterASTNode):
     @classmethod
     def get_all_values(cls):
         return list(cls._enum_members)
+
 
 class SizeValue:
     arity = 0
@@ -75,6 +76,7 @@ class SizeValue:
                         cls._sizes[degree.value] = size
                         break
 
+
 class DegreeValue:
     arity = 0
     _sizes = {}
@@ -103,6 +105,7 @@ class DegreeValue:
                     if str(degree.value) == str(enum_name):
                         cls._sizes[degree.value] = size
                         break
+
 
 class HeightValue:
     arity = 0
@@ -133,9 +136,11 @@ class HeightValue:
                         cls._sizes[height.value] = size
                         break
 
+
 class WidthValue:
     arity = 0
     _sizes = {}
+
     def __init__(self, enum_value):
         self.value = enum_value.value
         self.nodeType = FilterTypes.WIDTH
@@ -161,6 +166,7 @@ class WidthValue:
                         cls._sizes[width.value] = size
                         break
 
+
 class Height(FilterASTNode):
     _all_values = set()
     arity = 0
@@ -174,6 +180,7 @@ class Height(FilterASTNode):
     @classmethod
     def get_all_values(cls):
         return list(cls._enum_members)
+
 
 class Width(FilterASTNode):
     _all_values = set()
@@ -219,6 +226,7 @@ class Column(FilterASTNode):
     def get_all_values(cls):
         return list(cls._enum_members)
 
+
 class ColumnValue:
     arity = 0
     _sizes = {}
@@ -247,6 +255,7 @@ class ColumnValue:
                     if str(column.value) == str(enum_name):
                         cls._sizes[column.value] = size
                         break
+
 
 class Row(FilterASTNode):
     _all_values = set()
@@ -320,21 +329,21 @@ def setup_size_and_degree_based_on_task(task):
     _width_additional = {f"{item}": int(item) for item in task_widths}
     WidthEnum = Enum(
         "WidthEnum", {"MIN": "MIN", "MAX": "MAX",
-                       "ODD": "ODD", **_width_additional}
+                      "ODD": "ODD", **_width_additional}
     )
 
     task_columns = [d for d in task.columns[task.abstraction]]
     _column_additional = {f"{item}": int(item) for item in task_columns}
     ColumnEnum = Enum(
-        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD" : "ODD", "EVEN_FROM_RIGHT": "EVEN_FROM_RIGHT",
-                       "MOD3" : "MOD3", **_column_additional}
+        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD": "ODD", "EVEN_FROM_RIGHT": "EVEN_FROM_RIGHT",
+                       "MOD3": "MOD3", **_column_additional}
     )
 
     task_rows = [d for d in task.rows[task.abstraction]]
     _row_additional = {f"{item}": int(item) for item in task_rows}
     RowEnum = Enum(
         "RowEnum", {"MIN": "MIN", "MAX": "MAX",
-                       "ODD": "ODD", "CENTER": "CENTER", **_row_additional}
+                    "ODD": "ODD", "CENTER": "CENTER", **_row_additional}
     )
 
     for name, member in SizeEnum.__members__.items():
@@ -363,6 +372,7 @@ def setup_size_and_degree_based_on_task(task):
     Column._enum_members = _columns
     Row._enum_members = _rows
 
+
 class FColor(FilterASTNode, Enum):
     black = "O"
     blue = "B"
@@ -381,7 +391,7 @@ class FColor(FilterASTNode, Enum):
         super().__init__(FilterTypes.COLOR)
         self.nodeType = FilterTypes.COLOR
         self.code = f"{self.__class__.__name__}.{self.name}"
-        #self.size = 1
+        # self.size = 1
         self.children = []
         self.values = []
 
@@ -416,6 +426,7 @@ class FColor(FilterASTNode, Enum):
                     if color.value == enum_name:
                         cls._sizes[color.name] = size
                         break
+
 
 class Shape(FilterASTNode, Enum):
     square = "square"
@@ -460,6 +471,7 @@ class Shape(FilterASTNode, Enum):
                         cls._sizes[shape.name] = size
                         break
 
+
 class Filters(FilterASTNode):
     arity = 2
     nodeType = FilterTypes.FILTERS
@@ -472,8 +484,10 @@ class Filters(FilterASTNode):
         self.size = filters.size if filters else 0
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
+
 class IsAnyNeighbor(FilterASTNode):
     size = 1
+
     def __init__(self, value=None):
         super().__init__(FilterTypes.RELATION)
         self.nodeType = FilterTypes.RELATION
@@ -500,11 +514,11 @@ class IsAnyNeighbor(FilterASTNode):
             task = task.reset_task()
             cls.values = [
                 {node: list(set([
-                        neighbor for neighbor in input_graph.graph.nodes() if
-                        input_graph.get_relative_pos(node, neighbor) is not None
-                        and node != neighbor]
-                    ))
-                for node in input_graph.graph.nodes()}
+                    neighbor for neighbor in input_graph.graph.nodes() if
+                    input_graph.get_relative_pos(node, neighbor) is not None
+                    and node != neighbor]
+                ))
+                    for node in input_graph.graph.nodes()}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
 
         if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
@@ -512,81 +526,37 @@ class IsAnyNeighbor(FilterASTNode):
         cls.code = f"IsAnyNeighbor"
         return cls
 
-class IsDirectNeighbor(FilterASTNode):
+
+class Neighbor_Of(Filters):
+    arity = 0
     size = 1
-    def __init__(self, value=None):
-        super().__init__(FilterTypes.RELATION)
-        self.nodeType = FilterTypes.RELATION
-        self.code = f"IsDirectNeighbor"
-        self.size = 1
+    default_size = 1
+
+    def __init__(self):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.size = self.default_size
         self.children = []
         self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    @classmethod
-    @property
-    def nodeType(cls):
-        return FilterTypes.RELATION
+        self.childTypes = []
 
     @classmethod
     def execute(cls, task, children=None):
+        instance = cls()
         if task.abstraction == "na":
-            cls.values = []
+            instance.values = []
         else:
             task = task.reset_task()
-            cls.values = [
+            instance.values = [
                 {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
                 for node in input_graph.graph.nodes()}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
 
-        if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
-            cls.values = []
-        cls.code = f"IsDirectNeighbor"
-        return cls
+        if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
+            instance.values = []
+        instance.code = f"Neighbor_Of(Obj) == X"
+        return instance
 
-class IsDiagonalNeighbor(Filters):
-    size = 1
-    def __init__(self, value=None):
-        super().__init__(FilterTypes.RELATION)
-        self.nodeType = FilterTypes.RELATION
-        self.code = f"IsDiagonalNeighbor"
-        self.size = 1
-        self.children = []
-        self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    @classmethod
-    @property
-    def nodeType(cls):
-        return FilterTypes.RELATION
-
-    @classmethod
-    def execute(cls, task, children=None):
-        if task.abstraction == "na":
-            cls.values = []
-        else:
-            task = task.reset_task()
-            cls.values = [
-                {node: list(set([
-                        neighbor for neighbor in input_graph.graph.nodes() if
-                        input_graph.get_relative_pos(node, neighbor) in [Dir.UP_LEFT, Dir.UP_RIGHT, Dir.DOWN_LEFT, Dir.DOWN_RIGHT]
-                        and node != neighbor]
-                    ))
-                for node in input_graph.graph.nodes()}
-                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
-
-        if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
-            cls.values = []
-        cls.code = f"IsDiagonalNeighbor"
-        return cls
 
 class And(FilterASTNode):
     arity = 2
@@ -605,6 +575,8 @@ class And(FilterASTNode):
     def execute(cls, task, children):
         values1 = children[0].values
         values2 = children[1].values
+        new_instance = cls(children[0], children[1])
+
         intersected_values = [
             list(set(v1).intersection(set(v2))) if set(
                 v1).intersection(set(v2)) else []
@@ -614,47 +586,50 @@ class And(FilterASTNode):
         for i, _ in enumerate(intersected_values):
             filtered_nodes_dict = {node: [] for node in intersected_values[i]}
             res_dict.append(filtered_nodes_dict)
-        if task.current_spec:
-            res_dict = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
-                                for key in dict_a if key in dict_b}
-                                for dict_a, dict_b in zip(values1, values2)]
+        new_instance.values = res_dict
+
+        if children[0].__class__.__name__ == "Neighbor_Of" and children[1].__class__.__name__ == "Neighbor_Of":
+            res_dict = {}  # undefined semantics
+            new_instance.values = res_dict
+        elif children[0].__class__.__name__ == "Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
-                common_keys = set(dict1.keys()) & set(dict2.keys())  # Find common keys between dict1 and dict2
-                common_dict = {key: dict1[key] + dict2[key] for key in common_keys}
+                intersection_dict = {}
+                for key1, values1 in dict1.items():
+                    intersection_values = [
+                        value for value in values1 if value in dict2.keys()]
+                    intersection_dict[key1] = intersection_values
+                res_dict.append(intersection_dict)
+            new_code = children[1].code.replace("Obj", "X")
+            new_instance.code = f"And({children[0].code}, {new_code})"
+            new_instance.values = res_dict
+        elif children[1].__class__.__name__ == "Neighbor_Of":
+            res_dict = []
+            for dict1, dict2 in zip(values1, values2):
+                intersection_dict = {}
+                for key2, values2 in dict2.items():
+                    intersection_values = [
+                        value for value in values2 if value in dict1.keys()]
+                    intersection_dict[key2] = intersection_values
+                res_dict.append(intersection_dict)
+            new_code = children[0].code.replace("Obj", "X")
+            new_instance.code = f"And({new_code}, {children[1].code})"
+            new_instance.values = res_dict
+        elif task.current_spec:
+            res_dict = [{key: list(set(dict_a[key]).intersection(set(dict_b[key])))
+                        for key in dict_a if key in dict_b}
+                        for dict_a, dict_b in zip(values1, values2)]
+            res_dict = []
+            res_dict_test = []
+            for dict1, dict2 in zip(values1, values2):
+                # Find common objects between dict1 and dict2
+                common_keys = set(dict1.keys()) & set(dict2.keys())
+                common_dict = {key: dict1[key] + dict2[key]
+                            for key in common_keys} # intersection of objects while preserving the relationships
                 res_dict.append(common_dict)
-        new_instance = cls(children[0], children[1])
-        new_instance.values = res_dict
+            new_instance.values = res_dict
         return new_instance
 
-class VarAnd(FilterASTNode):
-    arity = 2
-    nodeType = FilterTypes.FILTERS
-    childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
-    default_size = 1
-
-    def __init__(self, filter1: FilterASTNode, filter2: Filters):
-        super().__init__(FilterTypes.FILTERS)
-        self.children = [filter1, filter2]
-        self.code = f'VarAnd(Var.{filter1.code}, Var.{filter2.code})'
-        self.size = self.default_size + filter1.size + filter2.size
-        self.childTypes = [FilterTypes.RELATION, FilterTypes.FILTERS]
-
-    @classmethod
-    def execute(cls, task, children):
-        values1 = children[0].values
-        values2 = children[1].values
-        res_dict = []
-        for dict1, dict2 in zip(values1, values2):
-            intersection_dict = {}
-            for key1, values1 in dict1.items():
-                intersection_values = [value for value in values1 if value in dict2.keys()]
-                intersection_dict[key1] = intersection_values
-            res_dict.append(intersection_dict)
-
-        new_instance = cls(children[0], children[1])
-        new_instance.values = res_dict
-        return new_instance
 
 class Or(FilterASTNode):
     arity = 2
@@ -681,20 +656,50 @@ class Or(FilterASTNode):
             filtered_nodes_dict = {node: [] for node in unioned_values[i]}
             res_dict.append(filtered_nodes_dict)
 
-        if task.current_spec:
+        new_instance = cls(children[0], children[1])
+        new_instance.values = res_dict
+
+        if children[0].__class__.__name__ == "Neighbor_Of" and children[1].__class__.__name__ == "Neighbor_Of":
+            res_dict = {}  # undefined semantics
+            new_instance.values = res_dict
+        elif children[0].__class__.__name__ == "Neighbor_Of":
+            res_dict = []
+            for dict1, dict2 in zip(values1, values2): # neighbors of object and have other properties
+                union_dict = {}
+                for key1, values1 in dict1.items():
+                    union_values = set(values1)
+                    if key1 in dict2:
+                        union_values.update(dict2[key1])
+                    union_dict[key1] = list(union_values)
+                res_dict.append(union_dict)
+            new_code = children[1].code.replace("Obj", "X")
+            new_instance.code = f"Or({children[0].code}, {new_code})"
+            new_instance.values = res_dict
+        elif children[1].__class__.__name__ == "Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
-                union_keys = set(dict1.keys()) | set(dict2.keys())  # Union of keys between dict1 and dict2
+                union_dict = {}
+                for key2, values2 in dict2.items():
+                    union_values = set(values2)
+                    if key2 in dict1:
+                        union_values.update(dict1[key2])
+                    union_dict[key2] = list(union_values)
+                res_dict.append(union_dict)
+            new_code = children[0].code.replace("Obj", "X")
+            new_instance.code = f"Or({new_code}, {children[1].code})"
+            new_instance.values = res_dict
+        elif task.current_spec:
+            res_dict = []
+            for dict1, dict2 in zip(values1, values2):
+                # union of keys between dict1 and dict2
+                union_keys = set(dict1.keys()) | set(dict2.keys())
                 union_dict = {}
                 for key in union_keys:
                     values1 = dict1.get(key, [])
                     values2 = dict2.get(key, [])
-                    combined_values = list(set(values1) | set(values2))
+                    combined_values = list(set(values1) | set(values2)) # always preserve relationships
                     union_dict[key] = combined_values
                 res_dict.append(union_dict)
-
-        new_instance = cls(children[0], children[1])
-        new_instance.values = res_dict
 
         return new_instance
 
@@ -721,6 +726,7 @@ class Not(FilterASTNode):
             for node, _ in input_abstracted_graphs.graph.nodes(data=True):
                 local_data.append(node)
             nodes_with_data.append(local_data)
+        
         result = [
             [item for item in sublist1 if item not in sublist2]
             for sublist1, sublist2 in zip(nodes_with_data, values)
@@ -728,17 +734,22 @@ class Not(FilterASTNode):
         for i, _ in enumerate(result):
             filtered_nodes_dict = {node: [] for node in result[i]}
             res_dict.append(filtered_nodes_dict)
-        # todo:
-        #if task.current_spec:
-            #for i, spec_dict in enumerate(task.current_spec):
-                #filtered_nodes_dict = {k: result[i] for k in spec_dict.keys()}
-                #values_dict.append(filtered_nodes_dict)
-            #res_dict = values_dict
         new_instance = cls(children[0])
         new_instance.values = res_dict
+        if children[0].__class__.__name__ == "Neighbor_Of":
+            adjusted_values = []
+            for graph_index, node_dict in enumerate(values):
+                adjusted_node_dict = {}
+                for node, neighbors in node_dict.items():
+                    not_neighbors = [neighbor for neighbor in nodes_with_data[graph_index] if neighbor not in neighbors]
+                    adjusted_node_dict[node] = not_neighbors # not neighbors, includes self-reference
+                adjusted_values.append(adjusted_node_dict)
+            new_instance.code =  f"Not(Neighbor_Of(Obj) == X)"
+            new_instance.values = adjusted_values
         return new_instance
 
-class FilterByColor(Filters):
+
+class Color_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
     default_size = 1
@@ -746,7 +757,7 @@ class FilterByColor(Filters):
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByColor({color.code})"
+        self.code = f"Color_Of(Obj) == {color.code}"
         self.size = self.default_size + color.size
         self.children = [color]
         self.childTypes = [FilterTypes.COLOR]
@@ -759,7 +770,7 @@ class FilterByColor(Filters):
         return instance
 
 
-class FilterBySize(Filters):
+class Size_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
     default_size = 1
@@ -767,7 +778,7 @@ class FilterBySize(Filters):
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterBySize({size.code})"
+        self.code = f"Size_Of(Obj) == {size.code}"
         self.size = self.default_size + size.size
         self.children = [size]
         self.childTypes = [FilterTypes.SIZE]
@@ -780,7 +791,7 @@ class FilterBySize(Filters):
         return instance
 
 
-class FilterByHeight(Filters):
+class Height_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.HEIGHT]
     default_size = 1
@@ -788,7 +799,7 @@ class FilterByHeight(Filters):
     def __init__(self, height: Height):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByHeight({height.code})"
+        self.code = f"Height_Of(Obj) == {height.code}"
         self.size = self.default_size + height.size
         self.children = [height]
         self.childTypes = [FilterTypes.HEIGHT]
@@ -801,7 +812,7 @@ class FilterByHeight(Filters):
         return instance
 
 
-class FilterByWidth(Filters):
+class Width_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.WIDTH]
     default_size = 1
@@ -809,7 +820,7 @@ class FilterByWidth(Filters):
     def __init__(self, width: Width):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByWidth({width.code})"
+        self.code = f"Width_Of(Obj) == {width.code}"
         self.size = self.default_size + width.size
         self.children = [width]
         self.childTypes = [FilterTypes.WIDTH]
@@ -822,7 +833,7 @@ class FilterByWidth(Filters):
         return instance
 
 
-class FilterByDegree(Filters):
+class Degree_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
     default_size = 1
@@ -830,7 +841,7 @@ class FilterByDegree(Filters):
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByDegree({degree.code})"
+        self.code = f"Degree_Of(Obj) == {degree.code}"
         self.size = self.default_size + degree.size
         self.children = [degree]
         self.childTypes = [FilterTypes.DEGREE]
@@ -842,7 +853,8 @@ class FilterByDegree(Filters):
         instance.values = values
         return instance
 
-class FilterByShape(Filters):
+
+class Shape_Of(Filters):
     arity = 1
     default_size = 1
     size = 1
@@ -851,7 +863,7 @@ class FilterByShape(Filters):
     def __init__(self, shape: Shape):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByShape({shape.code})"
+        self.code = f"Shape_Of(Obj) == {shape.code}"
         self.size = self.default_size + shape.size
         self.children = [shape]
         self.childTypes = [FilterTypes.SHAPE]
@@ -863,7 +875,8 @@ class FilterByShape(Filters):
         instance.values = values
         return instance
 
-class FilterByRows(Filters):
+
+class Row_Of(Filters):
     arity = 1
     default_size = 1
     nodeType = FilterTypes.FILTERS
@@ -873,7 +886,7 @@ class FilterByRows(Filters):
     def __init__(self, row: Row):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByRows({row.code})"
+        self.code = f"Row_Of({row.code})"
         self.size = self.default_size + row.size
         self.children = [row]
         self.childTypes = [FilterTypes.ROW]
@@ -885,7 +898,8 @@ class FilterByRows(Filters):
         instance.values = values
         return instance
 
-class FilterByColumns(Filters):
+
+class Column_Of(Filters):
     arity = 1
     default_size = 1
     nodeType = FilterTypes.FILTERS
@@ -895,7 +909,7 @@ class FilterByColumns(Filters):
     def __init__(self, col: Column):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByColumns({col.code})"
+        self.code = f"Column_Of({col.code})"
         self.size = self.default_size + col.size
         self.children = [col]
         self.childTypes = [FilterTypes.COLUMN]
@@ -907,7 +921,8 @@ class FilterByColumns(Filters):
         instance.values = values
         return instance
 
-class FilterByNeighborSize(Filters):
+
+class Neighbor_Size_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.SIZE]
     default_size = 1
@@ -915,7 +930,7 @@ class FilterByNeighborSize(Filters):
     def __init__(self, size: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborSize({size.code})"
+        self.code = f"Neighbor_Size_Of(Obj) == {size.code}"
         self.size = self.default_size + size.size
         self.children = [size]
         self.childTypes = [FilterTypes.SIZE]
@@ -928,7 +943,7 @@ class FilterByNeighborSize(Filters):
         return instance
 
 
-class FilterByNeighborColor(Filters):
+class Neighbor_Color_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.COLOR]
     default_size = 1
@@ -936,7 +951,7 @@ class FilterByNeighborColor(Filters):
     def __init__(self, color: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborColor({color.code})"
+        self.code = f"Neighbor_Color_Of(Obj) == {color.code}"
         self.size = self.default_size + color.size
         self.children = [color]
         self.childTypes = [FilterTypes.COLOR]
@@ -949,7 +964,7 @@ class FilterByNeighborColor(Filters):
         return instance
 
 
-class FilterByNeighborDegree(Filters):
+class Neighbor_Degree_Of(Filters):
     arity = 1
     childTypes = [FilterTypes.DEGREE]
     default_size = 1
@@ -957,7 +972,7 @@ class FilterByNeighborDegree(Filters):
     def __init__(self, degree: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.code = f"FilterByNeighborDegree({degree.code})"
+        self.code = f"Neighbor_Degree_Of(Obj) == {degree.code}"
         self.size = self.default_size + degree.size
         self.children = [degree]
         self.childTypes = [FilterTypes.DEGREE]

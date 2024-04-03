@@ -10,7 +10,7 @@
             )
         )
         (apply
-            (extend_node var true)
+            (extend_node var_extend_node true)
         )
     )
 )

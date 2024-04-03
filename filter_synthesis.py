@@ -7,6 +7,7 @@ from childrenIterator import ChildrenIterator
 from filters import *
 from OEValuesManager import *
 from task import Task
+from itertools import chain
 
 class FSizeEnumerator:
     def __init__(self, task: Task, vocab: VocabFactory, oeManager: ValuesManager):
@@ -16,11 +17,11 @@ class FSizeEnumerator:
         self.bank: Dict[int, List[FilterASTNode]] = {}
         self.costLevel = 1
         self.currLevelProgs: List[FilterASTNode] = []
-        self.currIter = LookaheadIterator(iter(vocab.leaves()))
+        self.currIter = LookaheadIterator(chain(iter(vocab.leaves()), iter(self.vocab.nonLeaves())))
         self.rootMaker = self.currIter.next()
         self.childrenIterator = LookaheadIterator(iter([None]))
         self.task = task
-
+    
     def hasNext(self) -> bool:
         if self.nextProgram:
             return True
