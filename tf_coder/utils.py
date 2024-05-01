@@ -35,8 +35,8 @@ DATASET_FILE = CONFIG.ROOT_DIR / "tf_coder/tfcoder_dataset.json"
 # these were originally randomly sampled, but we're keeping them hardcoded for consistency between runs
 IN_CONTEXT_TASK_NAMES = ["google_02", "google_10", "stackoverflow_07"]
 
-OUTPUT_FILE = CONFIG.ROOT_DIR / "tf_coder/tfcoder_output.gpt-3.5-turbo.json"
-NUM_COMPLETIONS = 20
+OUTPUT_FILE = CONFIG.ROOT_DIR / "tf_coder/tfcoder_output.gpt-3.5-turbo.80.json"
+NUM_COMPLETIONS = 80
 MODEL: "ModelName" = "gpt-3.5-turbo"
 
 
