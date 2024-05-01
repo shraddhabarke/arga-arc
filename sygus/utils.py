@@ -2,6 +2,8 @@ import os
 import sys
 from pathlib import Path
 
+import octoai.client
+
 CURRENT_DIRECTORY = Path(os.getcwd())
 ROOT_DIRECTORY = (CURRENT_DIRECTORY / "..").absolute().resolve()
 
@@ -24,6 +26,29 @@ import math
 import re
 import time
 import traceback
+import octoai
+import builtins
+from tqdm import tqdm
+
+ModelName = t.Literal[
+    "gpt-4",
+    "gpt-3.5-turbo",
+    "Phind/Phind-CodeLlama-34B-v2",
+    "deepseek-ai/deepseek-coder-33b-instruct",
+    "codellama/CodeLlama-70b-Instruct-hf",
+    "codellama/CodeLlama-13b-Instruct-hf",
+    "codellama/CodeLlama-7b-Instruct-hf",
+]
+OPENAI_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo"]
+TOGETHER_MODEL_NAMES = [
+    "deepseek-ai/deepseek-coder-33b-instruct",
+    "Phind/Phind-CodeLlama-34B-v2",
+    "codellama/CodeLlama-70b-Instruct-hf",
+    "codellama/CodeLlama-13b-Instruct-hf",
+    "codellama/CodeLlama-7b-Instruct-hf",
+]
+OCTO_MODEL_NAMES = ["codellama-34b-instruct"]
+MODEL_NAMES = OPENAI_MODEL_NAMES + TOGETHER_MODEL_NAMES + OCTO_MODEL_NAMES
 
 OPENAI = OpenAI(
     organization=CONFIG.OPENAI_ORGANIZATION, api_key=CONFIG.OPENAI_SECRET_KEY
@@ -34,7 +59,70 @@ client = OpenAI(
 
 TOGETHER = OpenAI(api_key=CONFIG.TOGETHER_SECRET_KEY, base_url=CONFIG.TOGETHER_BASE_URL)
 
+OCTO = octoai.client.OctoAI(api_key=CONFIG.OCTO_SECRET_KEY)
+
 ExampleTuple = t.Tuple[t.List[str], str]
+
+BenchmarkNames = t.Literal["larger-string", "string", "circuit", "hackers-delight"]
+BENCHMARK_NAMES = ["larger-string", "string", "circuit", "hackers-delight"]
+
+BENCHMARKS_DIRECTORY = CONFIG.ROOT_DIR / "sygus/Probe/src/test/benchmarks"
+BENCHMARK_DIRECTORIES = {
+    "larger-string": BENCHMARKS_DIRECTORY / "larger-grammar",
+    "string": BENCHMARKS_DIRECTORY / "string",
+    "circuit": BENCHMARKS_DIRECTORY / "circuit/test",
+    "hackers-delight": BENCHMARKS_DIRECTORY / "hackers-delight",
+}
+
+# TODO: compute output file based on benchmark and model
+OUTPUT_FILE = CONFIG.ROOT_DIR / "sygus/larger-string-grammar-completions.deepseek.json"
+MODEL: ModelName = "deepseek-ai/deepseek-coder-33b-instruct"
+N = 20
+BENCHMARK_DIRECTORY = BENCHMARKS_DIRECTORY / "larger-grammar"
+EXAMPLE_FILE: t.Optional[Path] = None
+
+
+# TODO: run for each benchmark
+def main():
+    original_print = builtins.print
+    builtins.print = tqdm_print
+
+    if EXAMPLE_FILE is not None:
+        examples = get_examples(EXAMPLE_FILE)
+    else:
+        examples = None
+
+    if OUTPUT_FILE.exists():
+        print(f"Reading from {OUTPUT_FILE}")
+        benchmark = SygusBenchmark.read_from_file(
+            OUTPUT_FILE, BENCHMARK_DIRECTORY, examples=examples
+        )
+    else:
+        benchmark = SygusBenchmark(BENCHMARK_DIRECTORY, examples=examples)
+
+    benchmark.sample_solutions(model=MODEL, n=N, output_file=OUTPUT_FILE)
+
+
+def get_examples(example_file: Path):
+    examples_json = json.loads(example_file.read_text())
+    examples = {}
+    for filename, examples in examples_json.items():
+        examples[filename] = [
+            (example["inputs"], example["output"]) for example in examples
+        ]
+        examples[filename] = random.sample(
+            examples[filename], min(10, len(examples[filename]))
+        )
+
+    return examples
+
+
+def tqdm_print(*args, **kwargs):
+
+    # if no arguments are passed, write the empty string
+    if not args:
+        args = [""]
+    tqdm.write(*args, **kwargs)
 
 
 @dataclass
@@ -111,20 +199,6 @@ You will be given a SyGuS grammar, a natural language specification, and a set o
 Your task is to complete the provided function definition with an implementation that is correct according to the grammar, specification, and examples.
 Make sure that your answer is a valid s-expression."""
 
-ModelName = t.Literal[
-    "gpt-4",
-    "gpt-3.5-turbo",
-    "deepseek-ai/deepseek-coder-33b-instruct",
-    "codellama/CodeLlama-70b-Instruct-hf",
-    "codellama/CodeLlama-13b-Instruct-hf",
-]
-OPENAI_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo"]
-TOGETHER_MODEL_NAMES = [
-    "deepseek-ai/deepseek-coder-33b-instruct",
-    "codellama/CodeLlama-70b-Instruct-hf",
-    "codellama/CodeLlama-13b-Instruct-hf",
-]
-MODEL_NAMES = OPENAI_MODEL_NAMES + TOGETHER_MODEL_NAMES
 
 CODE_BLOCK_REGEX = r".*```(?:\w+)?\n(.*?)\n```.*"
 CODE_LINE_REGEX = r".*`(.*)`.*"
@@ -151,16 +225,19 @@ def cleanup_completion(completion: str) -> str:
 
 def sample_gpt_solutions(
     problem: SygusProblem, n: int = 10, model: ModelName = "gpt-4"
-) -> t.Tuple[t.List[str], int]:
+) -> t.Tuple[t.Optional[t.List[str]], int]:
     if model in OPENAI_MODEL_NAMES:
         client = OPENAI
     elif model in TOGETHER_MODEL_NAMES:
         client = TOGETHER
+    elif model in OCTO_MODEL_NAMES:
+        client = OCTO
     else:
         raise ValueError(f"Invalid model: {model}")
 
     start_time = datetime.now()
-    response = client.chat.completions.create(
+    response = get_chat_completion_retrying(
+        client,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": problem.user_message},
@@ -172,11 +249,29 @@ def sample_gpt_solutions(
     end_time = datetime.now()
     time_diff_ms = (end_time - start_time).microseconds / 1000
 
+    if response is None:
+        return None, time_diff_ms
+
     if model in TOGETHER_MODEL_NAMES:
         # sleep for 1s to cover trial rate limit
         time.sleep(1)
 
     return [choice.message.content for choice in response.choices], time_diff_ms
+
+
+MAX_RETRIES = 3
+
+
+def get_chat_completion_retrying(client, *args, **kwargs):
+    for i in range(MAX_RETRIES):
+        try:
+            print("getting chat completion")
+            return client.chat.completions.create(*args, **kwargs)
+        except Exception as e:
+            print(f"Error getting completion: {e}")
+            print(traceback.format_exc())
+            continue
+    return None
 
 
 class CompletionJSON(t.TypedDict):
@@ -201,9 +296,7 @@ class SygusBenchmark:
         self.sygus = {}
         self.output = {}
 
-        print(f"loading benchmarks from {directory}")
         for file in directory.iterdir():
-            print(file.name)
             with open(file, "r") as f:
                 contents = file.read_text()
                 self.problems[file.name] = sexp.loads(contents)
@@ -243,14 +336,17 @@ class SygusBenchmark:
         model: ModelName = "gpt-4",
         n: int = 10,
         filename_of_interest: t.Optional[str] = None,
+        output_file: t.Optional[Path] = None,
     ) -> t.Dict:
-        for filename, problem in self.sygus.items():
+        num_items = len(self.sygus)
+        for idx, (filename, problem) in tqdm(list(enumerate(self.sygus.items()))):
             if filename in self.output:
+                print(f"already have output for {filename}")
                 continue
             if filename_of_interest is not None and filename != filename_of_interest:
                 continue
             try:
-                print(f"Sampling completions for {filename}")
+                print(f"sampling completions for {filename}")
                 completions, time_diff_ms = sample_gpt_solutions(
                     problem, n=n, model=model
                 )
@@ -258,6 +354,12 @@ class SygusBenchmark:
                     "completions": completions,
                     "time_diff_ms": time_diff_ms,
                 }
+                if completions is None:
+                    print(f"Error generating completions for {filename}")
+                    continue
+
+                if output_file is not None:
+                    self.write(output_file)
             except Exception as e:
                 print(f"Error generating completions for {filename}: {e}")
                 print(traceback.format_exc())
@@ -265,7 +367,7 @@ class SygusBenchmark:
         return self.update_solutions()
 
     def update_solutions(self):
-        for filename, problem in self.sygus.items():
+        for filename, problem in tqdm(list(self.sygus.items())):
             if filename not in self.output:
                 continue
             completions = self.output[filename]["completions"]
@@ -273,7 +375,6 @@ class SygusBenchmark:
                 solutions = [
                     problem.completion_to_function_definition(c) for c in completions
                 ]
-                pprint(solutions)
                 self.output[filename]["solutions"] = solutions
             except Exception as e:
                 print(f"Error parsing solution for {filename}: {e}")
@@ -419,3 +520,6 @@ def parse_and_repair(completion: str) -> t.Optional[SExp]:
 
 
 # endregion SEXP PARSING
+
+if __name__ == "__main__":
+    main()
