@@ -13,7 +13,6 @@ class OEValuesManager:
     def clear(self) -> None:
         raise NotImplementedError
 
-
 class ValuesManager(OEValuesManager):
     def __init__(self):
         self.class_values = set()

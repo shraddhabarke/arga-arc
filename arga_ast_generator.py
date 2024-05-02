@@ -51,6 +51,9 @@ class ObjectId(_Ast):
     value: int
 
 ### Base types
+@dataclass
+class FColor(_Ast):
+    value: int | str
 
 @dataclass
 class Size(_Ast):
@@ -147,55 +150,50 @@ class Or(_FilterExpr):
 class Not(_FilterExpr):
     child: _FilterExpr
 
-@dataclass
-class VarAnd(_FilterExpr):
-    relation: _FilterRelation
-    filter: _FilterExpr
-
 ### Filter primitives
 
 @dataclass
-class FilterByColor(_Ast):
-    color: Color
+class Color_Equals(_Ast):
+    color: FColor
 
 @dataclass
-class FilterBySize(_Ast):
+class Size_Equals(_Ast):
     size: Size
 
 @dataclass
-class FilterByHeight(_Ast):
+class Height_Equals(_Ast):
     height: Height
 
 @dataclass
-class FilterByWidth(_Ast):
+class Width_Equals(_Ast):
     width: Width
 
 @dataclass
-class FilterByDegree(_Ast):
+class Degree_Equals(_Ast):
     degree: Degree
 
 @dataclass
-class FilterByShape(_Ast):
+class Shape_Equals(_Ast):
     shape: Shape
 
 @dataclass
-class FilterByColumns(_Ast):
+class Column_Equals(_Ast):
     columns: Column
 
 @dataclass
-class FilterByNeighborSize(_Ast):
+class Neighbor_Size(_Ast):
     size: Size
 
 @dataclass
-class FilterByNeighborColor(_Ast):
+class Neighbor_Color(_Ast):
     color: Color
 
 @dataclass
-class FilterByNeighborDegree(_Ast):
+class Neighbor_Degree(_Ast):
     degree: Degree
 
 @dataclass
-class FilterByNeighborSize(_Ast):
+class Neighbor_Size(_Ast):
     size: str
 
 ### Transforms
@@ -367,11 +365,6 @@ class ToAst(Transformer):
                     return Or(children[1], children[2])
                 case "not":
                     return Not(children[1])
-                case "varand":
-                    return VarAnd(
-                        relation=children[1],
-                        filter=children[2]
-                    )
                 case _:
                     # return children
                     raise ValueError(f"Unknown filter expression: {children[0]}")
@@ -382,44 +375,44 @@ class ToAst(Transformer):
     def filter_prim(self, tree):
         children = tree.children
         match children[0]:
-            case "filter_by_color":
-                return FilterByColor(
+            case "color_equals":
+                return Color_Equals(
                     color=children[1]
                 )
-            case "filter_by_size":
-                return FilterBySize(
+            case "size_equals":
+                return Size_Equals(
                     size=children[1]
                 )
-            case "filter_by_height":
-                return FilterByHeight(
+            case "height_equals":
+                return Height_Equals(
                     height=children[1]
                 )
-            case "filter_by_width":
-                return FilterByWidth(
+            case "width_equals":
+                return Width_Equals(
                     width=children[1]
                 )
-            case "filter_by_degree":
-                return FilterByDegree(
+            case "degree_equals":
+                return Degree_Equals(
                     degree=children[1]
                 )
-            case "filter_by_shape":
-                return FilterByShape(
+            case "shape_equals":
+                return Shape_Equals(
                     shape=children[1]
                 )
-            case "filter_by_columns":
-                return FilterByColumns(
+            case "column_equals":
+                return Column_Equals(
                     columns=children[1]
                 )
-            case "filter_by_neighbor_size":
-                return FilterByNeighborSize(
+            case "neighbor_size":
+                return Neighbor_Size(
                     size=children[1]
                 )
-            case "filter_by_neighbor_color":
-                return FilterByNeighborColor(
+            case "neighbor_color":
+                return Neighbor_Color(
                     color=children[1]
                 )
-            case "filter_by_neighbor_degree":
-                return FilterByNeighborDegree(
+            case "fneighbor_degree":
+                return Neighbor_Degree(
                     degree=children[1]
                 )
             case _:
