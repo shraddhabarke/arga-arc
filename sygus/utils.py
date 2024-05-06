@@ -1,3 +1,4 @@
+# region PREAMBLE
 import os
 import sys
 from pathlib import Path
@@ -11,7 +12,7 @@ print(f"Current directory: {CURRENT_DIRECTORY}")
 print(f"Root directory: {ROOT_DIRECTORY}")
 
 sys.path.append(str(ROOT_DIRECTORY))
-
+# endregion PREAMBLE
 import typing as t
 from pprint import pprint
 from dataclasses import dataclass
@@ -29,6 +30,10 @@ import traceback
 import octoai
 import builtins
 from tqdm import tqdm
+import logging
+import click
+
+LOGGER = logging.getLogger(__name__)
 
 ModelName = t.Literal[
     "gpt-4",
@@ -63,58 +68,319 @@ OCTO = octoai.client.OctoAI(api_key=CONFIG.OCTO_SECRET_KEY)
 
 ExampleTuple = t.Tuple[t.List[str], str]
 
-BenchmarkNames = t.Literal["larger-string", "string", "circuit", "hackers-delight"]
+BenchmarkName = t.Literal["larger-string", "string", "circuit", "hackers-delight"]
 BENCHMARK_NAMES = ["larger-string", "string", "circuit", "hackers-delight"]
 
 BENCHMARKS_DIRECTORY = CONFIG.ROOT_DIR / "sygus/Probe/src/test/benchmarks"
-BENCHMARK_DIRECTORIES = {
+BENCHMARK_DIRECTORIES: dict[BenchmarkName, Path] = {
     "larger-string": BENCHMARKS_DIRECTORY / "larger-grammar",
     "string": BENCHMARKS_DIRECTORY / "string",
     "circuit": BENCHMARKS_DIRECTORY / "circuit/test",
     "hackers-delight": BENCHMARKS_DIRECTORY / "hackers-delight",
 }
+EXAMPLE_FILES: dict[BenchmarkName, t.Optional[Path]] = {
+    "larger-string": None,
+    "string": None,
+    "circuit": CONFIG.ROOT_DIR / "sygus/io-results-circuit.json",
+    "hackers-delight": CONFIG.ROOT_DIR / "sygus/io-results-bitvec.json",
+}
 
-# TODO: compute output file based on benchmark and model
-OUTPUT_FILE = CONFIG.ROOT_DIR / "sygus/larger-string-grammar-completions.deepseek.json"
-MODEL: ModelName = "deepseek-ai/deepseek-coder-33b-instruct"
-N = 20
-BENCHMARK_DIRECTORY = BENCHMARKS_DIRECTORY / "larger-grammar"
-EXAMPLE_FILE: t.Optional[Path] = None
+# region CLI COMMANDS
 
 
-# TODO: run for each benchmark
+@click.group()
+def cli():
+    pass
+
+
+@cli.command(help="sample completions for all benchmarks")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    default=100,
+    help="The number of completions to sample for each problem",
+)
+def sample(model: ModelName, num_samples: int):
+    setup_logging(model)
+    for benchmark in reversed(BENCHMARK_NAMES):
+        sample_benchmark(benchmark, model, num_samples)
+
+
+@cli.command(help="merge 2 sets of samples")
+@click.option(
+    "-f",
+    "--file",
+    multiple=True,
+    type=click.Path(exists=True),
+    required=True,
+    help="The files to merge",
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(),
+    required=True,
+    help="The output file",
+)
+def merge(file, output):
+    merged: t.Dict[str, CompletionJSON] = {}
+    for f in file:
+        with open(f, "r") as file:
+            data: t.Dict[str, CompletionJSON] = json.load(file)
+            for key, completions in data.items():
+                if key not in merged:
+                    merged[key] = {
+                        "completions": [],
+                        "solutions": [],
+                        "constants": [],
+                        "all_constants": [],
+                        "time_diff_ms": 0,
+                    }
+
+                merged[key]["completions"].extend(completions["completions"])
+                if "solutions" in completions:
+                    merged[key]["solutions"].extend(completions["solutions"])
+                if "constants" in completions:
+                    merged[key]["constants"].extend(completions["constants"])
+                if "all_constants" in completions:
+                    merged[key]["all_constants"] = list(
+                        set(merged[key]["all_constants"] + completions["all_constants"])
+                    )
+                merged[key]["time_diff_ms"] += completions["time_diff_ms"]
+
+    with open(output, "w") as file:
+        json.dump(merged, file, indent=2)
+
+
+@cli.command(help="print statistics for all benchmarks")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+def stats(model):
+    for benchmark in BENCHMARK_NAMES:
+        output_file = compute_output_file(benchmark, model)
+        benchmark: SygusBenchmark = SygusBenchmark.read_from_file(
+            benchmark, output_file, BENCHMARK_DIRECTORIES[benchmark]
+        )
+        benchmark.print_statistics()
+
+
+@cli.command(help="fixup completions for all benchmarks")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+def fixup(model):
+    setup_logging(model)
+    for benchmark in BENCHMARK_NAMES:
+        fixup_benchmark(benchmark, model)
+
+
+@cli.command(help="parse constants for all benchmarks")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+def constants(model):
+    setup_logging(model)
+    for benchmark in BENCHMARK_NAMES:
+        parse_constants_for(benchmark, model)
+
+
+@cli.command(help="resample completions for all benchmarks")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    multiple=True,
+    help="The number of completions to sample for each problem",
+)
+def resample(model: ModelName, num_samples: t.List[int]):
+    for benchmark in BENCHMARK_NAMES:
+        for n in num_samples:
+            resample_benchmark(benchmark, model, n)
+
+
 def main():
     original_print = builtins.print
     builtins.print = tqdm_print
 
-    if EXAMPLE_FILE is not None:
-        examples = get_examples(EXAMPLE_FILE)
+    cli()
+
+
+def compute_output_file(
+    benchmark: BenchmarkName, model: ModelName, n: t.Optional[int] = None
+):
+    return (
+        CONFIG.ROOT_DIR
+        / "sygus"
+        / f"{benchmark}-completions.{model.replace('/', '__')}{'.' if n is None else '.' + str(n) + '.'}json"
+    )
+
+
+def resample_benchmark(benchmark: BenchmarkName, model: ModelName, n: int):
+    output_file = compute_output_file(benchmark, model)
+    example_file = EXAMPLE_FILES[benchmark]
+    if example_file is not None:
+        examples = get_examples(example_file)
     else:
         examples = None
 
-    if OUTPUT_FILE.exists():
-        print(f"Reading from {OUTPUT_FILE}")
-        benchmark = SygusBenchmark.read_from_file(
-            OUTPUT_FILE, BENCHMARK_DIRECTORY, examples=examples
+    if output_file.exists():
+        print(f"Reading from {output_file}")
+        benchmark_obj: SygusBenchmark = SygusBenchmark.read_from_file(
+            benchmark,
+            output_file,
+            BENCHMARK_DIRECTORIES[benchmark],
+            examples,
         )
     else:
-        benchmark = SygusBenchmark(BENCHMARK_DIRECTORY, examples=examples)
+        print(f"No completions found for {benchmark}")
+        return
 
-    benchmark.sample_solutions(model=MODEL, n=N, output_file=OUTPUT_FILE)
+    print(f"Resampling {n} completions for {benchmark} using {model}")
+
+    resampled = SygusBenchmark(
+        benchmark,
+        BENCHMARK_DIRECTORIES[benchmark],
+        examples,
+    )
+    for filename, output in benchmark_obj.output.items():
+        non_null_solution_idxs = [
+            i for i, s in enumerate(output["solutions"]) if s is not None
+        ]
+        non_null_solutions = [output["solutions"][i] for i in non_null_solution_idxs]
+        non_null_completions = [
+            output["completions"][i] for i in non_null_solution_idxs
+        ]
+        non_null_constants = [output["constants"][i] for i in non_null_solution_idxs]
+
+        if len(non_null_solutions) < n:
+            print(
+                f"for {filename}, Expected at least {n} solutions to resample, got {len(non_null_solutions)}"
+            )
+            resampled.output[filename] = None
+            continue
+
+        idxs = random.sample(range(len(non_null_solutions)), n)
+        resampled_output: CompletionJSON = {
+            "completions": [non_null_completions[i] for i in idxs],
+            "solutions": [non_null_solutions[i] for i in idxs],
+            "constants": [non_null_constants[i] for i in idxs],
+            "all_constants": list(set(sum([non_null_constants[i] for i in idxs], []))),
+            "time_diff_ms": output["time_diff_ms"],
+        }
+
+        resampled.output[filename] = resampled_output
+
+    resampled_output_file = compute_output_file(benchmark, model, n)
+    resampled.write(resampled_output_file)
+
+
+def sample_benchmark(benchmark: BenchmarkName, model: ModelName, n: int):
+    print(f"Sampling {n} completions for {benchmark} using {model}")
+    example_file = EXAMPLE_FILES[benchmark]
+    output_file = compute_output_file(benchmark, model)
+
+    if example_file is not None:
+        examples = get_examples(example_file)
+    else:
+        examples = None
+
+    if output_file.exists():
+        print(f"Reading from {output_file}")
+        benchmark: SygusBenchmark = SygusBenchmark.read_from_file(
+            benchmark, output_file, BENCHMARK_DIRECTORIES[benchmark], examples=examples
+        )
+    else:
+        benchmark: SygusBenchmark = SygusBenchmark(
+            benchmark, BENCHMARK_DIRECTORIES[benchmark], examples=examples
+        )
+
+    print(f"Sampling {n} completions for {benchmark.name} using {model}")
+    benchmark.sample_solutions(model=model, n=n, output_file=output_file)
+
+
+def fixup_benchmark(benchmark: BenchmarkName, model: ModelName):
+    output_file = compute_output_file(benchmark, model)
+
+    if output_file.exists():
+        print(f"Reading from {output_file}")
+        benchmark: SygusBenchmark = SygusBenchmark.read_from_file(
+            benchmark, output_file, BENCHMARK_DIRECTORIES[benchmark]
+        )
+    else:
+        print(f"No completions found for {benchmark}")
+        return
+
+    print(f"Fixing completions for {benchmark.name} using {model}")
+    benchmark.fixup_solutions()
+    benchmark.write(output_file)
+
+
+def parse_constants_for(benchmark: BenchmarkName, model: ModelName):
+    output_file = compute_output_file(benchmark, model)
+
+    if output_file.exists():
+        print(f"Reading from {output_file}")
+        benchmark: SygusBenchmark = SygusBenchmark.read_from_file(
+            benchmark, output_file, BENCHMARK_DIRECTORIES[benchmark]
+        )
+    else:
+        print(f"No completions found for {benchmark}")
+        return
+
+    print(f"Parsing constants for {benchmark.name} using {model}")
+    benchmark.parse_constants()
+    benchmark.write(output_file)
 
 
 def get_examples(example_file: Path):
     examples_json = json.loads(example_file.read_text())
-    examples = {}
+    ans = {}
     for filename, examples in examples_json.items():
-        examples[filename] = [
-            (example["inputs"], example["output"]) for example in examples
-        ]
-        examples[filename] = random.sample(
-            examples[filename], min(10, len(examples[filename]))
-        )
 
-    return examples
+        ans[filename] = [(example["inputs"], example["output"]) for example in examples]
+        ans[filename] = random.sample(ans[filename], min(10, len(ans[filename])))
+
+    return ans
+
+
+def setup_logging(name: str):
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        filename=CONFIG.ROOT_DIR
+        / "sygus"
+        / f"utils_{name.replace('/', '__')}_{now}.log",
+        filemode="w",
+    )
 
 
 def tqdm_print(*args, **kwargs):
@@ -123,6 +389,10 @@ def tqdm_print(*args, **kwargs):
     if not args:
         args = [""]
     tqdm.write(*args, **kwargs)
+    LOGGER.info(" ".join(args))
+
+
+# endregion CLI COMMANDS
 
 
 @dataclass
@@ -197,6 +467,7 @@ class SygusProblem:
 SYSTEM_PROMPT = """You are a coding assistant. Be precise and terse.
 You will be given a SyGuS grammar, a natural language specification, and a set of input-output examples.
 Your task is to complete the provided function definition with an implementation that is correct according to the grammar, specification, and examples.
+Your answer should be as short as possible while still being correct.
 Make sure that your answer is a valid s-expression."""
 
 
@@ -245,6 +516,7 @@ def sample_gpt_solutions(
         n=n,
         temperature=0.5,
         model=model,
+        max_tokens=200,
     )
     end_time = datetime.now()
     time_diff_ms = (end_time - start_time).microseconds / 1000
@@ -277,10 +549,13 @@ def get_chat_completion_retrying(client, *args, **kwargs):
 class CompletionJSON(t.TypedDict):
     completions: t.List[str]
     solutions: t.List[str]
+    constants: t.List[t.List[t.Union[int, str]]]
+    all_constants: t.List[t.Union[int, str]]
     time_ms: float
 
 
 class SygusBenchmark:
+    name: BenchmarkName
     problems: t.Dict
     comments: t.Dict
     sygus: t.Dict[str, SygusProblem]
@@ -288,9 +563,11 @@ class SygusBenchmark:
 
     def __init__(
         self,
+        name: BenchmarkName,
         directory: Path,
         examples: t.Optional[t.Dict[str, t.List[ExampleTuple]]] = None,
     ):
+        self.name = name
         self.problems = {}
         self.comments = {}
         self.sygus = {}
@@ -318,15 +595,91 @@ class SygusBenchmark:
     @classmethod
     def read_from_file(
         cls,
+        name: BenchmarkName,
         filename: Path,
         directory: Path,
         examples: t.Optional[t.Dict[str, t.List[ExampleTuple]]] = None,
     ):
+        assert filename.exists()
         with open(filename, "r") as f:
             output = json.load(f)
-            benchmark = cls(directory, examples)
+            benchmark = cls(name, directory, examples)
             benchmark.output = output
             return benchmark
+
+    def print_statistics(self):
+        num_items = len(self.sygus)
+
+        num_completions = 0
+        for output in self.output.values():
+            if "completions" in output and output["completions"] is not None:
+                num_completions += len(output["completions"])
+
+        num_solutions = 0
+        for output in self.output.values():
+            if "solutions" in output:
+                num_solutions += len([s for s in output["solutions"] if s is not None])
+
+        average_num_completions = num_completions / num_items
+        average_num_solutions = num_solutions / num_items
+
+        print(f"# {self.name}")
+        print(f"Total problems: {num_items}")
+        print(f"Total completions: {num_completions}")
+        print(f"Total parsed solutions: {num_solutions}")
+        print(f"Average completions per problem: {average_num_completions}")
+        print(f"Average solutions per problem: {average_num_solutions}")
+
+        if len([o for o in self.output.values() if "solutions" in o]) == 0:
+            return
+
+        minimum_num_solutions = min(
+            (
+                len([s for s in output["solutions"] if s is not None])
+                for output in self.output.values()
+                if "solutions" in output
+            ),
+            default=0,
+        )
+
+        median_num_solutions = sorted(
+            len([s for s in output["solutions"] if s is not None])
+            for output in self.output.values()
+            if "solutions" in output
+        )[len(self.output) // 2]
+
+        maximum_num_solutions = max(
+            (
+                len([s for s in output["solutions"] if s is not None])
+                for output in self.output.values()
+                if "solutions" in output
+            ),
+            default=0,
+        )
+
+        num_solution_deciles = []
+        num_solutions_each = [
+            len([s for s in output["solutions"] if s is not None])
+            for output in self.output.values()
+            if "solutions" in output
+        ]
+        for i in range(10):
+            num_solution_deciles.append(
+                sorted(num_solutions_each)[len(num_solutions_each) * i // 10]
+            )
+
+        for key, output in self.output.items():
+            num_solutions_for_problem = len(
+                [s for s in output["solutions"] if s is not None]
+            )
+            if num_solutions_for_problem < 90:
+                print(f"Problem {key} has {num_solutions_for_problem} solutions")
+
+        print(f"Minimum solutions per problem: {minimum_num_solutions}")
+        print(f"Maximum solutions per problem: {maximum_num_solutions}")
+        print(f"Median solutions per problem: {median_num_solutions}")
+        print(f"Deciles of solutions per problem: {num_solution_deciles}")
+        print()
 
     def reset_output(self):
         self.output = {}
@@ -339,8 +692,10 @@ class SygusBenchmark:
         output_file: t.Optional[Path] = None,
     ) -> t.Dict:
         num_items = len(self.sygus)
-        for idx, (filename, problem) in tqdm(list(enumerate(self.sygus.items()))):
-            if filename in self.output:
+        for idx, (filename, problem) in tqdm(
+            list(enumerate(self.sygus.items())), desc=self.name
+        ):
+            if filename in self.output and "completions" in self.output[filename]:
                 print(f"already have output for {filename}")
                 continue
             if filename_of_interest is not None and filename != filename_of_interest:
@@ -364,10 +719,14 @@ class SygusBenchmark:
                 print(f"Error generating completions for {filename}: {e}")
                 print(traceback.format_exc())
                 continue
-        return self.update_solutions()
 
-    def update_solutions(self):
-        for filename, problem in tqdm(list(self.sygus.items())):
+        self.fixup_solutions()
+        return self.parse_constants()
+
+    def fixup_solutions(self):
+        for filename, problem in tqdm(
+            list(self.sygus.items()), desc=f"{self.name}-fixup"
+        ):
             if filename not in self.output:
                 continue
             completions = self.output[filename]["completions"]
@@ -378,6 +737,27 @@ class SygusBenchmark:
                 self.output[filename]["solutions"] = solutions
             except Exception as e:
                 print(f"Error parsing solution for {filename}: {e}")
+                print(traceback.format_exc())
+                continue
+        return self.output
+
+    def parse_constants(self):
+        for filename, problem in tqdm(
+            list(self.sygus.items()), desc=f"{self.name}-constants"
+        ):
+            if filename not in self.output:
+                continue
+            solutions = self.output[filename]["solutions"]
+            try:
+                constants = [
+                    get_constants(s) if s is not None else None for s in solutions
+                ]
+                self.output[filename]["constants"] = constants
+                self.output[filename]["all_constants"] = list(
+                    set(sum((c for c in constants if c is not None), []))
+                )
+            except Exception as e:
+                print(f"Error parsing constants for {filename}: {e}")
                 print(traceback.format_exc())
                 continue
         return self.output
@@ -449,14 +829,14 @@ def is_define_fun(sexp) -> bool:
     return isinstance(sexp[0], Symbol) and sexp[0].value() == "define-fun"
 
 
-def get_define_fun_pieces(sexp: SExp):
-    if not is_define_fun(sexp):
-        raise ValueError(f"Expected a define-fun sexp, got {sexp}")
+def get_define_fun_pieces(sexp_v: SExp):
+    if not is_define_fun(sexp_v):
+        raise ValueError(f"Expected a define-fun sexp, got {sexp_v}")
 
-    name = sexp[1]
-    args = sexp[2]
-    ret_type = sexp[3]
-    body = sexp[4]
+    name = sexp_v[1]
+    args = sexp_v[2]
+    ret_type = sexp_v[3]
+    body = sexp_v[4]
     return name, args, ret_type, body
 
 
@@ -514,9 +894,41 @@ def parse_and_repair(completion: str) -> t.Optional[SExp]:
         if "Too many closing brackets." in str(e):
             return parse_and_repair(remove_closing_bracket(completion))
         else:
-            print(f"Error parsing completion: {e}")
+            print(f"Caught unexpected error parsing completion:")
+            print(f"{completion}")
             print(traceback.format_exc())
             return None
+
+
+class recursionlimit:
+    def __init__(self, limit):
+        self.limit = limit
+
+    def __enter__(self):
+        self.old_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(self.limit)
+
+    def __exit__(self, type, value, tb):
+        sys.setrecursionlimit(self.old_limit)
+
+
+def walk(s: SExp):
+    prune = yield s
+    if prune is None:
+        prune = False
+    if prune:
+        return
+
+    if isinstance(s, list):
+        for i in s:
+            yield from walk(i)
+
+
+def get_constants(solution: str) -> t.List[str]:
+    parsed = sexp.loads(solution)
+    return list(
+        set([node for node in walk(parsed) if type(node) == str or type(node) == int])
+    )
 
 
 # endregion SEXP PARSING
