@@ -27,6 +27,7 @@ from ast import Attribute, Name
 import traceback
 from tqdm import tqdm
 import builtins
+import click
 
 # need this to properly evaluate code, even though it isn't used explicitly
 import math
@@ -35,17 +36,273 @@ DATASET_FILE = CONFIG.ROOT_DIR / "tf_coder/tfcoder_dataset.json"
 # these were originally randomly sampled, but we're keeping them hardcoded for consistency between runs
 IN_CONTEXT_TASK_NAMES = ["google_02", "google_10", "stackoverflow_07"]
 
-OUTPUT_FILE = CONFIG.ROOT_DIR / "tf_coder/tfcoder_output.gpt-3.5-turbo.80.json"
-NUM_COMPLETIONS = 80
-MODEL: "ModelName" = "gpt-3.5-turbo"
+
+ModelName = t.Literal[
+    "gpt-4",
+    "gpt-3.5-turbo",
+    "deepseek-ai/deepseek-coder-33b-instruct",
+    "codellama/CodeLlama-70b-Instruct-hf",
+    "codellama/CodeLlama-13b-Instruct-hf",
+]
+OPENAI_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo"]
+TOGETHER_MODEL_NAMES = [
+    "deepseek-ai/deepseek-coder-33b-instruct",
+    "codellama/CodeLlama-70b-Instruct-hf",
+    "codellama/CodeLlama-13b-Instruct-hf",
+]
+MODEL_NAMES = OPENAI_MODEL_NAMES + TOGETHER_MODEL_NAMES
+
+
+def compute_output_file(model: ModelName, n: t.Optional[int] = None):
+    return (
+        CONFIG.ROOT_DIR
+        / "tf_coder"
+        / f"tfcoder_output.{model}{'.' if n is None else '.' + str(n) + '.'}json"
+    )
 
 
 def main():
     original_print = builtins.print
     builtins.print = tqdm_print
 
-    if OUTPUT_FILE.exists():
-        dataset_json: t.List[TaskJSONWithOutput] = json.loads(OUTPUT_FILE.read_text())
+    cli()
+
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command(help="resample completions for all benchmarks")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    multiple=True,
+    help="The number of completions to sample for each problem",
+)
+def resample(model: ModelName, num_samples: t.List[int]):
+    output_file = compute_output_file(model)
+    if output_file.exists():
+        dataset_json: t.List[TaskJSONWithOutput] = json.loads(output_file.read_text())
+        tasks = [Task.from_json_with_output(task_json) for task_json in dataset_json]
+    else:
+        print(f"Output file {output_file} does not exist")
+        return
+
+    for n in num_samples:
+        print(f"Resampling for {n} completions")
+        resampled = []
+        for task in tasks:
+            if task.name in IN_CONTEXT_TASK_NAMES:
+                continue
+            usable_completion_idxs = [
+                i
+                for i, s in enumerate(task.completions)
+                if task.constant_counts[i] is not None
+            ]
+            usable_completions = [task.completions[i] for i in usable_completion_idxs]
+            usable_parsed_constants = [
+                task.parsed_constants[i] for i in usable_completion_idxs
+            ]
+            usable_constant_counts = [
+                task.constant_counts[i] for i in usable_completion_idxs
+            ]
+
+            if len(usable_completions) < n:
+                print(f"Task {task.name} has less than {n} usable completions")
+                continue
+
+            idxs = random.sample(range(len(usable_completions)), n)
+            resampled_task = Task(
+                task.name,
+                task.description,
+                task.target_program,
+                task.source,
+                task.constants,
+                task.examples,
+                completions=[usable_completions[i] for i in idxs],
+                parsed_constants=[usable_parsed_constants[i] for i in idxs],
+                constant_counts=[usable_constant_counts[i] for i in idxs],
+            )
+            resampled_task.compute_asts()
+            resampled_task.compute_operator_coverage()
+            resampled_task.compute_constants()
+            resampled.append(resampled_task)
+        resampled_output_file = compute_output_file(model, n)
+        write_output(resampled, resampled_output_file)
+
+
+@cli.command(help="merge files with completions")
+@click.option(
+    "-f",
+    "--file",
+    multiple=True,
+    type=click.Path(exists=True),
+    required=True,
+    help="The files to merge",
+)
+@click.option(
+    "-o",
+    "--output",
+    type=click.Path(),
+    required=True,
+    help="The output file",
+)
+def merge(file, output):
+    merged: t.List[TaskJSONWithOutput] = []
+    for f in file:
+        with open(f, "r") as file:
+            print(f"merging file {f}")
+            tasks_json: t.List[TaskJSONWithOutput] = json.load(file)
+            if len(merged) == 0:
+                for task_json in tasks_json:
+                    merged_task = {
+                        **task_json,
+                        "completions": [],
+                        "parsed_constants": [],
+                        "all_constants": [],
+                        "constant_counts": [],
+                        "aggregate_constant_count": {},
+                    }
+                    merged.append(merged_task)
+
+            for i, task_json in enumerate(tasks_json):
+                merged[i]["completions"].extend(task_json["completions"])
+                merged[i]["parsed_constants"].extend(task_json["parsed_constants"])
+                merged[i]["all_constants"].extend(task_json["all_constants"])
+                merged[i]["constant_counts"].extend(task_json["constant_counts"])
+                merged[i]["aggregate_constant_count"] = add_constant_counts(
+                    merged[i]["aggregate_constant_count"],
+                    task_json["aggregate_constant_count"],
+                )
+
+    with open(output, "w") as file:
+        json.dump(merged, file, indent=4)
+
+
+@cli.command(help="parse and recompute operators and constants")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    required=False,
+    help="The number of completions to sample for each problem. used to identify the output file",
+)
+def parse(model, num_samples):
+    output_file = compute_output_file(model, num_samples)
+    if output_file.exists():
+        dataset_json: t.List[TaskJSONWithOutput] = json.loads(output_file.read_text())
+        tasks = [Task.from_json_with_output(task_json) for task_json in dataset_json]
+    else:
+        print(f"Output file {output_file} does not exist")
+        return
+
+    tasks = [task for task in tasks if task.name not in IN_CONTEXT_TASK_NAMES]
+
+    def write():
+        write_output(tasks, OUTPUT_FILE)
+
+    print(f"computing operator coverage")
+    for task in tqdm(tasks):
+        task.compute_operator_coverage()
+        write()
+
+    print(f"computing constants")
+    for task in tqdm(tasks):
+        task.compute_constants()
+        write()
+
+
+@cli.command(help="print statistics about completions")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    required=False,
+    help="The number of completions to sample for each problem. used to identify the output file",
+)
+def stats(model, num_samples):
+    output_file = compute_output_file(model, num_samples)
+    if output_file.exists():
+        dataset_json: t.List[TaskJSONWithOutput] = json.loads(output_file.read_text())
+        tasks = [Task.from_json_with_output(task_json) for task_json in dataset_json]
+    else:
+        print(f"Output file {output_file} does not exist")
+        return
+
+    num_completions = sum([len(task.completions) for task in tasks])
+    average_num_completion = num_completions / len(tasks)
+
+    print(f"Total tasks: {len(tasks)}")
+    print(f"Total completions: {num_completions}")
+    print(f"Average completions per task: {average_num_completion}")
+
+    num_tasks_with_operator_coverage = sum(
+        [0 if len(task.tf_operators.keys()) == 0 else 1 for task in tasks]
+    )
+
+    print(f"Total tasks with operator coverage: {num_tasks_with_operator_coverage}")
+
+    num_constants = sum(
+        [
+            len(
+                [
+                    constants
+                    for constants in task.constant_counts
+                    if constants is not None
+                ]
+            )
+            for task in tasks
+        ]
+    )
+    average_num_constants = num_constants / len(tasks)
+
+    print(f"Total num completions with constants: {num_constants}")
+    print(f"Average num completions with constants per task: {average_num_constants}")
+
+
+@cli.command(help="sample completions")
+@click.option(
+    "-m",
+    "--model",
+    type=click.Choice(MODEL_NAMES),
+    required=True,
+    help="The model to use for sampling completions",
+)
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    default=100,
+    help="The number of completions to sample for each problem",
+)
+def sample(model, num_samples):
+    output_file = compute_output_file(model)
+
+    if output_file.exists():
+        dataset_json: t.List[TaskJSONWithOutput] = json.loads(output_file.read_text())
         tasks = [Task.from_json_with_output(task_json) for task_json in dataset_json]
     else:
         dataset_json: t.List[TaskJSON] = json.loads(DATASET_FILE.read_text())
@@ -59,14 +316,12 @@ def main():
     tasks = [task for task in tasks if task.name not in IN_CONTEXT_TASK_NAMES]
 
     def write():
-        write_output(tasks, OUTPUT_FILE)
+        write_output(tasks, output_file)
 
     print(f"Tasks: {len(tasks)}")
-    print(f"generating completions. model: {MODEL}, num_completions: {NUM_COMPLETIONS}")
+    print(f"generating completions. model: {model}, num_completions: {num_samples}")
     for task in tqdm(tasks):
-        task.get_completions(
-            in_context_section, model=MODEL, n_completions=NUM_COMPLETIONS
-        )
+        task.get_completions(in_context_section, model=model, n_completions=num_samples)
         write()
 
     print(f"computing asts")
@@ -94,22 +349,6 @@ def tqdm_print(*args, **kwargs):
 def write_output(tasks: t.List["Task"], output_file: Path):
     output_json = [task.to_json() for task in tasks]
     output_file.write_text(json.dumps(output_json, indent=4))
-
-
-ModelName = t.Literal[
-    "gpt-4",
-    "gpt-3.5-turbo",
-    "deepseek-ai/deepseek-coder-33b-instruct",
-    "codellama/CodeLlama-70b-Instruct-hf",
-    "codellama/CodeLlama-13b-Instruct-hf",
-]
-OPENAI_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo"]
-TOGETHER_MODEL_NAMES = [
-    "deepseek-ai/deepseek-coder-33b-instruct",
-    "codellama/CodeLlama-70b-Instruct-hf",
-    "codellama/CodeLlama-13b-Instruct-hf",
-]
-MODEL_NAMES = OPENAI_MODEL_NAMES + TOGETHER_MODEL_NAMES
 
 
 class OutputJSON(t.TypedDict):
