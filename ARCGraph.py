@@ -797,7 +797,7 @@ class ARCGraph:
         """
         if isinstance(degree2, Tuple): # object
             for neighbor in self.graph.neighbors(degree2):
-                if self.graph.nodes[neighbor]["degree"] == degree:
+                if self.graph.degree[degree2] == degree:
                     return True
             return False
         else:
@@ -1237,8 +1237,6 @@ class ARCGraph:
             args = [child.value for child in filter.children]
             filter_method = getattr(self, filter_name, None)
             if filter_method:
-                print("filter_method:", filter_method, filter_name, *args, node)
-                print("debugging:", len([*args]))
                 if len([*args]) == 2:
                     return getattr(self, filter_name)(*args)
                 elif len([*args]) == 1:
