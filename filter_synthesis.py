@@ -20,6 +20,8 @@ class FSizeEnumerator:
         self.currIter = LookaheadIterator(chain(iter(vocab.leaves()), iter(self.vocab.nonLeaves())))
         self.rootMaker = self.currIter.next()
         self.childrenIterator = LookaheadIterator(iter([None]))
+        self.childrenIterators = []
+        self.currentChildIteratorIndex = 0
         self.task = task
     
     def hasNext(self) -> bool:
@@ -44,7 +46,11 @@ class FSizeEnumerator:
             self.childrenIterator = LookaheadIterator(iter([None]))
         elif self.rootMaker.arity > 0: # TODO: Cost-based enumeration
             childrenCost = self.costLevel - self.rootMaker.default_size
-            self.childrenIterator = ChildrenIterator(self.rootMaker.childTypes, childrenCost, self.bank)
+            self.childrenIterators = [ChildrenIterator(
+                childType, childrenCost, self.bank) for childType in self.rootMaker.childTypes]
+            self.currentChildIteratorIndex = 0  # Keep track of which iterator is current
+            self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
+            self.rootMaker.arity = len(self.childrenIterator.childTypes)
         else:
             self.childrenIterator = LookaheadIterator(iter([]))
         return True
@@ -60,15 +66,19 @@ class FSizeEnumerator:
     def getNextProgram(self):
         res = None
         while not res:
-            if self.costLevel > 10: # TODO: parallelize filter and transform synthesis # todo: 12
+            if self.costLevel > 12: # TODO: parallelize filter and transform synthesis # todo: 12
                 break
             if self.childrenIterator.hasNext():
                 children = self.childrenIterator.next()
                 if (children is None and self.rootMaker.arity == 0) or (self.rootMaker.arity == len(children) and
-                all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes))):
+                all(child.nodeType == child_type for child, child_type in zip(children, self.rootMaker.childTypes[self.currentChildIteratorIndex]))):
                     prog = self.rootMaker.execute(self.task, children)
                     if self.oeManager.is_frepresentative(prog) or children is None:
                         res = prog
+            elif self.currentChildIteratorIndex + 1 < len(self.childrenIterators):
+                self.currentChildIteratorIndex += 1
+                self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
+                self.rootMaker.arity = len(self.childrenIterator.childTypes)
             elif self.currIter.hasNext():
                 if (not self.advanceRoot()):
                     return None
