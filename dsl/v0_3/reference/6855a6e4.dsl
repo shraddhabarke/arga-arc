@@ -2,15 +2,15 @@
     (rule
         (filter
             (and
-                (filter_by_color X)     
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_color R)
+                (color_equals obj_color X)     
+                (and
+                    (neighbor_of obj)
+                    (color_equals obj_color R)
                 )
             )
         )
         (apply
-            (mirror var_mirror)
+            (mirror varmirror)
         )
     )
 )

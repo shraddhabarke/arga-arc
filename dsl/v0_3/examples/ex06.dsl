@@ -2,10 +2,10 @@
     (rule
         (filter
             (and
-                (filter_by_size 1)
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_color X)
+                (size_equals obj_size 1)
+                (and
+                    (neighbor_of obj)
+                    (color_equals obj_color X)
                 )
             )
         )
@@ -17,10 +17,10 @@
     (rule
         (filter
             (and
-                (filter_by_size 1)
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_color Y)
+                (size_equals obj_size 1)
+                (and
+                    (neighbor_of obj)
+                    (color_equals obj_color Y)
                 )
             )
         )

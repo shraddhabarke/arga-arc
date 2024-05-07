@@ -18,10 +18,6 @@ class _Ast(ast_utils.Ast):
 
 ### Var types
 
-# @dataclass
-# class Var():
-#     pass
-
 @dataclass
 class VarUpdateColor(_Ast):
     pass
@@ -204,20 +200,20 @@ class _Transform(_Ast):
 
 @dataclass
 class UpdateColor(_Transform):
-    color: Color | VarUpdateColor
+    color: Color
 
 @dataclass
 class MoveNode(_Transform):
-    direction: Direction | VarMoveNode
+    direction: Direction
 
 @dataclass
 class ExtendNode(_Transform):
-    direction: Direction | VarExtendNode
+    direction: Direction
     overlap: Overlap
 
 @dataclass
 class MoveNodeMax(_Transform):
-    direction: Direction | VarMoveNodeMax
+    direction: Direction
 
 @dataclass
 class RotateNode(_Transform):
@@ -238,7 +234,7 @@ class HollowRectangle(_Transform):
 
 @dataclass
 class Mirror(_Transform):
-    axis: VarMirror | SymmetryAxis
+    axis: SymmetryAxis
 
 @dataclass
 class Flip(_Transform):
@@ -246,7 +242,7 @@ class Flip(_Transform):
 
 @dataclass
 class Insert(_Transform):
-    source: VarInsert | ObjectId
+    source: ObjectId
     image_points: ImagePoints
     relative_position: RelativePosition
 
@@ -275,24 +271,6 @@ class ToAst(Transformer):
     #     return Var()
 
     # Var types
-
-    def VAR_UPDATE_COLOR(self, token):
-        return VarUpdateColor()
-    
-    def VAR_MOVE_NODE(self, token):
-        return VarMoveNode()
-    
-    def VAR_EXTEND_NODE(self, token):
-        return VarExtendNode()
-    
-    def VAR_MOVE_NODE_MAX(self, token):
-        return VarMoveNodeMax()
-    
-    def VAR_MIRROR(self, token):
-        return VarMirror()
-    
-    def VAR_INSERT(self, token):
-        return VarInsert()
 
     def OBJECT_ID(self, token):
         return ObjectId(int(token.value))
@@ -377,58 +355,47 @@ class ToAst(Transformer):
         match children[0]:
             case "color_equals":
                 return Color_Equals(
-                    color=children[1]
+                    color=children[1], color=children[2]
                 )
             case "size_equals":
                 return Size_Equals(
-                    size=children[1]
+                    size=children[1], size=children[2]
                 )
             case "height_equals":
                 return Height_Equals(
-                    height=children[1]
+                    height=children[1], height=children[2]
                 )
             case "width_equals":
                 return Width_Equals(
-                    width=children[1]
+                    width=children[1], width=children[2]
                 )
             case "degree_equals":
                 return Degree_Equals(
-                    degree=children[1]
+                    degree=children[1], degree=children[2]
                 )
             case "shape_equals":
                 return Shape_Equals(
-                    shape=children[1]
+                    shape=children[1], shape=children[2]
                 )
             case "column_equals":
                 return Column_Equals(
-                    columns=children[1]
+                    columns=children[1], columns=children[2]
                 )
             case "neighbor_size":
                 return Neighbor_Size(
-                    size=children[1]
+                    size=children[1], size=children[2]
                 )
             case "neighbor_color":
                 return Neighbor_Color(
-                    color=children[1]
+                    color=children[1], color=children[2]
                 )
-            case "fneighbor_degree":
+            case "neighbor_degree":
                 return Neighbor_Degree(
-                    degree=children[1]
+                    degree=children[1], degree=children[2]
                 )
             case _:
                 # return tree
                 raise ValueError(f"Unknown filter primitive: {children[0]}")
-    
-    def filter_relation(self, children):
-        match children[0]:
-            case "is_any_neighbor":
-                return IsAnyNeighbor()
-            case "is_direct_neighbor":
-                return IsDirectNeighbor()
-            case "is_diagonal_neighbor":
-                return IsDiagonalNeighbor()
-            case _:
-                raise ValueError(f"Unknown filter relation: {children[0]}")
     
     def xform_list(self, children):
         return children

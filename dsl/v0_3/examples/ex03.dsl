@@ -7,7 +7,7 @@
     )
     (rule
         (filter
-            (filter_by_size 1)
+            (size_equals obj_size 1)
         )
         (apply
             (update_color R)

@@ -2,15 +2,15 @@
     (rule
         (filter
             (and
-                (filter_by_color X)
-                (varand
-                    (is_any_neighbor)     
-                    (filter_by_color R)
+                (color_equals obj_color X)
+                (and
+                    (neighbor_of obj)     
+                    (color_equals obj_color R)
                 )
             )
         )
         (apply
-            (move_node_max var_move_node_max)
+            (move_node_max vardirection)
         )
     )
 )

@@ -2,8 +2,8 @@
     (rule
         (filter
             (and
-                (filter_by_color X)
-                (filter_by_size min)
+                (color_equals obj_color X)
+                (size_equals obj_size min)
             )
         )
         (apply
@@ -13,8 +13,8 @@
     (rule
         (filter
             (and
-                (filter_by_color X)
-                (filter_by_size min)
+                (color_equals obj_color X)
+                (size_equals obj_size min)
             )
         )
         (apply
@@ -24,8 +24,8 @@
     (rule
         (filter
             (and
-                (filter_by_color X)
-                (filter_by_size min)
+                (color_equals obj_color X)
+                (size_equals obj_size min)
             )
         )
         (apply
