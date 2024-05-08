@@ -150,47 +150,57 @@ class Not(_FilterExpr):
 
 @dataclass
 class Color_Equals(_Ast):
-    color: FColor
+    color1: FColor
+    color2: FColor
 
 @dataclass
 class Size_Equals(_Ast):
-    size: Size
+    size1: Size
+    size2: Size
 
 @dataclass
 class Height_Equals(_Ast):
-    height: Height
+    height1: Height
+    height2: Height
 
 @dataclass
 class Width_Equals(_Ast):
-    width: Width
+    width1: Width
+    width2: Width
 
 @dataclass
 class Degree_Equals(_Ast):
-    degree: Degree
+    degree1: Degree
+    degree2: Degree
 
 @dataclass
 class Shape_Equals(_Ast):
-    shape: Shape
+    shape1: Shape
+    shape2: Shape
 
 @dataclass
 class Column_Equals(_Ast):
-    columns: Column
+    columns1: Column
+    columns2: Column
 
 @dataclass
 class Neighbor_Size(_Ast):
-    size: Size
+    size1: Size
+    size2: Size
 
 @dataclass
 class Neighbor_Color(_Ast):
-    color: Color
+    color1: Color
+    color2: Color
 
 @dataclass
 class Neighbor_Degree(_Ast):
-    degree: Degree
+    degree1: Degree
+    degree2: Degree
 
 @dataclass
-class Neighbor_Size(_Ast):
-    size: str
+class Neighbor_Of(_Ast):
+    obj: str
 
 ### Transforms
 
@@ -355,43 +365,47 @@ class ToAst(Transformer):
         match children[0]:
             case "color_equals":
                 return Color_Equals(
-                    color=children[1], color=children[2]
+                    color1=children[1], color2=children[2]
                 )
             case "size_equals":
                 return Size_Equals(
-                    size=children[1], size=children[2]
+                    size1=children[1], size2=children[2]
                 )
             case "height_equals":
                 return Height_Equals(
-                    height=children[1], height=children[2]
+                    height1=children[1], height2=children[2]
                 )
             case "width_equals":
                 return Width_Equals(
-                    width=children[1], width=children[2]
+                    width1=children[1], width2=children[2]
                 )
             case "degree_equals":
                 return Degree_Equals(
-                    degree=children[1], degree=children[2]
+                    degree1=children[1], degree2=children[2]
                 )
             case "shape_equals":
                 return Shape_Equals(
-                    shape=children[1], shape=children[2]
+                    shape1=children[1], shape2=children[2]
                 )
             case "column_equals":
                 return Column_Equals(
-                    columns=children[1], columns=children[2]
+                    columns1=children[1], columns2=children[2]
                 )
             case "neighbor_size":
                 return Neighbor_Size(
-                    size=children[1], size=children[2]
+                    size1=children[1], size2=children[2]
                 )
             case "neighbor_color":
                 return Neighbor_Color(
-                    color=children[1], color=children[2]
+                    color1=children[1], color2=children[2]
                 )
             case "neighbor_degree":
                 return Neighbor_Degree(
-                    degree=children[1], degree=children[2]
+                    degree1=children[1], degree2=children[2]
+                )
+            case "neighbor_of":
+                return Neighbor_Of(
+                    obj=children[1]
                 )
             case _:
                 # return tree
