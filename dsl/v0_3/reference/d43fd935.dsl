@@ -1,11 +1,11 @@
 (do
     (rule
+        (vars this var)
         (filter
-            (and
-                (neighbor_size obj_size max)
                 (and
-                    (neighbor_of obj)
-                    (color_equals obj_color G)
+                    (neighbor_of this var)
+                    (color_equals (color_of var) G)
+                    (size_equals (size_of var) max)
                 )
             )
         )
