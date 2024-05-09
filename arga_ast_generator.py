@@ -592,6 +592,7 @@ def test_reference_programs():
     test_dirs = [
         "dsl/v0_3/reference",
         "dsl/v0_3/examples",
+        "dsl/v0_3/ic_examples",
     ]
     for test_dir in test_dirs:
         print(f"Testing directory {test_dir}...")
@@ -604,5 +605,5 @@ def test_reference_programs():
                 print("\n")
 
 if __name__ == "__main__":
-    test_gpt_gens()
-    # test_reference_programs()
+    # test_gpt_gens()
+    test_reference_programs()

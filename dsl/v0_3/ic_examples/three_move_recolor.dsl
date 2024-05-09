@@ -1,7 +1,8 @@
 (do
     (rule
+        (vars (this))
         (filter
-            (filter_by_size 3)
+            (size_equals (size_of this) 3)
         )
         (apply
             (move_node up)

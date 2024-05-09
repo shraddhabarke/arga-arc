@@ -1,16 +1,17 @@
 (do
     (rule
+        (vars (this x))
         (filter
             (and
-                (not (filter_by_color X))
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_color X)
+                (not (color_equals (color_of this) X))
+                (and
+                    (neighbor_of this x)
+                    (color_equals (color_of x) X)
                 )
             )
         )
         (apply
-            (move_node_max var_move_node_max)
+            (move_node_max (direction_of x))
         )
     )
 )

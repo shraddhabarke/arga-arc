@@ -1,16 +1,17 @@
 (do
     (rule
+        (vars (this x))
         (filter
             (and
-                (filter_by_size 1)
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_size max)
+                (size_equals (size_of this) 1)
+                (and
+                    (neighbor_of this x)
+                    (size_equals (size_of x) max)
                 )
             )
         )
         (apply
-            (extend_node var_extend_node false)
+            (extend_node (direction_of x) false)
         )    
     )
 )
