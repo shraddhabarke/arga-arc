@@ -28,9 +28,14 @@ import traceback
 from tqdm import tqdm
 import builtins
 import click
+from datetime import datetime
+import logging
+import time
 
 # need this to properly evaluate code, even though it isn't used explicitly
 import math
+
+LOGGER = logging.getLogger(__name__)
 
 DATASET_FILE = CONFIG.ROOT_DIR / "tf_coder/tfcoder_dataset.json"
 # these were originally randomly sampled, but we're keeping them hardcoded for consistency between runs
@@ -52,12 +57,26 @@ TOGETHER_MODEL_NAMES = [
 ]
 MODEL_NAMES = OPENAI_MODEL_NAMES + TOGETHER_MODEL_NAMES
 
+# region CLI
+
 
 def compute_output_file(model: ModelName, n: t.Optional[int] = None):
     return (
         CONFIG.ROOT_DIR
         / "tf_coder"
-        / f"tfcoder_output.{model}{'.' if n is None else '.' + str(n) + '.'}json"
+        / f"tfcoder_output.{model.replace('/', '__')}{'.' if n is None else '.' + str(n) + '.'}json"
+    )
+
+
+def setup_logging(name: str):
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+        filename=CONFIG.ROOT_DIR
+        / "tf_coder"
+        / f"utils_{name.replace('/', '__')}_{now}.log",
+        filemode="w",
     )
 
 
@@ -204,6 +223,7 @@ def merge(file, output):
     help="The number of completions to sample for each problem. used to identify the output file",
 )
 def parse(model, num_samples):
+    setup_logging(f"{model}_parse")
     output_file = compute_output_file(model, num_samples)
     if output_file.exists():
         dataset_json: t.List[TaskJSONWithOutput] = json.loads(output_file.read_text())
@@ -215,7 +235,12 @@ def parse(model, num_samples):
     tasks = [task for task in tasks if task.name not in IN_CONTEXT_TASK_NAMES]
 
     def write():
-        write_output(tasks, OUTPUT_FILE)
+        write_output(tasks, output_file)
+
+    print(f"computing asts")
+    for task in tqdm(tasks):
+        task.compute_asts()
+        write()
 
     print(f"computing operator coverage")
     for task in tqdm(tasks):
@@ -299,6 +324,7 @@ def stats(model, num_samples):
     help="The number of completions to sample for each problem",
 )
 def sample(model, num_samples):
+    setup_logging(model)
     output_file = compute_output_file(model)
 
     if output_file.exists():
@@ -321,12 +347,21 @@ def sample(model, num_samples):
     print(f"Tasks: {len(tasks)}")
     print(f"generating completions. model: {model}, num_completions: {num_samples}")
     for task in tqdm(tasks):
-        task.get_completions(in_context_section, model=model, n_completions=num_samples)
-        write()
+        try:
+            task.get_completions(
+                in_context_section, model=model, n_completions=num_samples
+            )
+            write()
+        except Exception as e:
+            print(f"Error sampling completions for task {task.name}")
+            print(f"Error: {e}")
+            traceback.print_exc()
+            continue
 
     print(f"computing asts")
     for task in tqdm(tasks):
         task.compute_asts()
+        write()
 
     print(f"computing operator coverage")
     for task in tqdm(tasks):
@@ -344,6 +379,7 @@ def tqdm_print(*args, **kwargs):
     if not args:
         args = [""]
     tqdm.write(*args, **kwargs)
+    LOGGER.info(" ".join([str(arg) for arg in args]))
 
 
 def write_output(tasks: t.List["Task"], output_file: Path):
@@ -351,6 +387,7 @@ def write_output(tasks: t.List["Task"], output_file: Path):
     output_file.write_text(json.dumps(output_json, indent=4))
 
 
+# endregion CLI
 class OutputJSON(t.TypedDict):
     task_id: str
     completions: t.List[str]
@@ -377,6 +414,7 @@ class TaskJSON(t.TypedDict):
 
 class TaskJSONWithOutput(TaskJSON):
     completions: t.List[str]
+    normalized_completions: t.List[str]
     tf_operators: t.Dict[str, int]
     coverage_percentage: float
     total_covered: int
@@ -516,6 +554,7 @@ class Task:
     examples: Example
 
     completions: t.List[str] = field(default_factory=list)
+    normalized_completions: t.List[str] = field(default_factory=list)
     tf_operators: t.Dict[str, int] = field(default_factory=dict)
     coverage_percentage: float = 0.0
     total_covered: int = 0
@@ -543,6 +582,8 @@ class Task:
         ans = cls.from_json(task_json)
         if "completions" in task_json:
             ans.completions = task_json["completions"]
+        if "normalized_completions" in task_json:
+            ans.normalized_completions = task_json["normalized_completions"]
         if "tf_operators" in task_json:
             ans.tf_operators = task_json["tf_operators"]
         if "coverage_percentage" in task_json:
@@ -570,6 +611,7 @@ class Task:
             "constants": self.constants,
             "examples": self.examples.toJSON(),
             "completions": self.completions,
+            "normalized_completions": self.normalized_completions,
             "tf_operators": self.tf_operators,
             "coverage_percentage": self.coverage_percentage,
             "total_covered": self.total_covered,
@@ -579,6 +621,10 @@ class Task:
             "constant_counts": self.constant_counts,
             "aggregate_constant_count": self.aggregate_constant_count,
         }
+
+    @property
+    def function_definition(self) -> str:
+        return f"def transform({self.examples.formals}):"
 
     def make_user_message(
         self, in_context_examples: str, shuffle_operators=True, order_by_weight=False
@@ -608,7 +654,7 @@ class Task:
 {outputs_str}
 """
         ans += f"""[PROGRAM]
-def transform({self.examples.formals}):
+{self.function_definition}
     """
         if include_program:
             ans += f"return {self.target_program}\n"
@@ -648,24 +694,49 @@ def transform({self.examples.formals}):
         return coverage_dict
 
     def compute_asts(self):
+        num_errored = 0
         for completion in self.completions:
             try:
                 self.__asts.append(ast.parse(completion))
+                self.normalized_completions.append(completion)
                 continue
-            except SyntaxError:
+            except Exception:
                 pass
 
-            normalized = normalize_completion(completion)
-            try:
-                self.__asts.append(ast.parse(normalized))
-            except SyntaxError:
-                print(f"Error parsing completion")
-                print(f"Original: {completion}")
-                print(f"Normalized: {normalized}")
-                print(f"Error:")
-                traceback.print_exc()
+            extracted = extract_code(completion)
+            normalized = None
+
+            if extracted is None:
+                num_errored += 1
+                print(f"# Error extracting completion")
+                print(f"## completion")
+                print('"""' + completion + '"""')
+                print()
                 print()
                 self.__asts.append(None)
+                self.normalized_completions.append(None)
+                continue
+
+            try:
+                normalized = normalize_code(extracted, self.function_definition)
+                self.__asts.append(ast.parse(normalized))
+                self.normalized_completions.append(normalized)
+            except Exception:
+                num_errored += 1
+                print(f"# Error parsing completion")
+                print(f"## completion)")
+                print(completion)
+                print()
+                print("## Normalized")
+                print(normalized)
+                print()
+                print(f"## Error:")
+                traceback.print_exc()
+                print()
+                print()
+                self.__asts.append(None)
+                self.normalized_completions.append(None)
+        print(f"Errored: {num_errored}")
 
     def compute_constants(self):
         self.parsed_constants = [
@@ -709,6 +780,8 @@ SYSTEM_PROMPT = """You are a coding assistant. Be precise and terse.
 You will be provided a list of tensorflow operators, a task description, and some input/output examples.
 Your task is to generate the body of a python function that will transform the input to the output.
 Only use the operators provided in the list.
+Your answer should be as short as possible while still being correct.
+Make sure to only generate python code.
 """
 
 TFOPERATORS_STR = (
@@ -946,6 +1019,8 @@ def prompt(
         n=n_completions,
         temperature=1.0,
         model=model,
+        max_tokens=300,
+        stop=["[TASK DESCRIPTION]", "[SYSTEM]", "[USER]"],
     )
 
     if model in TOGETHER_MODEL_NAMES:
@@ -995,16 +1070,76 @@ def calculate_tf_operator_coverage_and_count(
     }
 
 
-CODE_BLOCK_REGEX = r".*```(?:[\w\s]+)?\n(.*?)\n```.*"
+CODE_BLOCK_REGEX = r".*```(?:[\w\s]+)?\n(.*?)\n```\n.*"
 CODE_LINE_REGEX = r".*`(.*)`.*"
 DEF_LINE_REGEX = r"\s*def\s+\w+\(.*\):"
-RETURN_REGEX = r"([\s]+)return"
+RETURN_REGEX = r"([\s]*)return"
 ASSIGN_REGEX = r"([\s]+)([a-zA-Z_][a-zA-Z0-9_\s,]*)([\s]+)="
 IMPORT_REGEX = r"([\s]+)import"
 CATCHALL_REGEX = r"^([\s]+)(.*)"
 
 
-def normalize_completion(completion: str) -> str:
+def extract_code(completion: str) -> t.Optional[str]:
+    # extract from code block
+    match = re.match(CODE_BLOCK_REGEX, completion, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+
+    # extract from code line
+    match = re.match(CODE_LINE_REGEX, completion)
+    if match:
+        return match.group(1).strip()
+
+    # extract a prefix that ends in a return line
+    lines = completion.split("\n")
+    code_lines = []
+    for line in lines:
+        code_lines.append(line)
+        if re.match(RETURN_REGEX, line):
+            return ("\n".join(code_lines)).strip()
+
+    return None
+
+
+def normalize_code(code: str, def_line: str) -> str:
+    if "def" in code:
+        return code
+
+    indent_level = detect_indent_level(code)
+    if indent_level == 0:
+        indent_level = 4
+    prefix_indent = lowest_indent_level(code)
+
+    lines = code.split("\n")
+    indented_lines = [(" " * indent_level) + line[prefix_indent:] for line in lines]
+    return def_line + "\n" + "\n".join(indented_lines)
+
+
+def detect_indent_level(code):
+    lines = code.split("\n")
+    indent_levels = [len(line) - len(line.lstrip()) for line in lines if line.strip()]
+
+    if not indent_levels:
+        return 0
+
+    gcd_indent_level = indent_levels[0]
+    for indent_level in indent_levels[1:]:
+        gcd_indent_level = math.gcd(gcd_indent_level, indent_level)
+
+    return gcd_indent_level
+
+
+def lowest_indent_level(code):
+    lines = code.split("\n")
+    indent_levels = [len(line) - len(line.lstrip()) for line in lines if line.strip()]
+
+    if not indent_levels:
+        return 0
+
+    return min(indent_levels)
+
+
+def OLD_normalize_completion(completion: str) -> str:
     match = re.match(CODE_BLOCK_REGEX, completion, re.DOTALL)
     if match:
         completion = match.group(1)
