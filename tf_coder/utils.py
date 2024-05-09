@@ -122,24 +122,12 @@ def resample(model: ModelName, num_samples: t.List[int]):
         for task in tasks:
             if task.name in IN_CONTEXT_TASK_NAMES:
                 continue
-            usable_completion_idxs = [
-                i
-                for i, s in enumerate(task.completions)
-                if task.constant_counts[i] is not None
-            ]
-            usable_completions = [task.completions[i] for i in usable_completion_idxs]
-            usable_parsed_constants = [
-                task.parsed_constants[i] for i in usable_completion_idxs
-            ]
-            usable_constant_counts = [
-                task.constant_counts[i] for i in usable_completion_idxs
-            ]
 
-            if len(usable_completions) < n:
+            if len(task.completions) < n:
                 print(f"Task {task.name} has less than {n} usable completions")
                 continue
 
-            idxs = random.sample(range(len(usable_completions)), n)
+            idxs = random.sample(range(len(task.completions)), n)
             resampled_task = Task(
                 task.name,
                 task.description,
@@ -147,9 +135,9 @@ def resample(model: ModelName, num_samples: t.List[int]):
                 task.source,
                 task.constants,
                 task.examples,
-                completions=[usable_completions[i] for i in idxs],
-                parsed_constants=[usable_parsed_constants[i] for i in idxs],
-                constant_counts=[usable_constant_counts[i] for i in idxs],
+                completions=[task.completions[i] for i in idxs],
+                parsed_constants=[task.parsed_constants[i] for i in idxs],
+                constant_counts=[task.constant_counts[i] for i in idxs],
             )
             resampled_task.compute_asts()
             resampled_task.compute_operator_coverage()
@@ -1070,49 +1058,117 @@ def calculate_tf_operator_coverage_and_count(
     }
 
 
-CODE_BLOCK_REGEX = r".*```(?:[\w\s]+)?\n(.*?)\n```\n.*"
-CODE_LINE_REGEX = r".*`(.*)`.*"
-DEF_LINE_REGEX = r"\s*def\s+\w+\(.*\):"
-RETURN_REGEX = r"([\s]*)return"
-ASSIGN_REGEX = r"([\s]+)([a-zA-Z_][a-zA-Z0-9_\s,]*)([\s]+)="
-IMPORT_REGEX = r"([\s]+)import"
-CATCHALL_REGEX = r"^([\s]+)(.*)"
-
-
 def extract_code(completion: str) -> t.Optional[str]:
-    # extract from code block
-    match = re.match(CODE_BLOCK_REGEX, completion, re.DOTALL)
-    if match:
-        return match.group(1).strip()
+    plain_code_result = extract_plain_code(completion)
+    code_block_result = extract_code_block(completion)
 
-    # extract from code line
-    match = re.match(CODE_LINE_REGEX, completion)
-    if match:
-        return match.group(1).strip()
+    if plain_code_result is None:
+        return code_block_result
 
-    # extract a prefix that ends in a return line
-    lines = completion.split("\n")
-    code_lines = []
-    for line in lines:
-        code_lines.append(line)
-        if re.match(RETURN_REGEX, line):
-            return ("\n".join(code_lines)).strip()
+    if code_block_result is None:
+        return plain_code_result
 
-    return None
+    if code_block_result in plain_code_result:
+        return code_block_result
+
+    return plain_code_result
 
 
 def normalize_code(code: str, def_line: str) -> str:
     if "def" in code:
         return code
 
+    try:
+        _ast = ast.parse(code)
+        # if ast is an expression
+        if isinstance(_ast.body[0], ast.Expr):
+            code = f"return {code.strip()}"
+    except:
+        pass
+
     indent_level = detect_indent_level(code)
     if indent_level == 0:
         indent_level = 4
-    prefix_indent = lowest_indent_level(code)
+    lowest_indent_level, highest_indent_level = indent_level_range(code)
 
     lines = code.split("\n")
-    indented_lines = [(" " * indent_level) + line[prefix_indent:] for line in lines]
+    indented_lines = [
+        (" " * indent_level) + line[lowest_indent_level:] for line in lines
+    ]
     return def_line + "\n" + "\n".join(indented_lines)
+
+
+HEADER_REGEX = r"^\w*\[[\w\s]+\]\w*$"
+
+
+def remove_empty_or_header_leading_lines(code: str) -> str:
+    lines = code.split("\n")
+    ans = []
+    in_code = False
+    # remove any lines with just whitespace from the beginning and end
+    for line in lines:
+        is_empty_or_header = line.strip() == "" or (
+            re.match(HEADER_REGEX, line) is not None
+        )
+        if is_empty_or_header and not in_code:
+            continue
+        if not is_empty_or_header:
+            in_code = True
+        ans.append(line)
+
+    return "\n".join(ans)
+
+
+DEF_LINE_REGEX = r"\s*def\s+\w+\(.*\):"
+DEF_TRANSFORM_REGEX = r"^\s*def\s+transform\(.*\):"
+RETURN_REGEX = r"([\s]*)return"
+
+
+def extract_plain_code(completion: str) -> t.Optional[str]:
+    lines = remove_empty_or_header_leading_lines(completion).split("\n")
+
+    match = re.search(DEF_TRANSFORM_REGEX, completion, re.MULTILINE)
+    if match:
+        # lines = lines after def transform
+        def_idx = next(
+            (i for i, line in enumerate(lines) if re.match(DEF_TRANSFORM_REGEX, line)),
+            None,
+        )
+        return_ids = next(
+            (i for i, line in enumerate(lines) if re.search(RETURN_REGEX, line)), None
+        )
+        if def_idx is not None:
+            lines = lines[def_idx:]
+
+    code_lines = []
+    seen_multiline_return = False
+    for line in lines:
+        code_lines.append(line)
+        if re.search(RETURN_REGEX, line):
+            # unmatched open-parens indicate a multi-line return
+            if line.count("(") > line.count(")"):
+                seen_multiline_return = True
+            else:
+                return "\n".join(code_lines)
+        if seen_multiline_return and line.strip() == "":
+            return "\n".join(code_lines)
+
+    if seen_multiline_return:
+        return "\n".join(code_lines)
+    else:
+        return None
+
+
+CODE_BLOCK_REGEX = r"```((?:(?!\n).)*\n)?((?:(?!```).)*)```"
+
+
+def extract_code_block(completion: str) -> t.Optional[str]:
+    match = re.search(CODE_BLOCK_REGEX, completion, re.DOTALL)
+    if match:
+        group_number = len(match.groups())
+        return remove_empty_or_header_leading_lines(match.group(group_number)).rstrip()
+    else:
+        return None
 
 
 def detect_indent_level(code):
@@ -1129,44 +1185,14 @@ def detect_indent_level(code):
     return gcd_indent_level
 
 
-def lowest_indent_level(code):
+def indent_level_range(code):
     lines = code.split("\n")
     indent_levels = [len(line) - len(line.lstrip()) for line in lines if line.strip()]
 
     if not indent_levels:
-        return 0
+        return 0, 0
 
-    return min(indent_levels)
-
-
-def OLD_normalize_completion(completion: str) -> str:
-    match = re.match(CODE_BLOCK_REGEX, completion, re.DOTALL)
-    if match:
-        completion = match.group(1)
-    else:
-        match = re.match(CODE_LINE_REGEX, completion)
-        if match:
-            completion = match.group(1)
-
-    try:
-        ast.parse(completion)
-        return completion
-    except SyntaxError:
-        pass
-
-    lines = completion.split("\n")
-    if re.match(DEF_LINE_REGEX, lines[0]):
-        return completion
-
-    normalized_lines = []
-    for line in lines:
-        normalized_line = re.sub(RETURN_REGEX, "return", line)
-        normalized_line = re.sub(ASSIGN_REGEX, r"\2 =", normalized_line)
-        normalized_line = re.sub(IMPORT_REGEX, "import", normalized_line)
-        normalized_line = re.sub(CATCHALL_REGEX, r"\2", normalized_line)
-        normalized_lines.append(normalized_line)
-    normalized_completion = "\n".join(normalized_lines)
-    return normalized_completion
+    return min(indent_levels), max(indent_levels)
 
 
 class ConstantVisitor(ast.NodeVisitor):
@@ -1332,6 +1358,7 @@ class CountConstantVisitor(ast.NodeVisitor):
             value = None
         if (
             value is not None
+            and self.output_shape is not None
             and len(value) == len(self.output_shape)
             and all([v == o for v, o in zip(value, self.output_shape)])
         ):
