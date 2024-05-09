@@ -8,7 +8,9 @@ program: "(" "do" rule* ")"
 // This filter expression can also refer to one additional object, which is not transformed,
 // but whose properties can be used by the transform expressions.
 // Then, it defines a list of transforms that will be applied objects that satisfy the filter expression.
-rule: "(" "rule" filter xform_list ")"
+rule: "(" "rule" decl filter xform_list ")"
+
+decl: "(" "vars" VAR_THIS VAR_OTHER+ ")"
 
 // A filter is a predicate over the objects in the grid.
 // If no filter is given, then all the objects are selected.
@@ -22,37 +24,62 @@ filter_expr: filter_prim
            | "(" OP_OR filter_expr filter_expr ")"
            | "(" OP_NOT filter_expr ")"
 
-filter_prim: "(" FL_BY_COLOR FCOLOR FCOLOR ")"           // select objects of the given color
-           | "(" FL_BY_SIZE SIZE SIZE ")"                // select the objects that have the given size
-           | "(" FL_BY_HEIGHT HEIGHT HEIGHT ")"          // select all objects that have a given height
-           | "(" FL_BY_WIDTH WIDTH WIDTH ")"             // select all objects that have a given width
-           | "(" FL_BY_DEGREE DEGREE DEGREE ")"          // select all objects that have a given number of neighbors i.e degree
-           | "(" FL_BY_SHAPE SHAPE SHAPE ")"             // select all objects that have the given shape
-           | "(" FL_BY_COLUMNS COLUMN COLUMN ")"         // select all objects that are in the given column
-           | "(" FL_BY_NEIGHBOR_SIZE SIZE SIZE ")"       // select all objects that have a neighbor of the given size
-           | "(" FL_BY_NEIGHBOR_COLOR FCOLOR FCOLOR ")"  // select all objects that have a neighbor of the given color
-           | "(" FL_BY_NEIGHBOR_DEGREE DEGREE DEGREE ")" // select all objects that have a neighbor of the given degree
-           | "(" FL_BY_OBJ OBJ ")" // 
+filter_prim: "(" COLOR_EQ fcolor_expr fcolor_expr ")"           // select objects of the given color
+           | "(" SIZE_EQ size_expr size_expr ")"                // select the objects that have the given size
+           | "(" HEIGHT_EQ height_expr height_expr ")"          // select all objects that have a given height
+           | "(" WIDTH_EQ width_expr width_expr ")"             // select all objects that have a given width
+           | "(" DEGREE_EQ degree_expr degree_expr ")"          // select all objects that have a given number of neighbors i.e degree
+           | "(" SHAPE_EQ shape_expr shape_expr ")"             // select all objects that have the given shape
+           | "(" COLUMN_EQ column_expr column_expr ")"         // select all objects that are in the given column
+           | "(" NEIGHBOR_OF VAR VAR ")" // 
+
 
 // Transforms are applied one after another, in the order they appear.
 xform_list: "(" "apply" xform+ ")"
 
 // A single transform is applied to all the objects that are bound to the `this` variable. 
 // The transform is applied to each such object independently and simultaneously.
-xform:     "(" TR_UPDATE_COLOR COLOR ")"                          // change this object color to the given color 
-         | "(" TR_MOVE_NODE DIRECTION ")"                         // move this object in the given direction
-         | "(" TR_EXTEND_NODE DIRECTION OVERLAP ")"               // extend (move while leaving a trail) this object in the given direction
+xform:     "(" TR_UPDATE_COLOR color_expr ")"                          // change this object color to the given color 
+         | "(" TR_MOVE_NODE direction_expr ")"                         // move this object in the given direction
+         | "(" TR_EXTEND_NODE direction_expr OVERLAP ")"               // extend (move while leaving a trail) this object in the given direction
                                                                   // if overlap is false, then the object is extended until it hits another object,
                                                                   // otherwise it is extended until the edge of the grid.
-         | "(" TR_MOVE_NODE_MAX DIRECTION ")"                     // move this object until it hits another object, in the given direction
+         | "(" TR_MOVE_NODE_MAX direction_expr ")"                     // move this object until it hits another object, in the given direction
          | "(" TR_ROTATE_NODE ROT_ANGLE ")"                       // rotate this object by the given angle
-         | "(" TR_ADD_BORDER COLOR ")"                            // color this exterior pixels of the object with the given color
-         | "(" TR_FILL_RECTANGLE COLOR OVERLAP ")"                // color this interior of a hollow rectangle with the given color
-         | "(" TR_HOLLOW_RECTANGLE COLOR ")"                      // color this interior of a solid rectangle with the given color
+         | "(" TR_ADD_BORDER color_expr ")"                            // color this exterior pixels of the object with the given color
+         | "(" TR_FILL_RECTANGLE color_expr OVERLAP ")"                // color this interior of a hollow rectangle with the given color
+         | "(" TR_HOLLOW_RECTANGLE color_expr ")"                      // color this interior of a solid rectangle with the given color
          | "(" TR_MIRROR MIRROR_AXIS ")"
          | "(" TR_FLIP SYMMETRY_AXIS ")"                          // flip this object with respect to the given axis
          | "(" TR_INSERT OBJECT_ID IMAGE_POINTS RELATIVE_POSITION ")" // insert a copy of this object at the position of the given object
          | "(" TR_NOOP ")"                                        // do nothing
+
+fcolor_expr: FCOLOR
+           | "(" COLOR_OF VAR ")"
+
+color_expr: COLOR
+          | "(" COLOR_OF VAR ")"
+
+size_expr: SIZE
+         | "(" SIZE_OF VAR ")"
+
+height_expr: HEIGHT
+           | "(" HEIGHT_OF VAR ")"
+
+width_expr: WIDTH
+          | "(" WIDTH_OF VAR ")"
+
+degree_expr: DEGREE
+           | "(" DEGREE_OF VAR ")" 
+
+shape_expr: SHAPE
+          | "(" SHAPE_OF VAR ")"
+
+column_expr: COLUMN
+           | "(" COLUMN_OF VAR ")"
+
+direction_expr: DIRECTION
+              | "(" DIRECTION_OF VAR ")"
 
 OBJECT_ID: /[0-9]+/
 FCOLOR: "O" // black
@@ -65,13 +92,14 @@ FCOLOR: "O" // black
       | "A" // orange
       | "C" // cyan  
       | "W" // brown
-      | "obj_color" // color of objects
-SIZE: "min" | "max" | "odd" | /[0-9]+/ | "obj_size" // size of objects
-DEGREE: "min" | "max" | "odd" | /[0-9]+/ | "obj_degree" // degree of objects
-HEIGHT: "min" | "max" | "odd" | /[0-9]+/ | "obj_height" // height of objects
-WIDTH: "min" | "max" | "odd" | /[0-9]+/ | "obj_width" // width of objects
-COLUMN: "center" | "even" | /[0-9]+/ | "obj_col" // column of objects
-SHAPE: "square" | "enclosed" | "obj_shape" // shape of objects
+      // | "obj_color" // color of objects
+
+SIZE: "min" | "max" | "odd" | /[0-9]+/  // size of objects
+DEGREE: "min" | "max" | "odd" | /[0-9]+/  // degree of objects
+HEIGHT: "min" | "max" | "odd" | /[0-9]+/  // height of objects
+WIDTH: "min" | "max" | "odd" | /[0-9]+/  // width of objects
+COLUMN: "center" | "even" | /[0-9]+/  // column of objects
+SHAPE: "square" | "enclosed"  // shape of objects
 
 DIRECTION: "up"
          | "down"
@@ -81,10 +109,11 @@ DIRECTION: "up"
          | "up_right"
          | "down_left"
          | "down_right"
-         | "vardirection"
+
 OBJ: "obj"
 SYMMETRY_AXIS: "vertical" | "horizontal" | "diagonal_left" | "diagonal_right"
-MIRROR_AXIS: "varmirror"
+MIRROR_AXIS: VAR
+
 // The angle of clockwise rotation, in degrees.
 ROT_ANGLE: "0" 
          | "90" 
@@ -101,33 +130,46 @@ COLOR: "O" // black
       | "A" // orange
       | "C" // cyan  
       | "W" // brown
-      | "varcolor" // variable color
+      // | "varcolor" // variable color
 
 OVERLAP: BOOL
 
 BOOL: "true" | "false"
 
-IMAGE_POINTS: "top" | "bottom" | "left" | "right" | "top_left" | "top_right" | "bottom_left" | "bottom_right" | "varimagepoints"
+IMAGE_POINTS: "top" | "bottom" | "left" | "right" | "top_left" | "top_right" | "bottom_left" | "bottom_right" 
 
 RELATIVE_POSITION: "source"
                  | "target"
                  | "middle"
 
+VAR: VAR_THIS | VAR_OTHER
+VAR_THIS: "this"
+VAR_OTHER: /[a-z]+/
+
 OP_AND: "and"
 OP_OR: "or"
 OP_NOT: "not"
 
-FL_BY_COLOR: "color_equals"
-FL_BY_SIZE: "size_equals"
-FL_BY_DEGREE: "degree_equals"
-FL_BY_HEIGHT: "height_equals"
-FL_BY_WIDTH: "width_equals"
-FL_BY_SHAPE: "shape_equals"
-FL_BY_COLUMNS: "column_equals"
-FL_BY_NEIGHBOR_SIZE: "neighbor_size"
-FL_BY_NEIGHBOR_COLOR: "neighbor_color"
-FL_BY_NEIGHBOR_DEGREE: "neighbor_degree"
-FL_BY_OBJ: "neighbor_of"
+COLOR_OF: "color_of"
+SIZE_OF: "size_of"
+HEIGHT_OF: "height_of"
+WIDTH_OF: "width_of"
+DEGREE_OF: "degree_of"
+SHAPE_OF: "shape_of"
+COLUMN_OF: "column_of"
+DIRECTION_OF: "direction_of"
+
+COLOR_EQ: "color_equals"
+SIZE_EQ: "size_equals"
+DEGREE_EQ: "degree_equals"
+HEIGHT_EQ: "height_equals"
+WIDTH_EQ: "width_equals"
+SHAPE_EQ: "shape_equals"
+COLUMN_EQ: "column_equals"
+// FL_BY_NEIGHBOR_SIZE: "neighbor_size"
+// FL_BY_NEIGHBOR_COLOR: "neighbor_color"
+// FL_BY_NEIGHBOR_DEGREE: "neighbor_degree"
+NEIGHBOR_OF: "neighbor_of"
 
 TR_UPDATE_COLOR: "update_color"
 TR_MOVE_NODE: "move_node"
