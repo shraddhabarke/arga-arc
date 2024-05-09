@@ -590,7 +590,7 @@ def test_reference_programs():
     xformer = ast_utils.create_transformer(this_module, ToAst())
 
     test_dirs = [
-        # "dsl/v0_3/reference",
+        "dsl/v0_3/reference",
         "dsl/v0_3/examples",
     ]
     for test_dir in test_dirs:
