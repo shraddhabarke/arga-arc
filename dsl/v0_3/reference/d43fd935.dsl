@@ -1,16 +1,16 @@
 (do
     (rule
+        (vars this var)
         (filter
-            (and
-                (filter_by_neighbor_size max)
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_color G)
+                (and
+                    (neighbor_of this var)
+                    (color_equals (color_of var) G)
+                    (size_equals (size_of var) max)
                 )
             )
         )
         (apply
-            (extend_node var_extend_node true)
+            (extend_node vardirection true)
         )
     )
 )

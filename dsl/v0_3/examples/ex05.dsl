@@ -2,15 +2,15 @@
     (rule
         (filter
             (and
-                (filter_by_size 1)
-                (varand
-                    (is_any_neighbor)
-                    (filter_by_color X)
+                (size_equals obj_size 1)
+                (and
+                    (neighbor_of obj)
+                    (color_equals obj_color X)
                 )
             )
         )
         (apply
-            (extend_node var_extend_node false)
+            (extend_node vardirection false)
         )
     )
 )
