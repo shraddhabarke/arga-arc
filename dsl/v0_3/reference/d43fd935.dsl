@@ -1,6 +1,6 @@
 (do
     (rule
-        (vars this var)
+        (vars (this var))
         (filter
             (and
                 (neighbor_of this var)
