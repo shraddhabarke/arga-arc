@@ -1,16 +1,17 @@
 (do
     (rule
+        (vars (this x))
         (filter
             (and
-                (filter_by_size 1)
-                (varand
-                    (is_any_neighbor)
-                    (filter_by_color X)
+                (size_equals (size_of this) 1)
+                (and
+                    (neighbor_of this x)
+                    (color_equals (color_of x) X)
                 )
             )
         )
         (apply
-            (extend_node var_extend_node false)
+            (extend_node (direction_of x) false)
         )
     )
 )

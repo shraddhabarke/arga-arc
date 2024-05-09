@@ -10,7 +10,7 @@ from transform import *
 from filters import *
 from transform import *
 from collections import defaultdict
-
+from variableiterator import *
 
 class Task:
     # all_possible_abstractions = Image.abstractions
@@ -242,7 +242,7 @@ class Task:
         og_graph = self.input_abstracted_graphs_original[self.abstraction]
         # TODO: some issue here for na, mcccg
         for idx, transform in enumerate(all_transforms):
-            if "Var" in transform.code: # just store the spec so you don't have to compute it again!
+            if "Var" in transform.code: # just store the params so you don't have to compute it again!
                 transformed_values = transform.values_apply
                 for values, input_abstracted_graph in zip(transformed_values, og_graph):
                     input_abstracted_graph.var_apply_all(
@@ -274,7 +274,7 @@ class Task:
 
         return [self.input_abstracted_graphs_original[self.abstraction]]
 
-    def filter_values(self, filter: FilterASTNode):
+    def filter_values(self, filter: FilterASTNode): # returns the objects that satisfy the filter
         filtered_nodes, filtered_nodes_dict_list = [], []
         self.input_abstracted_graphs_original[self.abstraction] = [
             getattr(input, Image.abstraction_ops[self.abstraction])()
@@ -322,6 +322,7 @@ class Task:
                         if relative_pos is not None:
                             object_params_dict[node_obj].append(
                                 (relative_pos, node_other))
+
         elif "Flip" in transformation.code:
             for node_obj in input_graph.graph.nodes():
                 for node_other, _ in input_graph.graph.nodes(data=True):
@@ -342,7 +343,6 @@ class Task:
                         object_params_dict[node_obj].append((input_graph.get_centroid(node_other), node_other))
 
         elif "mirror" in transformation.code:
-            print("transformation-mirror:", transformation.code)
             for node_obj in input_graph.graph.nodes():
                 for neighbor in input_graph.graph.neighbors(node_obj):
                     target_axis = input_graph.get_mirror_axis(
@@ -351,10 +351,10 @@ class Task:
                     if target_axis is not None:
                             object_params_dict[node_obj].append(
                                 (target_axis, neighbor))
-        return object_params_dict, set(object_params)
+        return object_params_dict
 
-    def compute_transformed_values(self, input_graph, output_graph, diff_nodes, filter, transformation):
-        object_params_dict, _ = self.compute_transformation_params(input_graph, transformation)
+    def compute_transformed_values(self, input_graph, diff_nodes, transformation):
+        object_params_dict = self.compute_transformation_params(input_graph, transformation)
         object_params_dict = {k: v for k, v in object_params_dict.items() if k in diff_nodes} # only looking at the nodes which have changed
         per_task_spec = {}
         # Store the objects from which the parameter is being derived, later for filter synthesis
@@ -374,12 +374,12 @@ class Task:
             combination_dict = {key: value for key, value in zip(object_params_dict.keys(), combination)}
             result_unique.append(combination_dict)
         # result-unique is each of the possible value assignments -- 
-        # result-unique = [{(5, 0): 5, (5, 1): 2, (5, 2): 8}, {(5, 0): 5, (5, 1): 2, (5, 2): 5}, {(5, 0): 5, (5, 1): 5, (5, 2): 8}, {(5, 0): 5, (5, 1): 5, (5, 2): 5}, {(5, 0): 6, (5, 1): 2, (5, 2): 8}, {(5, 0): 6, (5, 1): 2, (5, 2): 5}, {(5, 0): 6, (5, 1): 5, (5, 2): 8}, {(5, 0): 6, (5, 1): 5, (5, 2): 5}] 
-        print("result-unique:", len(result_unique), result_unique)
+        # result-unique = [{(5, 0): 5, (5, 1): 2, (5, 2): 8}, {(5, 0): 5, (5, 1): 2, (5, 2): 5}, {(5, 0): 5, (5, 1): 5, 
+        # (5, 2): 8}, {(5, 0): 5, (5, 1): 5, (5, 2): 5}, {(5, 0): 6, (5, 1): 2, (5, 2): 8}, {(5, 0): 6, (5, 1): 2, (5, 2): 5}, {(5, 0): 6, (5, 1): 5, (5, 2): 8}, {(5, 0): 6, (5, 1): 5, (5, 2): 5}] 
         return result_unique, per_task_spec
 
     def compute_all_transformed_values(self, filter, transformation, og_graph):
-        all_results = []
+        all_results, self.all_specs = [], []
         for input_graph, output_graph in zip(og_graph,
                                             self.output_abstracted_graphs_original[self.abstraction]):
             matching_nodes = [
@@ -390,10 +390,9 @@ class Task:
                     for _, out_props in output_graph.graph.nodes(data=True))
             ]
             diff_nodes = set(input_graph.graph.nodes) - set(matching_nodes)
-            value_assignments, per_task_spec = self.compute_transformed_values(input_graph, output_graph, diff_nodes, filter, transformation)
+            value_assignments, per_task_spec = self.compute_transformed_values(input_graph, diff_nodes, transformation)
             all_results.append(value_assignments)
             self.all_specs.append(per_task_spec)
-
         cartesian_product = list(product(*all_results))
         final_values_to_apply = [list(combination) for combination in cartesian_product]
         all_spec_values = []
@@ -407,22 +406,16 @@ class Task:
                         res_value[key] = specs[(key, value)]
                 all_res_values.append(res_value)
             all_spec_values.append(all_res_values)
+        self.all_specs = all_spec_values # For filter synthesis: objects from which we got values of the property under consideration; this is the format: [{(5, 0): [(5, 1), (5, 2)], (5, 1): [(2, 0)], (5, 2): [(8, 0)]}...
+        self.values_to_apply = final_values_to_apply # the actual values which will be applied; used later for sequences of transformations
+        return iter(final_values_to_apply) # Cartesian product across all tasks
 
-        self.all_specs = all_spec_values
-        self.values_to_apply = final_values_to_apply
-        print("ALL_SPECS:", len(self.all_specs)) #self.all_specs)
-        return final_values_to_apply, all_spec_values # cartesian product across all tasks
-
-    def var_transform_values(
-        self, filter: FilterASTNode, transformation: TransformASTNode
-    ):
+    def var_transform_values(self, filter: FilterASTNode, transformation: TransformASTNode):
         """
-        Returns the values of the transformed grid with different possibilities for variable transformation
+        This function initializes and returns an iterator that applies transformations to graphs.
         """
-        self.all_specs = []
         if self.abstraction == "na":
             return []
-
         self.input_abstracted_graphs_original[self.abstraction] = [
             getattr(input, Image.abstraction_ops[self.abstraction])()
             for input in self.train_input
@@ -432,15 +425,11 @@ class Task:
             for input in self.train_output
         ]
 
-        all_res, all_spec = self.compute_all_transformed_values(filter, transformation, self.input_abstracted_graphs_original[self.abstraction])
-        all_modified_graphs = []
-
-        for values in all_res:
-            self.reset_task()
-            for value, input_abstracted_graph in zip(values, self.input_abstracted_graphs_original[self.abstraction]):
-                input_abstracted_graph.var_apply_all(value, filter, transformation)
-            all_modified_graphs.append(self.input_abstracted_graphs_original[self.abstraction])
-        return all_modified_graphs # returns all possible transformed graphs!
+        value_iterator = VariableIterator(self, self.input_abstracted_graphs_original[self.abstraction],
+                                    self.output_abstracted_graphs_original[self.abstraction], filter,
+                                    transformation)
+        # Return the iterator which is now setup to yield transformed graphs
+        return value_iterator
 
     def reset_task(self):
         self.input_abstracted_graphs_original[self.abstraction] = [

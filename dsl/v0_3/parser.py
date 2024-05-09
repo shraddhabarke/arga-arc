@@ -3,7 +3,7 @@ import sys
 
 from lark import Lark
 
-import defs
+#import defs
 
 class Parser:
     def __init__(self, grammar_file):

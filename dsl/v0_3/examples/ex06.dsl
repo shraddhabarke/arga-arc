@@ -1,11 +1,12 @@
 (do
     (rule
+        (vars (this x))
         (filter
             (and
-                (filter_by_size 1)
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_color X)
+                (size_equals (size_of this) 1)
+                (and
+                    (neighbor_of this x)
+                    (color_equals (color_of x) X)
                 )
             )
         )
@@ -15,12 +16,13 @@
         )
     )
     (rule
+        (vars (this x))
         (filter
             (and
-                (filter_by_size 1)
-                (varand
-                    (is_direct_neighbor)
-                    (filter_by_color Y)
+                (size_equals (size_of this) 1)
+                (and
+                    (neighbor_of this x)
+                    (color_equals (color_of x) Y)
                 )
             )
         )

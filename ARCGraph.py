@@ -90,24 +90,24 @@ class ARCGraph:
         updated_sub_nodes = set()
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == Dir.UP:
+        if direction == "UP" or direction == Dir.UP:
             delta_y = -n
-        elif direction == "D" or direction == Dir.DOWN:
+        elif direction == "DOWN" or direction == Dir.DOWN:
             delta_y = n
-        elif direction == "L" or direction == Dir.LEFT:
+        elif direction == "LEFT" or direction == Dir.LEFT:
             delta_x = -n
-        elif direction == "R" or direction == Dir.RIGHT:
+        elif direction == "RIGHT" or direction == Dir.RIGHT:
             delta_x = n
-        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+        elif direction == Dir.DOWN_RIGHT or direction == "DOWN_RIGHT":
             delta_x = n
             delta_y = n
-        elif direction == Dir.DOWN_LEFT or direction == "DL":
+        elif direction == Dir.DOWN_LEFT or direction == "DOWN_LEFT":
             delta_y = n
             delta_x = -n
-        elif direction == Dir.UP_LEFT or direction == "UL":
+        elif direction == Dir.UP_LEFT or direction == "UP_LEFT":
             delta_x = -n
             delta_y = -n
-        elif direction == Dir.UP_RIGHT or direction == "UR":
+        elif direction == Dir.UP_RIGHT or direction == "UP_RIGHT":
             delta_x = n
             delta_y = -n
         for sub_node in self.graph.nodes[node]["nodes"]:
@@ -155,24 +155,24 @@ class ARCGraph:
         updated_sub_nodes = []
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == Dir.UP:
+        if direction == "UP" or direction == Dir.UP:
             delta_y = -n
-        elif direction == "D" or direction == Dir.DOWN:
+        elif direction == "DOWN" or direction == Dir.DOWN:
             delta_y = n
-        elif direction == "L" or direction == Dir.LEFT:
+        elif direction == "LEFT" or direction == Dir.LEFT:
             delta_x = -n
-        elif direction == "R" or direction == Dir.RIGHT:
+        elif direction == "RIGHT" or direction == Dir.RIGHT:
             delta_x = n
-        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+        elif direction == Dir.DOWN_RIGHT or direction == "DOWN_RIGHT":
             delta_x = n
             delta_y = n
-        elif direction == Dir.DOWN_LEFT or direction == "DL":
+        elif direction == Dir.DOWN_LEFT or direction == "DOWN_LEFT":
             delta_y = n
             delta_x = -n
-        elif direction == Dir.UP_LEFT or direction == "UL":
+        elif direction == Dir.UP_LEFT or direction == "UP_LEFT":
             delta_x = -n
             delta_y = -n
-        elif direction == Dir.UP_RIGHT or direction == "UR":
+        elif direction == Dir.UP_RIGHT or direction == "UP_RIGHT":
             delta_x = n
             delta_y = -n
         for sub_node in self.graph.nodes[node]["nodes"]:
@@ -204,24 +204,24 @@ class ARCGraph:
         assert direction is not None
         delta_x = 0
         delta_y = 0
-        if direction == "U" or direction == Dir.UP:
+        if direction == "UP" or direction == Dir.UP:
             delta_y = -n
-        elif direction == "D" or direction == Dir.DOWN:
+        elif direction == "DOWN" or direction == Dir.DOWN:
             delta_y = n
-        elif direction == "L" or direction == Dir.LEFT:
+        elif direction == "LEFT" or direction == Dir.LEFT:
             delta_x = -n
-        elif direction == "R" or direction == Dir.RIGHT:
+        elif direction == "RIGHT" or direction == Dir.RIGHT:
             delta_x = n
-        elif direction == Dir.DOWN_RIGHT or direction == "DR":
+        elif direction == Dir.DOWN_RIGHT or direction == "DOWN_RIGHT":
             delta_x = n
             delta_y = n
-        elif direction == Dir.DOWN_LEFT or direction == "DL":
+        elif direction == Dir.DOWN_LEFT or direction == "DOWN_LEFT":
             delta_y = n
             delta_x = -n
-        elif direction == Dir.UP_LEFT or direction == "UL":
+        elif direction == Dir.UP_LEFT or direction == "UP_LEFT":
             delta_x = -n
             delta_y = -n
-        elif direction == Dir.UP_RIGHT or direction == "UR":
+        elif direction == Dir.UP_RIGHT or direction == "UP_RIGHT":
             delta_x = n
             delta_y = -n
         max_allowed = 1000
@@ -467,7 +467,7 @@ class ARCGraph:
             )
         return self
 
-    def Mirror(self, node, mirror_axis):
+    def Mirror(self, node, mirror_axis: Mirror_Axis):
         """
         mirroring a node with respect to the given axis.
         mirror_axis takes the form of (y, x) where one of y, x equals None to
@@ -621,7 +621,7 @@ class ARCGraph:
 
     # ------------------------------------- filters ------------------------------------------
     #  filters take the form of filter(node, params), return true if node satisfies filter
-    def FilterByColor(self, node, color: Color):
+    def Color_Equals(self, color1: Color, color2: Color):
         """
         return true if node has given color.
         if exclude, return true if node does not have given color.
@@ -640,105 +640,130 @@ class ARCGraph:
             "C": 8,
             "W": 9,
         }
-        if self.is_multicolor:
-            return color in self.graph.nodes[node]["color"]
+        if isinstance(color2, Tuple): # object
+            color = self.graph.nodes[color2]["color"]
         else:
-            return self.graph.nodes[node]["color"] == color_map[color]
+            color = color_map[color2]
 
-    def FilterByHeight(self, node, height: Height):
-        if height == "MAX":
-            height = self.get_attribute_max("height")
-        elif height == "MIN":
-            height = self.get_attribute_min("height")
-        elif height == "ODD":
-            return self.graph.nodes[node]["height"] % 2 != 0
-        return self.graph.nodes[node]["height"] == height
+        if self.is_multicolor:
+            return color1 in color # ColorOf(Obj)
+        else:
+            return color == color_map[color1]
 
-    def FilterByWidth(self, node, width: Width):
-        if width == "MAX":
-            width = self.get_attribute_max("width")
-        elif width == "MIN":
-            width = self.get_attribute_min("width")
-        elif width == "ODD":
-            return self.graph.nodes[node]["width"] % 2 != 0
-        return self.graph.nodes[node]["width"] == width
+    def Height_Equals(self, height: Height, node):
+        if not isinstance(node, Tuple):
+            return height == node
+        elif isinstance(node, Tuple):
+            if height == "MAX":
+                height = self.get_attribute_max("height")
+            elif height == "MIN":
+                height = self.get_attribute_min("height")
+            elif height == "ODD":
+                return self.graph.nodes[node]["height"] % 2 != 0
+            return self.graph.nodes[node]["height"] == height
 
-    def FilterByColumns(self, node, column: Column):
-        column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
+    def Width_Equals(self, width: Width, node):
+        if not isinstance(node, Tuple):
+            return width == node
+        elif isinstance(node, Tuple):
+            if width == "MAX":
+                width = self.get_attribute_max("width")
+            elif width == "MIN":
+                width = self.get_attribute_min("width")
+            elif width == "ODD":
+                return self.graph.nodes[node]["width"] % 2 != 0
+            return self.graph.nodes[node]["width"] == width
 
-        if column == "MOD3":
-            col = self.mod_3(column)
-            return all(node in col for node in column_nodes)
-        elif column == "ODD":
-            col = self.get_odd(column)
-            return all(node in col for node in column_nodes) # is the entire object in odd columns
-        elif column == "EVEN":
-            col = self.get_even(column)
-            return all(node in col for node in column_nodes) # is the entire object in even columns
-        elif column == "CENTER":
-            col = self.get_center("column")
-            return all(node in col for node in column_nodes) # is the entire object in the center column
-        elif column == "EVEN_FROM_RIGHT":
-            col = self.get_even_right(column)
-            return all(node in col for node in column_nodes) # is the entire object in even columns
-        return False
+    def Column_Equals(self, column: Column, node):
+        if not isinstance(node, Tuple):
+            return column == node
+        elif isinstance(node, Tuple):
+            column_nodes = [col[1] for col in self.graph.nodes[node]["nodes"]]
+            if column == "MOD3":
+                col = self.mod_3(column)
+                return all(node in col for node in column_nodes)
+            elif column == "ODD":
+                col = self.get_odd(column)
+                return all(node in col for node in column_nodes) # is the entire object in odd columns
+            elif column == "EVEN":
+                col = self.get_even(column)
+                return all(node in col for node in column_nodes) # is the entire object in even columns
+            elif column == "CENTER":
+                col = self.get_center("column")
+                return all(node in col for node in column_nodes) # is the entire object in the center column
+            elif column == "EVEN_FROM_RIGHT":
+                col = self.get_even_right(column)
+                return all(node in col for node in column_nodes) # is the entire object in even columns
+            return False
 
-    def FilterByRows(self, node, row: Row):
-        row_nodes = [col[0] for col in self.graph.nodes[node]["nodes"]]
-        if row == "MOD3":
-            r = self.mod_3(row)
-            return all(node in r for node in row_nodes)
-        elif row == "ODD":
-            r = self.get_odd(row)
-            return all(node in r for node in row_nodes) # is the entire object in odd rows
-        elif row == "EVEN":
-            r = self.get_even(row)
-            return all(node in r for node in row_nodes) # is the entire object in even rows
-        if row == "CENTER":
-            r = self.get_center("row")
-            return all(node in r for node in row_nodes) # is the entire object in the center row
-        return False
+    def Row_Equals(self, row: Row, node):
+        if not isinstance(node, Tuple):
+            return row == node
+        elif isinstance(node, Tuple):
+            row_nodes = [col[0] for col in self.graph.nodes[node]["nodes"]]
+            if row == "MOD3":
+                r = self.mod_3(row)
+                return all(node in r for node in row_nodes)
+            elif row == "ODD":
+                r = self.get_odd(row)
+                return all(node in r for node in row_nodes) # is the entire object in odd rows
+            elif row == "EVEN":
+                r = self.get_even(row)
+                return all(node in r for node in row_nodes) # is the entire object in even rows
+            if row == "CENTER":
+                r = self.get_center("row")
+                return all(node in r for node in row_nodes) # is the entire object in the center row
+            return False
 
-    def FilterBySize(self, node, size: Size):
+    def Size_Equals(self, size: Size, node):
         """
         return true if node has size equal to given size.
         if exclude, return true if node does not have size equal to given size.
         """
-        if size == "MAX":
-            size = self.get_attribute_max("size")
-        elif size == "MIN":
-            size = self.get_attribute_min("size")
-        elif size == "ODD":
-            return self.graph.nodes[node]["size"] % 2 != 0
-        return self.graph.nodes[node]["size"] == size
+        if not isinstance(node, Tuple):
+            return node == size
+        elif isinstance(node, Tuple):       
+            if size == "MAX":
+                size = self.get_attribute_max("size")
+            elif size == "MIN":
+                size = self.get_attribute_min("size")
+            elif size == "ODD":
+                return self.graph.nodes[node]["size"] % 2 != 0
+            return self.graph.nodes[node]["size"] == size
 
-    def FilterByDegree(self, node, degree: Degree):
+    def Degree_Equals(self, degree: Degree, degree2):
         """
         return true if node has degree equal to given degree.
         if exclude, return true if node does not have degree equal to given degree.
         """
-        return self.graph.degree[node] == degree
+        if isinstance(degree2, Tuple): # object
+            return self.graph.degree[degree2] == degree
+        else:
+            degree == degree2
 
-    def FilterByNeighborSize(self, node, size: Size):
+    def Neighbor_Size(self, size: Size, node):
         """
         return true if node has a neighbor of a given size.
         if exclude, return true if node does not have a neighbor of a given size.
         """
-        if size == "MAX":
-            size = self.get_attribute_max("size")
-        elif size == "MIN":
-            size = self.get_attribute_min("size")
+        if not isinstance(node, Tuple):
+            return node == size
+        elif isinstance(node, Tuple):
+            if size == "MAX":
+                size = self.get_attribute_max("size")
+            elif size == "MIN":
+                size = self.get_attribute_min("size")
 
-        for neighbor in self.graph.neighbors(node):
-            if size == "ODD":
-                if self.graph.nodes[neighbor]["size"] % 2 != 0:
-                    return True
-            else:
-                if self.graph.nodes[neighbor]["size"] == size:
-                    return True
-        return False
+            for neighbor in self.graph.neighbors(node):
+                if size == "ODD":
+                    if self.graph.nodes[neighbor]["size"] % 2 != 0:
+                        return True
+                else:
+                    if self.graph.nodes[neighbor]["size"] == size:
+                        return True
+            return False
 
-    def FilterByNeighborColor(self, node, color: Color):
+    def Neighbor_Color(self, color: Color, color2):
         """
         return true if node has a neighbor of a given color.
         if exclude, return true if node does not have a neighbor of a given color.
@@ -757,25 +782,34 @@ class ARCGraph:
             "C": 8,
             "W": 9,
         }
-        for neighbor in self.graph.neighbors(node):
-            if self.graph.nodes[neighbor]["color"] == color:
-                return True
-        return False
+        if isinstance(color2, Tuple): # object
+            for neighbor in self.graph.neighbors(color2):
+                if self.graph.nodes[neighbor]["color"] == color:
+                    return True
+            return False
+        else:
+            color == color_map[color2]
 
-    def FilterByNeighborDegree(self, node, degree: Degree):
+    def Neighbor_Degree(self, degree: Degree, degree2):
         """
         return true if node has a neighbor of a given degree.
         if exclude, return true if node does not have a neighbor of a given degree.
         """
-        for neighbor in self.graph.neighbors(node):
-            if self.graph.degree[neighbor] == degree:
-                return True
-        return False
+        if isinstance(degree2, Tuple): # object
+            for neighbor in self.graph.neighbors(degree2):
+                if self.graph.degree[degree2] == degree:
+                    return True
+            return False
+        else:
+            degree == degree2
 
-    def FilterByShape(self, node, shape: Shape):
+    def Shape_Equals(self, shape: Shape, node):
         """
         return true if node contains a square-shaped hole
         """
+        if not isinstance(node, Tuple): # object
+            return shape == node
+        
         if shape == Shape.enclosed or shape == "enclosed":
             nodes = self.graph.nodes(data=True)[node]['nodes']
             all_nodes = []
@@ -1017,43 +1051,32 @@ class ARCGraph:
                 for sub_node_2 in self.graph.nodes[node2]["nodes"]:
                     if sub_node_1[0] == sub_node_2[0]:
                         if sub_node_1[1] < sub_node_2[1]:
-                            print("single-pixel: Dir.RIGHT")
                             return Dir.RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
-                            print("single-pixel: Dir.LEFT")
                             return Dir.LEFT
                     elif sub_node_1[1] == sub_node_2[1]:
                         if sub_node_1[0] < sub_node_2[0]:
-                            print("single-pixel: Dir.DOWN")
                             return Dir.DOWN
                         elif sub_node_1[0] > sub_node_2[0]:
-                            print("single-pixel: Dir.UP")
                             return Dir.UP
                     elif sub_node_1[0] < sub_node_2[0]:  # DOWN
                         if sub_node_1[1] < sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.DOWN_RIGHT")
                                 return Dir.DOWN_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.DOWN_LEFT")
                                 return Dir.DOWN_LEFT
                     elif sub_node_1[0] > sub_node_2[0]:  # UP
                         if sub_node_1[1] < sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.UP_RIGHT")
                                 return Dir.UP_RIGHT
                         elif sub_node_1[1] > sub_node_2[1]:
                             if abs(sub_node_1[0] - sub_node_2[0]) == abs(sub_node_1[1] - sub_node_2[1]):
-                                print("single-pixel: Dir.UP_LEFT")
                                 return Dir.UP_LEFT
+
         elif len(self.graph.nodes[node1]["nodes"]) == 1 or len(self.graph.nodes[node2]["nodes"]) == 1:
             # at least one of the objects is single-pixeled
             is_node1_single_pixeled = len(self.graph.nodes[node1]["nodes"]) == 1
-            is_node2_single_pixeled = not is_node1_single_pixeled  # If not node1, then it must be node2
-
-            if is_node2_single_pixeled:
-                node1, node2 = node2, node1
             min_y_node1, max_y_node1 = min(node[0] for node in self.graph.nodes[node1]["nodes"]), max(
                 node[0] for node in self.graph.nodes[node1]["nodes"])
             min_x_node1, max_x_node1 = min(node[1] for node in self.graph.nodes[node1]["nodes"]), max(
@@ -1084,20 +1107,14 @@ class ARCGraph:
                     abs(max_x_node1 - min_x_node2) == abs(max_y_node1 - min_y_node2):
                 if is_node1_single_pixeled:
                     return Dir.DOWN_RIGHT
-                if is_node2_single_pixeled:
-                    return Dir.UP_LEFT
             elif max_x_node1 < min_x_node2 and min_y_node1 > max_y_node2 and \
                     abs(max_x_node1 - min_x_node2) == abs(min_y_node1 - max_y_node2):
                 if is_node1_single_pixeled:
                     return Dir.UP_RIGHT
-                if is_node2_single_pixeled:
-                    return Dir.DOWN_LEFT
             elif max_x_node1 > min_x_node2 and max_y_node1 > min_y_node2 and \
                     abs(min_x_node2 - max_x_node1) == abs(min_y_node2 - max_y_node1):
                 if is_node1_single_pixeled:
                     return Dir.UP_LEFT
-                if is_node2_single_pixeled:
-                    return Dir.DOWN_RIGHT
         else:
             # node: the case where both objects are not single-pixeled -- diagonal not supported
             node1_x, node2_x = [node[0] for node in self.graph.nodes[node1]["nodes"]], [
@@ -1220,7 +1237,10 @@ class ARCGraph:
             args = [child.value for child in filter.children]
             filter_method = getattr(self, filter_name, None)
             if filter_method:
-                return getattr(self, filter_name)(node, *args)
+                if len([*args]) == 2:
+                    return getattr(self, filter_name)(*args)
+                elif len([*args]) == 1:
+                    return getattr(self, filter_name)(*args, node)
             else:
                 raise AttributeError(
                     f"Method for filter '{filter_name}' not found in ARCGraph'"

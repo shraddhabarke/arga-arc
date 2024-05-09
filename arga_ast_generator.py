@@ -18,39 +18,19 @@ class _Ast(ast_utils.Ast):
 
 ### Var types
 
-# @dataclass
-# class Var():
-#     pass
-
 @dataclass
-class VarUpdateColor(_Ast):
-    pass
-
-@dataclass
-class VarMoveNode(_Ast):
-    pass
-
-@dataclass
-class VarExtendNode(_Ast):
-    pass
-
-@dataclass
-class VarMoveNodeMax(_Ast):
-    pass
-
-@dataclass
-class VarMirror(_Ast):
-    pass
-
-@dataclass
-class VarInsert(_Ast):
-    pass
+class Var(_Ast):
+    name: str
 
 @dataclass
 class ObjectId(_Ast):
     value: int
 
 ### Base types
+@dataclass
+class FColor(_Ast):
+    value: int | str
+
 
 @dataclass
 class Size(_Ast):
@@ -104,23 +84,39 @@ class ImagePoints(_Ast):
 class RelativePosition(_Ast):
     value: str
 
-### Filter relations
+### Base accessors
 
 @dataclass
-class _FilterRelation(_Ast):
-    pass
+class ColorOf(_Ast):
+    var: Var
 
 @dataclass
-class IsAnyNeighbor(_FilterRelation):
-    pass
-
-@dataclass 
-class IsDirectNeighbor(_FilterRelation):
-    pass
+class SizeOf(_Ast):
+    var: Var
 
 @dataclass
-class IsDiagonalNeighbor(_FilterRelation):
-    pass
+class HeightOf(_Ast):
+    var: Var
+
+@dataclass
+class WidthOf(_Ast):
+    var: Var
+
+@dataclass
+class DegreeOf(_Ast):
+    var: Var
+
+@dataclass
+class ShapeOf(_Ast):
+    var: Var
+
+@dataclass
+class ColumnOf(_Ast):
+    var: Var
+
+@dataclass
+class DirectionOf(_Ast):
+    var: Var
 
 ### Filter expressions
 
@@ -147,56 +143,62 @@ class Or(_FilterExpr):
 class Not(_FilterExpr):
     child: _FilterExpr
 
-@dataclass
-class VarAnd(_FilterExpr):
-    relation: _FilterRelation
-    filter: _FilterExpr
-
 ### Filter primitives
 
 @dataclass
-class FilterByColor(_Ast):
-    color: Color
+class Color_Equals(_Ast):
+    color1: FColor
+    color2: FColor
 
 @dataclass
-class FilterBySize(_Ast):
-    size: Size
+class Size_Equals(_Ast):
+    size1: Size
+    size2: Size
 
 @dataclass
-class FilterByHeight(_Ast):
-    height: Height
+class Height_Equals(_Ast):
+    height1: Height
+    height2: Height
 
 @dataclass
-class FilterByWidth(_Ast):
-    width: Width
+class Width_Equals(_Ast):
+    width1: Width
+    width2: Width
 
 @dataclass
-class FilterByDegree(_Ast):
-    degree: Degree
+class Degree_Equals(_Ast):
+    degree1: Degree
+    degree2: Degree
 
 @dataclass
-class FilterByShape(_Ast):
-    shape: Shape
+class Shape_Equals(_Ast):
+    shape1: Shape
+    shape2: Shape
 
 @dataclass
-class FilterByColumns(_Ast):
-    columns: Column
+class Column_Equals(_Ast):
+    columns1: Column
+    columns2: Column
 
 @dataclass
-class FilterByNeighborSize(_Ast):
-    size: Size
+class Neighbor_Size(_Ast):
+    size1: Size
+    size2: Size
 
 @dataclass
-class FilterByNeighborColor(_Ast):
-    color: Color
+class Neighbor_Color(_Ast):
+    color1: Color
+    color2: Color
 
 @dataclass
-class FilterByNeighborDegree(_Ast):
-    degree: Degree
+class Neighbor_Degree(_Ast):
+    degree1: Degree
+    degree2: Degree
 
 @dataclass
-class FilterByNeighborSize(_Ast):
-    size: str
+class Neighbor_Of(_Ast):
+    obj1: str
+    obj2: str
 
 ### Transforms
 
@@ -206,20 +208,20 @@ class _Transform(_Ast):
 
 @dataclass
 class UpdateColor(_Transform):
-    color: Color | VarUpdateColor
+    color: Color
 
 @dataclass
 class MoveNode(_Transform):
-    direction: Direction | VarMoveNode
+    direction: Direction
 
 @dataclass
 class ExtendNode(_Transform):
-    direction: Direction | VarExtendNode
+    direction: Direction
     overlap: Overlap
 
 @dataclass
 class MoveNodeMax(_Transform):
-    direction: Direction | VarMoveNodeMax
+    direction: Direction
 
 @dataclass
 class RotateNode(_Transform):
@@ -240,7 +242,7 @@ class HollowRectangle(_Transform):
 
 @dataclass
 class Mirror(_Transform):
-    axis: VarMirror | SymmetryAxis
+    axis: SymmetryAxis
 
 @dataclass
 class Flip(_Transform):
@@ -248,7 +250,7 @@ class Flip(_Transform):
 
 @dataclass
 class Insert(_Transform):
-    source: VarInsert | ObjectId
+    source: ObjectId
     image_points: ImagePoints
     relative_position: RelativePosition
 
@@ -260,6 +262,7 @@ class NoOp(_Transform):
 
 @dataclass
 class Rule(_Ast):
+    decl: List[Var]
     filter: _FilterExpr
     transforms: List[_Transform]
 
@@ -273,28 +276,16 @@ class Library(_Ast, ast_utils.AsList):
 
 
 class ToAst(Transformer):
-    # def VAR(self, token):
-    #     return Var()
+    def VAR(self, token):
+        return Var(token.value)
+
+    def VAR_THIS(self, token):
+        return Var(token.value)
+    
+    def VAR_OTHER(self, token):
+        return Var(token.value)
 
     # Var types
-
-    def VAR_UPDATE_COLOR(self, token):
-        return VarUpdateColor()
-    
-    def VAR_MOVE_NODE(self, token):
-        return VarMoveNode()
-    
-    def VAR_EXTEND_NODE(self, token):
-        return VarExtendNode()
-    
-    def VAR_MOVE_NODE_MAX(self, token):
-        return VarMoveNodeMax()
-    
-    def VAR_MIRROR(self, token):
-        return VarMirror()
-    
-    def VAR_INSERT(self, token):
-        return VarInsert()
 
     def OBJECT_ID(self, token):
         return ObjectId(int(token.value))
@@ -306,6 +297,9 @@ class ToAst(Transformer):
     
     def COLOR(self, token):
         return Color(token.value)
+    
+    def FCOLOR(self, token):
+        return FColor(token.value)
 
     def DIRECTION(self, token):
         return Direction(token.value)
@@ -346,8 +340,68 @@ class ToAst(Transformer):
     def RELATIVE_POSITION(self, token):
         return RelativePosition(token.value)
 
+    def MIRROR_AXIS(self, token):
+        return Var(token.value)
+
     # def library(self, children):
     #     return Library(children)
+
+    def decl(self, children):
+        return children
+    
+    def fcolor_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ColorOf(children[1])
+        
+    def color_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ColorOf(children[1])
+        
+    def size_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return SizeOf(children[1])
+        
+    def height_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return HeightOf(children[1])
+        
+    def width_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return WidthOf(children[1])
+        
+    def degree_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return DegreeOf(children[1])
+        
+    def shape_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ShapeOf(children[1])
+        
+    def column_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ColumnOf(children[1])
+        
+    def direction_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return DirectionOf(children[1])
     
     def filter(self, children):
         if len(children) == 1:
@@ -367,11 +421,6 @@ class ToAst(Transformer):
                     return Or(children[1], children[2])
                 case "not":
                     return Not(children[1])
-                case "varand":
-                    return VarAnd(
-                        relation=children[1],
-                        filter=children[2]
-                    )
                 case _:
                     # return children
                     raise ValueError(f"Unknown filter expression: {children[0]}")
@@ -382,60 +431,53 @@ class ToAst(Transformer):
     def filter_prim(self, tree):
         children = tree.children
         match children[0]:
-            case "filter_by_color":
-                return FilterByColor(
-                    color=children[1]
+            case "color_equals":
+                return Color_Equals(
+                    color1=children[1], color2=children[2]
                 )
-            case "filter_by_size":
-                return FilterBySize(
-                    size=children[1]
+            case "size_equals":
+                return Size_Equals(
+                    size1=children[1], size2=children[2]
                 )
-            case "filter_by_height":
-                return FilterByHeight(
-                    height=children[1]
+            case "height_equals":
+                return Height_Equals(
+                    height1=children[1], height2=children[2]
                 )
-            case "filter_by_width":
-                return FilterByWidth(
-                    width=children[1]
+            case "width_equals":
+                return Width_Equals(
+                    width1=children[1], width2=children[2]
                 )
-            case "filter_by_degree":
-                return FilterByDegree(
-                    degree=children[1]
+            case "degree_equals":
+                return Degree_Equals(
+                    degree1=children[1], degree2=children[2]
                 )
-            case "filter_by_shape":
-                return FilterByShape(
-                    shape=children[1]
+            case "shape_equals":
+                return Shape_Equals(
+                    shape1=children[1], shape2=children[2]
                 )
-            case "filter_by_columns":
-                return FilterByColumns(
-                    columns=children[1]
+            case "column_equals":
+                return Column_Equals(
+                    columns1=children[1], columns2=children[2]
                 )
-            case "filter_by_neighbor_size":
-                return FilterByNeighborSize(
-                    size=children[1]
+            case "neighbor_size":
+                return Neighbor_Size(
+                    size1=children[1], size2=children[2]
                 )
-            case "filter_by_neighbor_color":
-                return FilterByNeighborColor(
-                    color=children[1]
+            case "neighbor_color":
+                return Neighbor_Color(
+                    color1=children[1], color2=children[2]
                 )
-            case "filter_by_neighbor_degree":
-                return FilterByNeighborDegree(
-                    degree=children[1]
+            case "neighbor_degree":
+                return Neighbor_Degree(
+                    degree1=children[1], degree2=children[2]
+                )
+            case "neighbor_of":
+                return Neighbor_Of(
+                    obj1=children[1], obj2=children[2]
                 )
             case _:
                 # return tree
                 raise ValueError(f"Unknown filter primitive: {children[0]}")
-    
-    def filter_relation(self, children):
-        match children[0]:
-            case "is_any_neighbor":
-                return IsAnyNeighbor()
-            case "is_direct_neighbor":
-                return IsDirectNeighbor()
-            case "is_diagonal_neighbor":
-                return IsDiagonalNeighbor()
-            case _:
-                raise ValueError(f"Unknown filter relation: {children[0]}")
     
     def xform_list(self, children):
         return children
@@ -559,6 +601,7 @@ def test_reference_programs():
                 # open the file as a library
                 # print(f"Testing {file_path}...")
                 test_file(file_path, parser, xformer)
+                print("\n")
 
 if __name__ == "__main__":
     test_gpt_gens()
