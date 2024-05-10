@@ -1,0 +1,24 @@
+{
+    "nl_description": "Extend all objects in rows with a center column being C by one step up without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) C)\n        )\n        (apply\n            (extend_node up false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Change the color of all objects directly above red objects to color green.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node up)\n            (filter\n                (neighbor_of this x)\n            )\n            (filter\n                (color_equals (color_of x) R)\n            )\n            (update_color G)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all the objects of size odd, upper-right, towards any object of color C.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (neighbor_of this x)\n                (color_equals (color_of x) C)\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Change all objects of color R and C to color O if they are in the same row or column with at least one object of color O.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) C)\n            )\n            (or\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) O)\n                )\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) O)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color the objects of the highest column value to color R.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+}

@@ -48,7 +48,7 @@ O O O O O O O Y O O
 ### EXPECTED OUTPUT
 {
     "nl_description": "Recolor all objects to color Y",
-    "code": "(do\n    (rule\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
 }
 
 
@@ -102,7 +102,7 @@ O O O O O O O O O O
 ### EXPECTED OUTPUT
 {
     "nl_description": "Extend all the objects of size 1 toward the object of maximum size, without overlapping.",
-    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_size 1)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_size max)\n                )\n            )\n        )\n        (apply\n            (extend_node var_extend_node false)\n        )    \n    )\n)"
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this x)\n                    (size_equals (size_of x) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )    \n    )\n)"
 }
 
 
@@ -172,7 +172,7 @@ O O O O O O O O O O O O O O O O
 ### EXPECTED OUTPUT
 {
     "nl_description": "Move all objects of size 3 one step up, and then recolor them to color B.",
-    "code": "(do\n    (rule\n        (filter\n            (filter_by_size 3)\n        )\n        (apply\n            (move_node up)\n            (update_color B)\n        )\n    )\n)"
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (move_node up)\n            (update_color B)\n        )\n    )\n)"
 }
 
 
@@ -254,5 +254,5 @@ O O B O O A O O
 ### EXPECTED OUTPUT
 {
     "nl_description": "Move all objects of color different than X, toward the object of color X, if they are neighbors of it.",
-    "code": "(do\n    (rule\n        (filter\n            (and\n                (not (filter_by_color X))\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n        )\n    )\n)"
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
 }

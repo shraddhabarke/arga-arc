@@ -1,0 +1,19 @@
+{
+    "nl_description": "Extend all objects of color R by one step towards the neighbor of color X.",
+    "code": "(do\n    (rule\n        (vars (this y))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this y)\n                (color_equals (color_of y) X)\n            )\n        )\n        (apply\n            (extend_node (direction_of y) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all the objects of color R to color O if the object above has color R.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this x)\n                (color_equals (color_of x) R)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Change the color of all objects different than X in the vicinity of a R object to color X.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this x)\n                (color_equals (color_of x) R)\n            )\n        )\n        (apply\n            (update_color X)\n        )    \n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects located at the lower-left corner to the upper-right corner of the grid.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) min)\n                (degree_equals (degree_of this) max)\n            )\n        )\n        (apply\n            (move_node_max up_right)\n        )\n    )\n)"
+}

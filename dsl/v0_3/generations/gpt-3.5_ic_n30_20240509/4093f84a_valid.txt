@@ -1,0 +1,124 @@
+{
+    "nl_description": "Extend all objects of the color R in a way that they fill the grid row-wise, leaving no overlap.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects to the right until hitting another object, then recolor them to color A.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max right)\n            (update_color A)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend the objects of color B towards the object of color X, without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color all the objects that are not already colored blue, green, or yellow, in blue.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (or (or (color_equals (color_of this) B) (color_equals (color_of this) G)) (color_equals (color_of this) Y)))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Mirror all objects of color O with respect to the vertical axis.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (mirror vertical)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color all objects that are not X in the center part of the grid to color B.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all the green objects in the grid towards the object of color blue, without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) B)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color all objects in the grid with the color X to the color O, and move objects in row 6 one step down.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 6)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects with even degree by 90 degrees clockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (degree_equals (degree_of this) max)\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all the objects that are not in a row or column of X's to form a continuous horizontal or vertical line of O's.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (extend_node (direction_of this) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Fill all the hollow rectangles on the grid with color X.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects toward the maximum degree object without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter)\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all the objects of color different than X, toward the object of color X, if they are neighbors of it.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects of size max toward the bottom edge, without overlapping with other objects.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects towards the object of the maximum height without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter)\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object that is not black, move it diagonally up-right until it hits the border.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node_max up_right)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects in the image grid clockwise by 90 degrees.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects of color O in the downward direction, while leaving trails.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects that have the color B towards the spot where the color X is located, without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects of shape enclosed to the maximum size without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )    \n    )\n)"
+}
+
+{
+    "nl_description": "Move all the black objects toward the orange object if they are neighbors of it.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) A)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects to the right by one step.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects by 90 degrees clockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects diagonally bottom-right, until they hit another object, and then mirror them vertically.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max down_right)\n            (mirror vertical)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all objects to color X that are neighbors of a black object",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (neighbor_of this x)\n                (color_equals (color_of x) O)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}

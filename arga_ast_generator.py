@@ -340,6 +340,9 @@ class ToAst(Transformer):
     def RELATIVE_POSITION(self, token):
         return RelativePosition(token.value)
 
+    def SYMMETRY_AXIS(self, token):
+        return SymmetryAxis(token.value)
+
     def MIRROR_AXIS(self, token):
         return Var(token.value)
 
@@ -605,5 +608,5 @@ def test_reference_programs():
                 print("\n")
 
 if __name__ == "__main__":
-    # test_gpt_gens()
-    test_reference_programs()
+    test_gpt_gens()
+    # test_reference_programs()

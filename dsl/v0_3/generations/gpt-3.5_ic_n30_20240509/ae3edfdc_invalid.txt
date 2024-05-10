@@ -1,0 +1,29 @@
+{
+    "nl_description": "Recolor all objects of color G to color R.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects of color different than G towards the neighbor of B.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (not (color_equals (color_of this) G))\n                (neighbor_of this x)\n                (color_equals (color_of x) B)\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend the object which is farthest to the right, until it hits another object, to the right.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (column_equals (column_of this) max)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Change the color of the diagonally adjacent objects of A to color B.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) A)\n                (neighbor_of this x)\n                (neighbor_of x this)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects with color R by 2 steps in the direction of the neighboring object of color G.",
+    "code": "(do\n    (rule\n        (vars (this neighbor))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this neighbor)\n                (color_equals (color_of neighbor) G)\n            )\n        )\n        (apply\n            (move_node_max (direction_of neighbor))\n            (move_node_max (direction_of neighbor))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects of color R one step down, and then extend them in the down-right direction without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (move_node down)\n            (extend_node (direction up_right) false)\n        )\n    )\n)"
+}
