@@ -152,9 +152,9 @@ def t_extract_rules_from_ast(node, rules_count, token_rules_count, current_trans
                 token_rules_count[('Direction', str("VarDirection").lower())] += 1
             elif field_name == "color" and str(field_value).startswith('ColorOf'):
                 token_rules_count[('Color', str("VarColor").lower())] += 1
-            elif str(field_value).startswith('ImagePointsOf'): # todo
+            elif str(field_value).startswith('ImagePointsOf'):
                 token_rules_count[('ImagePoints', str("VarImagePoints").lower())] += 1
-            elif str(field_value).startswith('MirrorAxisOf'): # todo
+            elif str(field_value).startswith('MirrorAxisOf'):
                 token_rules_count[('Mirror_Axis', str("VarMirror").lower())] += 1
             elif not str(field_value).startswith('Var') and \
                 (isinstance(field_value, str) or isinstance(field_value, bool) or isinstance(field_value, int)) and current_transform:
@@ -206,7 +206,7 @@ def laplace_smoothing_transforms(computed_probabilities, alpha=1):
         total_tokens_of_type = sum(value for key, value in computed_probabilities.items() if isinstance(key, tuple) and key[0] == category)
         total_category_rules = len(rules)
         for rule, _ in rules.items():
-            computed_count = computed_probabilities.get((category, str(rule).lower()), 0)
+            computed_count = computed_probabilities.get((category, str(rule)), 0)
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_tokens_of_type + alpha * total_category_rules
             smoothed_probabilities[category][str(rule)] = round(smoothed_count / total_smoothed_count, 2)
@@ -215,12 +215,9 @@ def laplace_smoothing_transforms(computed_probabilities, alpha=1):
 
 def compute_transform_costs(taskNumber):
     ast_program = processtask(taskNumber)
-    print("ast:", ast_program)
     transform_rules_count, t_token_rules_count, t_token_type_counts = defaultdict(int), defaultdict(int), defaultdict(int)
     t_extract_rules_from_ast(ast_program, transform_rules_count, t_token_rules_count)
     transform_rules_count['Transforms'] = increment_transforms(ast_program)
-    print("transform_rules_count:", transform_rules_count)
-
     print("token_rules_count:", t_token_rules_count) # Count of non-terminals
     for ((token_type, _)), count in t_token_rules_count.items():
         t_token_type_counts[token_type] += count
@@ -261,9 +258,9 @@ filter_rules = {
         'Direct_Neighbor_Of'
     ],
     'FColor': [
-        'O', 'B', 'R', 'G', 'Y', 'X', 'F', 'A', 'C', 'W', 'most', 'least'
+        'O', 'B', 'R', 'G', 'Y', 'X', 'F', 'A', 'C', 'W', 'most', 'least', 'ColorOf'
     ],
-    'Shape': ['enclosed', 'square'],
+    'Shape': ['enclosed', 'square', 'ShapeOf'],
     'Size': size_values,
     'Degree': degree_values,
     'Height': height_values,
@@ -287,7 +284,23 @@ def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filte
                 rules_count[class_name] += 1
         for field_name, _ in node.__dataclass_fields__.items():
             field_value = getattr(node, field_name)
-            if isinstance(field_value, str) and current_filter:
+            if str(field_value).startswith('ColorOf'):
+                token_rules_count[('FColor', str("ColorOf"))] += 1
+            elif str(field_value).startswith('SizeOf'):
+                token_rules_count[('Size', str('SizeOf'))] += 1
+            elif str(field_value).startswith('HeightOf'):
+                token_rules_count[('Height', str('HeightOf'))] += 1
+            elif str(field_value).startswith('WidthOf'):
+                token_rules_count[('Width', str('WidthOf'))] += 1
+            elif str(field_value).startswith('RowOf'):
+                token_rules_count[('Row', str('RowOf'))] += 1
+            elif str(field_value).startswith('ColumnOf'):
+                token_rules_count[('Column', str('ColumnOf'))] += 1
+            elif str(field_value).startswith('ShapeOf'):
+                token_rules_count[('Shape', str('ShapeOf'))] += 1
+            elif str(field_value).startswith('DegreeOf'):
+                token_rules_count[('Degree', str('DegreeOf'))] += 1
+            elif isinstance(field_value, str) and current_filter:
                 token_rules_count[(class_name, field_value)] += 1 # todo: this
             else:
                 f_extract_rules_from_ast(field_value, rules_count, token_rules_count, current_filter)
@@ -302,7 +315,6 @@ def laplace_smoothing_for_filters(computed_probabilities, alpha=1):
     init_filter_pcfg = initialize_uniform_pcfg(filter_rules)
     print("computed_probabilities:", computed_probabilities)
     for category, rules in init_filter_pcfg.items():
-        print("token-category!!", category)
         if category in ['FColor', 'Size', 'Degree', 'Shape', 'Row', 'Column', 'Height', 'Width']:  # Skip token categories
             continue
         total_category_counts = sum(computed_probabilities.get((category, rule_key), 0) for rule_key in rules.keys())
@@ -335,7 +347,6 @@ def compute_filter_costs(taskNumber):
     print("ast:", ast_program)
     filter_rules_count, f_token_rules_count, f_token_type_counts = defaultdict(int), defaultdict(int), defaultdict(int)
     f_extract_rules_from_ast(ast_program, filter_rules_count, f_token_rules_count)
-    print("filter_rules_count:", filter_rules_count)
     print("token_rules_count:", f_token_rules_count) # Count of non-terminals
     for ((token_type, _)), count in f_token_rules_count.items():
         f_token_type_counts[token_type] += count
@@ -344,5 +355,5 @@ def compute_filter_costs(taskNumber):
     print("smoothed_probs:", f_smoothed_probabilities)
     return f_smoothed_probabilities
 
-compute_transform_costs("05f2a901")
-#compute_filter_costs("05f2a901")
+compute_filter_costs("05f2a901")
+print(filter_rules)
