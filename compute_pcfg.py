@@ -12,7 +12,7 @@ with open("dsl/v0_3/dsl.lark", "r") as f:
 
 parser = dsl_parser.Parser.new()
 xformer = ast_utils.create_transformer(this_module, ToAst())
-gens_dir = "dsl/v0_3/generations/gpt-4_nl_ex/"
+gens_dir = "dsl/v0_3/generations/gpt-3.5_ic_n30_20240509/"
 
 # get the AST program from the generations directory
 def test_file(filename, parser, xformer):
@@ -21,6 +21,7 @@ def test_file(filename, parser, xformer):
     print(f"Testing {filename}...")
     t = parser.lib_parse_tree(lib)
     ast = xformer.transform(t)
+    #pprint(ast)
     return ast
 
 Color._sizes = {color.name: 1 for color in Color}
@@ -54,8 +55,8 @@ def processtask(taskNumber):
     setup_size_and_degree_based_on_task(task)
     setup_objectids(task)
     vocabMakers = [ObjectId, FColor, Degree, Height, Width, Size, Shape, Row, Column, 
-                Neighbor_Of, Color_Of, Size_Of, Degree_Of, Shape_Of, Height_Of,
-                Column_Of, Neighbor_Color_Of, Neighbor_Size_Of, Neighbor_Degree_Of, Not, 
+                Neighbor_Of, Color_Equals, Size_Equals, Degree_Equals, Shape_Equals, Height_Equals,
+                Column_Equals, Neighbor_Color, Neighbor_Size, Neighbor_Degree, Not, 
                 And, Or]
     vocab = VocabFactory.create(vocabMakers)
     for leaf in list(vocab.leaves()):
@@ -140,14 +141,24 @@ def t_extract_rules_from_ast(node, rules_count, token_rules_count, current_trans
             t_extract_rules_from_ast(child, rules_count, token_rules_count, current_transform)
     elif hasattr(node, '__dataclass_fields__'):
         class_name = node.__class__.__name__
+        current_transform = class_name  # Setting current transform to this class
         if class_name in transform_operations:
             current_transform = class_name
             if any(class_name == rule for rule in transform_rules['Transform']):
                 rules_count[class_name] += 1
         for field_name, value in node.__dataclass_fields__.items():
             field_value = getattr(node, field_name)
-            if isinstance(field_value, str) and current_transform:
-                token_rules_count[(class_name, field_value.lower())] += 1
+            if str(field_value).startswith('DirectionOf'):
+                token_rules_count[('Direction', str("VarDirection").lower())] += 1
+            elif field_name == "color" and str(field_value).startswith('ColorOf'):
+                token_rules_count[('Color', str("VarColor").lower())] += 1
+            elif str(field_value).startswith('ImagePointsOf'): # todo
+                token_rules_count[('ImagePoints', str("VarImagePoints").lower())] += 1
+            elif str(field_value).startswith('MirrorAxisOf'): # todo
+                token_rules_count[('Mirror_Axis', str("VarMirror").lower())] += 1
+            elif not str(field_value).startswith('Var') and \
+                (isinstance(field_value, str) or isinstance(field_value, bool) or isinstance(field_value, int)) and current_transform:
+                token_rules_count[(class_name, str(field_value).lower())] += 1
                 print(f"Counting Token: {(class_name, field_value)}")  # Debug print
             else:
                 t_extract_rules_from_ast(field_value, rules_count, token_rules_count, current_transform)
@@ -183,7 +194,7 @@ def laplace_smoothing_transforms(computed_probabilities, alpha=1):
     total_transforms = sum(value for key, value in computed_probabilities.items() if isinstance(key, str))
     total_transform_rules = len(init_transform_pcfg['Transform'])
     for rule, _ in init_transform_pcfg['Transform'].items():
-        computed_count = computed_probabilities.get(str(rule), 0)
+        computed_count = computed_probabilities.get(rule, 0)
         smoothed_count = computed_count + alpha
         total_smoothed_count = total_transforms + alpha * total_transform_rules
         smoothed_probabilities['Transform'][rule] = round(smoothed_count / total_smoothed_count, 2)
@@ -195,11 +206,11 @@ def laplace_smoothing_transforms(computed_probabilities, alpha=1):
         total_tokens_of_type = sum(value for key, value in computed_probabilities.items() if isinstance(key, tuple) and key[0] == category)
         total_category_rules = len(rules)
         for rule, _ in rules.items():
-            computed_count = computed_probabilities.get((category, rule.lower()), 0)
+            computed_count = computed_probabilities.get((category, str(rule).lower()), 0)
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_tokens_of_type + alpha * total_category_rules
-            smoothed_probabilities[category][rule] = round(smoothed_count / total_smoothed_count, 2)
-            print(f"Transform Category: {category}, Rule: {rule}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
+            smoothed_probabilities[category][str(rule)] = round(smoothed_count / total_smoothed_count, 2)
+            print(f"Transform Category: {category}, Rule: {str(rule)}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
     return smoothed_probabilities
 
 def compute_transform_costs(taskNumber):
@@ -224,8 +235,8 @@ taskNumber = "6855a6e4"
 #compute_transform_costs(taskNumber)
 
 ##--------------------- Computing filter probabilities ---------------------------------------------------------
-filter_operations = {'Color_Of', 'Size_Of', 'Degree_Of', 'Neighbor_Of', 'Neighbor_Size_Of', 'Neighbor_Degree_Of', 'Neighbor_Color_Of',
-                    'Shape_Of', 'Column_Of', 'Height_Of', 'Row_Of', 'Width_Of', 'Or', 'And', 'Not'}
+filter_operations = {'Color_Equals', 'Size_Equals', 'Degree_Equals', 'Shape_Equals', 'Neighbor_Color', 'Neighbor_Size', 'Neighbor_Degree', 'Neighbor_Of', 'Direct_Neighbor_Of',
+                    'Shape_Equals', 'Column_Equals', 'Height_Equals', 'Row_Equals', 'Width_Equals', 'Or', 'And', 'Not'}
 
 # Filter grammar rules
 filter_rules = {
@@ -235,19 +246,19 @@ filter_rules = {
         'Or'
     ],
     'Filter': [
-        'Color_Of',
-        'Size_Of',
-        'Degree_Of',
-        'Height_Of',
-        'Shape_Of',
-        'Neighbor_Size_Of',
-        'Neighbor_Degree_Of',
-        'Neighbor_Color_Of',
-        'FilterByColumns',
+        'Color_Equals',
+        'Size_Equals',
+        'Degree_Equals',
+        'Height_Equals',
+        'Shape_Equals',
+        'Neighbor_Size',
+        'Neighbor_Degree',
+        'Neighbor_Color',
+        "Column_Equals",
+        'Row_Equals',
+        'Width_Equals',
         'Neighbor_Of',
-        "Column_Of",
-        'Row_Of',
-        'Width_Of'
+        'Direct_Neighbor_Of'
     ],
     'FColor': [
         'O', 'B', 'R', 'G', 'Y', 'X', 'F', 'A', 'C', 'W', 'most', 'least'
@@ -277,7 +288,7 @@ def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filte
         for field_name, _ in node.__dataclass_fields__.items():
             field_value = getattr(node, field_name)
             if isinstance(field_value, str) and current_filter:
-                token_rules_count[(class_name, field_value)] += 1
+                token_rules_count[(class_name, field_value)] += 1 # todo: this
             else:
                 f_extract_rules_from_ast(field_value, rules_count, token_rules_count, current_filter)
         if class_name in filter_operations:
@@ -333,4 +344,5 @@ def compute_filter_costs(taskNumber):
     print("smoothed_probs:", f_smoothed_probabilities)
     return f_smoothed_probabilities
 
-compute_filter_costs(taskNumber)
+#compute_transform_costs("05f2a901")
+compute_filter_costs("05f2a901")
