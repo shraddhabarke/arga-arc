@@ -118,6 +118,13 @@ class ColumnOf(_Ast):
 class DirectionOf(_Ast):
     var: Var
 
+@dataclass
+class ImagePointsOf(_Ast):
+    var: Var
+
+@dataclass
+class MirrorAxisOf(_Ast):
+    var: Var
 ### Filter expressions
 
 @dataclass
@@ -242,7 +249,7 @@ class HollowRectangle(_Transform):
 
 @dataclass
 class Mirror(_Transform):
-    axis: SymmetryAxis
+    axis: MirrorAxisOf
 
 @dataclass
 class Flip(_Transform):
@@ -406,6 +413,18 @@ class ToAst(Transformer):
         else:
             return DirectionOf(children[1])
     
+    def img_pts_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ImagePointsOf(children[1])
+
+    def mirror_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return MirrorAxisOf(children[1])
+
     def filter(self, children):
         if len(children) == 1:
             return children[0]

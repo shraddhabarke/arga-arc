@@ -344,5 +344,5 @@ def compute_filter_costs(taskNumber):
     print("smoothed_probs:", f_smoothed_probabilities)
     return f_smoothed_probabilities
 
-#compute_transform_costs("05f2a901")
-compute_filter_costs("05f2a901")
+compute_transform_costs("05f2a901")
+#compute_filter_costs("05f2a901")
