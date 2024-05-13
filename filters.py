@@ -527,6 +527,35 @@ class IsAnyNeighbor(FilterASTNode):
         cls.code = f"IsAnyNeighbor"
         return cls
 
+class Direct_Neighbor_Of(Filters):
+    arity = 0
+    size = 1
+    default_size = 1
+
+    def __init__(self):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.size = self.default_size
+        self.children = []
+        self.values = []
+        self.childTypes = []
+
+    @classmethod
+    def execute(cls, task, children=None):
+        instance = cls()
+        if task.abstraction == "na":
+            instance.values = []
+        else:
+            task = task.reset_task()
+            instance.values = [
+                {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
+                for node in input_graph.graph.nodes()}
+                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+
+        if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
+            instance.values = []
+        instance.code = f"Direct_Neighbor_Of(Obj) == X"
+        return instance
 
 class Neighbor_Of(Filters):
     arity = 0
@@ -549,8 +578,12 @@ class Neighbor_Of(Filters):
         else:
             task = task.reset_task()
             instance.values = [
-                {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
-                 for node in input_graph.graph.nodes()}
+                {node: list(set([
+                    neighbor for neighbor in input_graph.graph.nodes() if
+                    input_graph.get_relative_pos(node, neighbor) is not None
+                    and node != neighbor]
+                ))
+                    for node in input_graph.graph.nodes()}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
 
         if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
@@ -577,7 +610,6 @@ class And(FilterASTNode):
         values1 = children[0].values
         values2 = children[1].values
         new_instance = cls(children[0], children[1])
-
         intersected_values = [
             list(set(v1).intersection(set(v2))) if set(
                 v1).intersection(set(v2)) else []
@@ -592,19 +624,18 @@ class And(FilterASTNode):
         if children[0].__class__.__name__ == "Neighbor_Of" and children[1].__class__.__name__ == "Neighbor_Of":
             res_dict = {}  # undefined semantics
             new_instance.values = res_dict
-        elif children[0].__class__.__name__ == "Neighbor_Of":
+        elif children[0].__class__.__name__ == "Neighbor_Of" or children[0].__class__.__name__ == "Direct_Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 intersection_dict = {}
                 for key1, values1 in dict1.items():
-                    intersection_values = [
-                        value for value in values1 if value in dict2.keys()]
+                    intersection_values = [value for value in values1 if value in dict2.keys()]
                     intersection_dict[key1] = intersection_values
                 res_dict.append(intersection_dict)
             new_code = children[1].code.replace("Obj", "X")
             new_instance.code = f"And({children[0].code}, {new_code})"
             new_instance.values = res_dict
-        elif children[1].__class__.__name__ == "Neighbor_Of":
+        elif children[1].__class__.__name__ == "Neighbor_Of" or children[1].__class__.__name__ == "Direct_Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 intersection_dict = {}
