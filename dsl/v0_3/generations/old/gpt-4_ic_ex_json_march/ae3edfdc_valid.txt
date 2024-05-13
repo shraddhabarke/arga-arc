@@ -1,0 +1,39 @@
+{
+    "nl_description": "For each object, move it one step toward the object of smallest size and recolor it with the color of the smallest object.",
+    "code": "(do\n    (rule\n        (filter\n            (varand\n                (is_direct_neighbor)\n                (filter_by_size min)\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects toward the nearest corner of the grid.",
+    "code": "(do\n    (rule\n        (filter)\n        (apply\n            (move_node_max var_move_node_max)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object, move it one step towards the direction from which the majority of its neighbor objects are coming.",
+    "code": "(do\n    (rule\n        (filter)\n        (apply\n            (move_node var_move_node)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all objects one step toward the object of color G without overlapping them.",
+    "code": "(do\n    (rule\n        (filter\n            (varand\n                (is_direct_neighbor)\n                (filter_by_color G)\n            )\n        )\n        (apply\n            (extend_node var_extend_node false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects toward the center object in their row, without overlapping.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (not (filter_by_columns center))\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_columns center)\n                )\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move objects to cluster all similar types towards the largest object of their type, without allowing them to overlap.",
+    "code": "(do\n    (rule\n        (filter\n            (varand\n                (is_any_neighbor)\n                (filter_by_size max)\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all objects of maximum size to color A, and surround each with objects of the same color as itself.",
+    "code": "(do\n    (rule\n        (filter (filter_by_size max))\n        (apply\n            (update_color A)\n            (insert var_insert top source)\n            (insert var_insert bottom source)\n            (insert var_insert left source)\n            (insert var_insert right source)\n            (insert var_insert top_left source)\n            (insert var_insert top_right source)\n            (insert var_insert bottom_left source)\n            (insert var_insert bottom_right source)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object, move it toward the object directly to its right, if present.",
+    "code": "(do\n    (rule\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+}

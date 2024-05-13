@@ -1,0 +1,19 @@
+{
+    "nl_description": "Extend all objects toward the left until they hit another object or the border. Then recolor all objects to their immediate left if any.",
+    "code": "(do\n    (rule\n        (filter)\n        (apply\n            (extend_node left true)\n        )\n    )\n    (rule\n        (filter\n            (varand\n                (is_direct_neighbor)\n                (filter_by_columns 1)\n            )\n        )\n        (apply\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all objects which are neighbors of an object of color X to the color of that adjacent object of color X",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (not (filter_by_color X))\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Fill the entire row and column of each color X object with color B, leaving the color X objects unchanged.",
+    "code": "(do\n    (rule\n        (filter (filter_by_color X))\n        (apply\n            (insert 0 top source)\n            (insert 0 bottom source)\n            (insert 0 left source)\n            (insert 0 right source)\n            (update_color B)\n        )\n    )\n    (rule\n        (filter (filter_by_color X))\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object, move towards the object of color X, if it is a neighbor, and recolor all the objects to B, except those of color X.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (not (filter_by_color X))\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n            (update_color B)\n        )\n    )\n)"
+}

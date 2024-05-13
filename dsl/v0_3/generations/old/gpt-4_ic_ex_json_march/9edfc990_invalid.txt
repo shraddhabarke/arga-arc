@@ -1,0 +1,26 @@
+{
+    "nl_description": "For each input grid, move all objects of size 1 and color different than X one step toward the largest connected object of any color, then recolor all moved objects to match the color of the first object they encounter.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_size 1)\n                (not (filter_by_color X))\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_size max)\n                )\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object, if at least one of its neighbors has the same color, recolor the object and all its direct neighbors to the color of its top-left neighbor. If there's no top-left neighbor, recolor to the original object's color.",
+    "code": "(do\n    (rule\n        (filter\n            (or\n                (filter_by_neighbor_color var_update_color)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_neighbor_color var_update_color)\n                )\n            )\n        )\n        (apply\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all contiguous objects that start touching the border towards their inward direction with their original border color.",
+    "code": "(do\n    (rule\n        (filter\n            (or\n                (filter_by_columns 1)\n                (filter_by_columns max)\n                (and\n                    (filter_by_height 1)\n                    (filter_by_width 1)\n                )\n                (and\n                    (filter_by_height max)\n                    (filter_by_width max)\n                )\n            )\n        )\n        (apply\n            (extend_node var_extend_node true)\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object, if it is surrounded by objects of the same color, change its color to match the surrounding objects.",
+    "code": "(do\n    (rule\n        (filter\n            (varand\n                (is_direct_neighbor)\n                (filter_by_color var_update_color)\n            )\n        )\n        (apply\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each pair, transform each color object to color B if it has a neighbor with the same color.",
+    "code": "(do\n    (rule\n        (filter\n            (varand\n                (is_direct_neighbor)\n                (filter_by_neighbor_color var_update_color)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+}
+
+{"nl_description": "Recolor all objects connected to the borders to the next color clockwise in their color, except for color X which moves the connected objects towards it and recolors them to R, and then recolors itself to G","code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_color X)\n                (varand\n                    (is_direct_neighbor)\n                    (not (filter_by_color X))\n                )\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n            (update_color R)\n        )\n    )\n    (rule\n        (filter (filter_by_color X))\n        (apply (update_color G))\n    )\n    (rule\n        (filter\n            (or\n                (or\n                    (filter_by_columns 0)\n                    (filter_by_columns max)\n                )\n                (or\n                    (filter_by_rows 0)\n                    (filter_by_rows max)\n                )\n            )\n        )\n        (apply (update_color var_update_color))\n    )\n)"}

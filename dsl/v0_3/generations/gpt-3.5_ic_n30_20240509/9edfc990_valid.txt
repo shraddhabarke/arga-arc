@@ -1,0 +1,114 @@
+{
+    "nl_description": "Rotate all objects with color G by 90 degrees clockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate by 180 degrees all objects that are not X or Y",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (or\n                    (color_equals (color_of this) X)\n                    (color_equals (color_of this) Y)\n                )\n            )\n        )\n        (apply\n            (rotate_node 180)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects by 90 degrees counterclockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 270)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects to the maximum size towards the object of color Y and then recolor them to color B.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) Y)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Change the colors of all blue objects to yellow if they are neighbors of a green object.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Update the color of all objects to color B, and then extend all objects in the grid in any direction.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Fill all the interiors of the encapsulated objects with the color B.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color all objects within a hollow rectangle from the point at the top left to the point at the bottom right to color B.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move any object that is colored G to the location of an object that is colored Y.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects of minimum size without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (extend_node (direction_of this) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects by 180 degrees and recolor them to color B.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 180)\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color all the objects of colors F, C, R, G, and B to color B",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) C)\n                    (or\n                        (color_equals (color_of this) R)\n                        (or\n                            (color_equals (color_of this) G)\n                            (color_equals (color_of this) B)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all B-colored objects to the nearest F-colored object in the grid, without overlap, and color the extended area with color B.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node (direction_of x) false)\n            (add_border B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor all objects of color B to color F, move them toward the object of color A, and fill the rectangle enclosing objects of color C with color G.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of x))\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (fill_rectangle G false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects by 90 degrees clockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects of color different than B to the right if they are neighbors of an object of color C.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (not (color_equals (color_of this) B))\n                (and\n                    (neighbor_of this x)\n                    (color_equals (color_of x) C)\n                )\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects 90 degrees clockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects by 90 degrees and recolor them to color B.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 90)\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate each object containing the color G by 270 degrees clockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (rotate_node 270)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects in the grid that are squares by one step in all directions simultaneously.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (move_node up)\n            (move_node down)\n            (move_node left)\n            (move_node right)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects of color 'A' until they hit another object, or the edge of the grid.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) A)\n        )\n        (apply\n            (extend_node (direction_of this) true)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects to the right until hitting another object, and then color them with color B.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects of color R and degree max by 180 degrees.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (degree_equals (degree_of this) max)\n            )\n        )\n        (apply\n            (rotate_node 180)\n        )\n    )\n)"
+}

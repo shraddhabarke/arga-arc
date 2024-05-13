@@ -1,9 +1,10 @@
 (do
     (rule
+        (vars (this))
         (filter
             (and
-                (color_equals obj_color X)
-                (size_equals obj_size min)
+                (color_equals (color_of this) X)
+                (size_equals (size_of this) min)
             )
         )
         (apply
@@ -11,10 +12,11 @@
         )
     )
     (rule
+        (vars (this))
         (filter
             (and
-                (color_equals obj_color X)
-                (size_equals obj_size min)
+                (color_equals (color_of this) X)
+                (size_equals (size_of this) min)
             )
         )
         (apply
@@ -22,10 +24,11 @@
         )
     )
     (rule
+        (vars (this))
         (filter
             (and
-                (color_equals obj_color X)
-                (size_equals obj_size min)
+                (color_equals (color_of this) X)
+                (size_equals (size_of this) min)
             )
         )
         (apply

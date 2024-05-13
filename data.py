@@ -49,8 +49,21 @@ def get_tasks_dict(task_ids):
     all_tasks = all_tasks_dict()
     return { task_id : all_tasks[task_id] for task_id in task_ids }
 
-def get_task(task_id):
-    return all_tasks_dict()[task_id]
+def load_task(task_id):
+    """
+    Loads a task from the ARC dataset if the argument is a task id.
+    Otherwise, opens the argument as a file and loads it as a json object.
+    If the file does not exist or is not a json object, returns None.
+    """
+    all_arc_tasks = all_tasks_dict()
+    if task_id in all_arc_tasks:
+        return all_arc_tasks[task_id]
+    try:
+        with open(task_id, "r") as f:
+            task = json.load(f)
+        return task
+    except:
+        return None
 
 # for ARCAM
 def arcam_all_tasks_dict():
@@ -82,14 +95,14 @@ def pretty_grid(grid, color_map="id"):
     pretty_row = lambda row: " ".join(color_map[x] for x in row)
     return "\n".join(pretty_row(row) for row in grid)
 
-def task_description(task_id, print_test=False, color_map="id"):
-    task = get_task(task_id)
+def task_description(task_id, print_test, color_map):
+    task = load_task(task_id)
     desc = []
     for i, ex in enumerate(task["train"]):
-        #desc.append(f"EXAMPLE {i + 1}")
-        desc.append("INPUT-GRID:")
+        desc.append(f"PAIR {i + 1}")
+        desc.append("INPUT GRID:")
         desc.append(pretty_grid(ex["input"], color_map=color_map))
-        desc.append("OUTPUT-GRID:")
+        desc.append("OUTPUT GRID:")
         desc.append(pretty_grid(ex["output"], color_map=color_map))
         desc.append("")
     if print_test:

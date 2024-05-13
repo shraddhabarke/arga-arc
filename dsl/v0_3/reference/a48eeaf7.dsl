@@ -1,6 +1,6 @@
 (do
     (rule
-        (vars this var)
+        (vars (this var))
         (filter
             (and
                 (color_equals (color_of this) X)

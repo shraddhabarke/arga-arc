@@ -19,28 +19,8 @@ class _Ast(ast_utils.Ast):
 ### Var types
 
 @dataclass
-class VarUpdateColor(_Ast):
-    pass
-
-@dataclass
-class VarMoveNode(_Ast):
-    pass
-
-@dataclass
-class VarExtendNode(_Ast):
-    pass
-
-@dataclass
-class VarMoveNodeMax(_Ast):
-    pass
-
-@dataclass
-class VarMirror(_Ast):
-    pass
-
-@dataclass
-class VarInsert(_Ast):
-    pass
+class Var(_Ast):
+    name: str
 
 @dataclass
 class ObjectId(_Ast):
@@ -50,6 +30,7 @@ class ObjectId(_Ast):
 @dataclass
 class FColor(_Ast):
     value: int | str
+
 
 @dataclass
 class Size(_Ast):
@@ -103,23 +84,39 @@ class ImagePoints(_Ast):
 class RelativePosition(_Ast):
     value: str
 
-### Filter relations
+### Base accessors
 
 @dataclass
-class _FilterRelation(_Ast):
-    pass
+class ColorOf(_Ast):
+    var: Var
 
 @dataclass
-class IsAnyNeighbor(_FilterRelation):
-    pass
-
-@dataclass 
-class IsDirectNeighbor(_FilterRelation):
-    pass
+class SizeOf(_Ast):
+    var: Var
 
 @dataclass
-class IsDiagonalNeighbor(_FilterRelation):
-    pass
+class HeightOf(_Ast):
+    var: Var
+
+@dataclass
+class WidthOf(_Ast):
+    var: Var
+
+@dataclass
+class DegreeOf(_Ast):
+    var: Var
+
+@dataclass
+class ShapeOf(_Ast):
+    var: Var
+
+@dataclass
+class ColumnOf(_Ast):
+    var: Var
+
+@dataclass
+class DirectionOf(_Ast):
+    var: Var
 
 ### Filter expressions
 
@@ -200,7 +197,8 @@ class Neighbor_Degree(_Ast):
 
 @dataclass
 class Neighbor_Of(_Ast):
-    obj: str
+    obj1: str
+    obj2: str
 
 ### Transforms
 
@@ -264,6 +262,7 @@ class NoOp(_Transform):
 
 @dataclass
 class Rule(_Ast):
+    decl: List[Var]
     filter: _FilterExpr
     transforms: List[_Transform]
 
@@ -277,8 +276,14 @@ class Library(_Ast, ast_utils.AsList):
 
 
 class ToAst(Transformer):
-    # def VAR(self, token):
-    #     return Var()
+    def VAR(self, token):
+        return Var(token.value)
+
+    def VAR_THIS(self, token):
+        return Var(token.value)
+    
+    def VAR_OTHER(self, token):
+        return Var(token.value)
 
     # Var types
 
@@ -292,6 +297,9 @@ class ToAst(Transformer):
     
     def COLOR(self, token):
         return Color(token.value)
+    
+    def FCOLOR(self, token):
+        return FColor(token.value)
 
     def DIRECTION(self, token):
         return Direction(token.value)
@@ -332,8 +340,71 @@ class ToAst(Transformer):
     def RELATIVE_POSITION(self, token):
         return RelativePosition(token.value)
 
+    def SYMMETRY_AXIS(self, token):
+        return SymmetryAxis(token.value)
+
+    def MIRROR_AXIS(self, token):
+        return Var(token.value)
+
     # def library(self, children):
     #     return Library(children)
+
+    def decl(self, children):
+        return children
+    
+    def fcolor_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ColorOf(children[1])
+        
+    def color_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ColorOf(children[1])
+        
+    def size_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return SizeOf(children[1])
+        
+    def height_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return HeightOf(children[1])
+        
+    def width_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return WidthOf(children[1])
+        
+    def degree_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return DegreeOf(children[1])
+        
+    def shape_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ShapeOf(children[1])
+        
+    def column_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return ColumnOf(children[1])
+        
+    def direction_expr(self, children):
+        if len(children) == 1:
+            return children[0]
+        else:
+            return DirectionOf(children[1])
     
     def filter(self, children):
         if len(children) == 1:
@@ -405,7 +476,7 @@ class ToAst(Transformer):
                 )
             case "neighbor_of":
                 return Neighbor_Of(
-                    obj=children[1]
+                    obj1=children[1], obj2=children[2]
                 )
             case _:
                 # return tree
@@ -512,7 +583,7 @@ def test_gpt_gens():
         if os.path.isdir(dir_path):
             print(f"Testing directory {dir_path}...")
             for filename in os.listdir(dir_path):
-                if filename.endswith("_valid.txt"):
+                if filename.endswith("_valid_programs.txt"):
                     file_path = os.path.join(dir_path, filename)
                     test_file(file_path, parser, xformer)
 
@@ -524,6 +595,7 @@ def test_reference_programs():
     test_dirs = [
         "dsl/v0_3/reference",
         "dsl/v0_3/examples",
+        "dsl/v0_3/ic_examples",
     ]
     for test_dir in test_dirs:
         print(f"Testing directory {test_dir}...")
@@ -533,7 +605,8 @@ def test_reference_programs():
                 # open the file as a library
                 # print(f"Testing {file_path}...")
                 test_file(file_path, parser, xformer)
+                print("\n")
 
 if __name__ == "__main__":
-    # test_gpt_gens()
-    test_reference_programs()
+    test_gpt_gens()
+    # test_reference_programs()

@@ -1,0 +1,24 @@
+{
+    "nl_description": "Recolor all the objects to color X which are neighbors of objects of color X.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this x)\n                (color_equals (color_of x) X)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects at even width, 90 degrees clockwise.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) even)\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move the objects of color R one step towards X if they are neighbors of X, then recolor the object of color X to color X.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this x)\n                (color_equals (color_of x) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move the object of color X towards the object of color R, until it hits another object.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this x)\n                (color_equals (color_of x) R)\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects of maximum size towards the object of color X, without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (= (size_of this) max)\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
