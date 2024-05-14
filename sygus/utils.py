@@ -271,28 +271,30 @@ def resample_benchmark(benchmark: BenchmarkName, model: ModelName, n: int):
         examples,
     )
     for filename, output in benchmark_obj.output.items():
-        non_null_solution_idxs = [
-            i for i, s in enumerate(output["solutions"]) if s is not None
-        ]
-        non_null_solutions = [output["solutions"][i] for i in non_null_solution_idxs]
-        non_null_completions = [
-            output["completions"][i] for i in non_null_solution_idxs
-        ]
-        non_null_constants = [output["constants"][i] for i in non_null_solution_idxs]
-
-        if len(non_null_solutions) < n:
+        if len(output["completions"]) < n:
             print(
-                f"for {filename}, Expected at least {n} solutions to resample, got {len(non_null_solutions)}"
+                f"for {filename}, Expected at least {n} solutions to resample, got {len(output['completions'])}"
             )
             resampled.output[filename] = None
             continue
 
-        idxs = random.sample(range(len(non_null_solutions)), n)
+        idxs = random.sample(range(len(output["completions"])), n)
         resampled_output: CompletionJSON = {
-            "completions": [non_null_completions[i] for i in idxs],
-            "solutions": [non_null_solutions[i] for i in idxs],
-            "constants": [non_null_constants[i] for i in idxs],
-            "all_constants": list(set(sum([non_null_constants[i] for i in idxs], []))),
+            "completions": [output["completions"][i] for i in idxs],
+            "solutions": [output["solutions"][i] for i in idxs],
+            "constants": [output["constants"][i] for i in idxs],
+            "all_constants": list(
+                set(
+                    sum(
+                        [
+                            output["constants"][i]
+                            for i in idxs
+                            if output["constants"][i] is not None
+                        ],
+                        [],
+                    )
+                )
+            ),
             "time_diff_ms": output["time_diff_ms"],
         }
 
