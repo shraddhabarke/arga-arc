@@ -1,0 +1,14 @@
+{
+    "nl_description": "The single square objects are moved in the direction of a same-colored square object if one exists on their right side.",
+    "code": "(do\n    (rule\n        (filter\n            (and\n                (filter_by_size 1)\n                (varand\n                    (is_direct_neighbor)\n                    (filter_by_color var_update_color)\n                )\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects one step in the direction away from any boundary they are next to, and replicate their last position color in the new position if applicable.",
+    "code": "(do\n    (rule\n        (filter (filter_by_columns 0))\n        (apply (move_node right))\n    )\n    (rule\n        (filter (filter_by_columns max))\n        (apply (move_node left))\n    )\n    (rule\n        (filter (filter_by_height 0))\n        (apply (move_node down))\n    )\n    (rule\n        (filter (filter_by_height max))\n        (apply (move_node up))\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects one step down if their column contains the color W, without changing their horizontal position or order.",
+    "code": "(do\n    (rule\n        (filter\n            (varand\n                (is_any_neighbor)\n                (filter_by_columns center)\n            )\n            (filter_by_color W)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+}

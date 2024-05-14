@@ -308,14 +308,14 @@ def setup_size_and_degree_based_on_task(task):
     _size_additional = {f"{item}": int(item) for item in task_sizes}
     SizeEnum = Enum(
         "SizeEnum", {"MIN": "MIN", "MAX": "MAX",
-                     "ODD": "ODD", **_size_additional}
+                     "ODD": "ODD", **_size_additional, "SizeOf": "SizeOf"}
     )
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
     _degree_additional = {f"{item}": int(item) for item in task_degrees}
     DegreeEnum = Enum(
         "DegreeEnum", {"MIN": "MIN", "MAX": "MAX",
-                       "ODD": "ODD", **_degree_additional}
+                       "ODD": "ODD", **_degree_additional, "DegreeOf": "DegreeOf"}
     )
     _degrees, _sizes, _heights, _widths, _columns, _rows = [], [], [], [], [], []
 
@@ -323,28 +323,28 @@ def setup_size_and_degree_based_on_task(task):
     _height_additional = {f"{item}": int(item) for item in task_heights}
     HeightEnum = Enum(
         "HeightEnum", {"MIN": "MIN", "MAX": "MAX",
-                       "ODD": "ODD", **_height_additional}
+                       "ODD": "ODD", **_height_additional, "HeightOf": "HeightOf"}
     )
 
     task_widths = [d for d in task.object_widths[task.abstraction]]
     _width_additional = {f"{item}": int(item) for item in task_widths}
     WidthEnum = Enum(
         "WidthEnum", {"MIN": "MIN", "MAX": "MAX",
-                      "ODD": "ODD", **_width_additional}
+                      "ODD": "ODD", **_width_additional, "WidthOf": "WidthOf"}
     )
 
     task_columns = [d for d in task.columns[task.abstraction]]
     _column_additional = {f"{item}": int(item) for item in task_columns}
     ColumnEnum = Enum(
         "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD": "ODD", "EVEN_FROM_RIGHT": "EVEN_FROM_RIGHT",
-                       "MOD3": "MOD3", **_column_additional}
+                       "MOD3": "MOD3", **_column_additional, "ColumnOf": "ColumnOf"}
     )
 
     task_rows = [d for d in task.rows[task.abstraction]]
     _row_additional = {f"{item}": int(item) for item in task_rows}
     RowEnum = Enum(
         "RowEnum", {"MIN": "MIN", "MAX": "MAX",
-                    "ODD": "ODD", "CENTER": "CENTER", **_row_additional}
+                    "ODD": "ODD", "CENTER": "CENTER", **_row_additional, "RowOf": "RowOf"}
     )
 
     for name, member in SizeEnum.__members__.items():
@@ -387,6 +387,7 @@ class FColor(FilterASTNode, Enum):
     brown = "W"
     most = "most"
     least = "least"
+    colorof = "ColorOf"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.COLOR)
@@ -432,6 +433,7 @@ class FColor(FilterASTNode, Enum):
 class Shape(FilterASTNode, Enum):
     square = "square"
     enclosed = "enclosed"
+    colorof = "ShapeOf"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.SHAPE)
@@ -486,47 +488,35 @@ class Filters(FilterASTNode):
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
 
-class IsAnyNeighbor(FilterASTNode):
+class Direct_Neighbor_Of(Filters):
+    arity = 0
     size = 1
+    default_size = 1
 
-    def __init__(self, value=None):
-        super().__init__(FilterTypes.RELATION)
-        self.nodeType = FilterTypes.RELATION
-        self.code = f"IsAnyNeighbor"
-        self.size = 1
+    def __init__(self):
+        super().__init__()
+        self.nodeType = FilterTypes.FILTERS
+        self.size = self.default_size
         self.children = []
         self.values = []
-
-    @classmethod
-    @property
-    def arity(cls):
-        return 0
-
-    @classmethod
-    @property
-    def nodeType(cls):
-        return FilterTypes.RELATION
+        self.childTypes = []
 
     @classmethod
     def execute(cls, task, children=None):
+        instance = cls()
         if task.abstraction == "na":
-            cls.values = []
+            instance.values = []
         else:
             task = task.reset_task()
-            cls.values = [
-                {node: list(set([
-                    neighbor for neighbor in input_graph.graph.nodes() if
-                    input_graph.get_relative_pos(node, neighbor) is not None
-                    and node != neighbor]
-                ))
-                    for node in input_graph.graph.nodes()}
+            instance.values = [
+                {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
+                for node in input_graph.graph.nodes()}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
 
-        if all(all(not value for value in node_dict.values()) for node_dict in cls.values):
-            cls.values = []
-        cls.code = f"IsAnyNeighbor"
-        return cls
-
+        if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
+            instance.values = []
+        instance.code = f"Direct_Neighbor_Of(Obj) == X"
+        return instance
 
 class Neighbor_Of(Filters):
     arity = 0
@@ -549,8 +539,12 @@ class Neighbor_Of(Filters):
         else:
             task = task.reset_task()
             instance.values = [
-                {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
-                 for node in input_graph.graph.nodes()}
+                {node: list(set([
+                    neighbor for neighbor in input_graph.graph.nodes() if
+                    input_graph.get_relative_pos(node, neighbor) is not None
+                    and node != neighbor]
+                ))
+                    for node in input_graph.graph.nodes()}
                 for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
 
         if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
@@ -577,7 +571,6 @@ class And(FilterASTNode):
         values1 = children[0].values
         values2 = children[1].values
         new_instance = cls(children[0], children[1])
-
         intersected_values = [
             list(set(v1).intersection(set(v2))) if set(
                 v1).intersection(set(v2)) else []
@@ -592,19 +585,18 @@ class And(FilterASTNode):
         if children[0].__class__.__name__ == "Neighbor_Of" and children[1].__class__.__name__ == "Neighbor_Of":
             res_dict = {}  # undefined semantics
             new_instance.values = res_dict
-        elif children[0].__class__.__name__ == "Neighbor_Of":
+        elif children[0].__class__.__name__ == "Neighbor_Of" or children[0].__class__.__name__ == "Direct_Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 intersection_dict = {}
                 for key1, values1 in dict1.items():
-                    intersection_values = [
-                        value for value in values1 if value in dict2.keys()]
+                    intersection_values = [value for value in values1 if value in dict2.keys()]
                     intersection_dict[key1] = intersection_values
                 res_dict.append(intersection_dict)
             new_code = children[1].code.replace("Obj", "X")
             new_instance.code = f"And({children[0].code}, {new_code})"
             new_instance.values = res_dict
-        elif children[1].__class__.__name__ == "Neighbor_Of":
+        elif children[1].__class__.__name__ == "Neighbor_Of" or children[1].__class__.__name__ == "Direct_Neighbor_Of":
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 intersection_dict = {}
@@ -754,26 +746,31 @@ class Not(FilterASTNode):
 
 
 class Color_Equals(Filters):
-    arity = 1
-    childTypes = [[FilterTypes.COLOR], [FilterTypes.COLOR, FilterTypes.COLOR]]
+    arity = 2
+    childTypes = [[FilterTypes.COLOR, FilterTypes.COLOR]]
     default_size = 1
 
-    def __init__(self, color1: FColor, color2: FColor = None):
+    def __init__(self, color1: FColor, color2: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if color2 is None:
+        self.childTypes = [FilterTypes.COLOR, FilterTypes.COLOR]
+        self.size = self.default_size + color1.size + color2.size
+        if color2 == FColor.colorof:
             self.code = f"Color_Of(Obj) == {color1.code}"
-            self.size = self.default_size + color1.size + 1  # for object color
             self.children = [color1]
-            self.childTypes = [FilterTypes.COLOR]
-        elif color2 is not None:
+        elif color1 == FColor.colorof:
+            self.code = f"Color_Of(Obj) == {color2.code}"
+            self.children = [color2]
+        else:
             self.code = f"{color2.code} == {color1.code}"
-            self.size = self.default_size + color1.size + color2.size
             self.children = [color1, color2]
-            self.childTypes = [FilterTypes.COLOR, FilterTypes.COLOR]
 
     @classmethod
     def execute(cls, task, children):
+        if children[0] == FColor.colorof and children[1] == FColor.colorof:
+            cls.code = f"(Color_Of(Obj) == Color_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -781,26 +778,31 @@ class Color_Equals(Filters):
 
 
 class Size_Equals(Filters):
-    arity = 1
-    childTypes = [[FilterTypes.SIZE], [FilterTypes.SIZE, FilterTypes.SIZE]]
+    arity = 2
+    childTypes = [[FilterTypes.SIZE, FilterTypes.SIZE]]
     default_size = 1
 
-    def __init__(self, size1: Size, size2: Size = None):
+    def __init__(self, size1: Size, size2: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if size2 is None:
+        self.childTypes = [FilterTypes.SIZE, FilterTypes.SIZE]
+        self.size = self.default_size + size1.size + size2.size
+        if size2.code == "SIZE.SizeOf":
             self.code = f"Size_Of(Obj) == {size1.code}"
-            self.size = self.default_size + size1.size + 1  # for object size
             self.children = [size1]
-            self.childTypes = [FilterTypes.SIZE]
-        elif size2 is not None:
+        elif size1.code == "SIZE.SizeOf":
+            self.code = f"Size_Of(Obj) == {size2.code}"
+            self.children = [size2]
+        else:
             self.code = f"{size2.code} == {size1.code}"
-            self.size = self.default_size + size1.size + size2.size
             self.children = [size1, size2]
-            self.childTypes = [FilterTypes.SIZE, FilterTypes.SIZE]
 
     @classmethod
     def execute(cls, task, children):
+        if children[0].code == "SIZE.SizeOf" and children[1].code == "SIZE.SizeOf":
+            cls.code = f"(Size_Of(Obj) == Size_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -808,27 +810,32 @@ class Size_Equals(Filters):
 
 
 class Height_Equals(Filters):
-    arity = 1
-    childTypes = [[FilterTypes.HEIGHT], [
-        FilterTypes.HEIGHT, FilterTypes.HEIGHT]]
+    arity = 2
+    childTypes = [[FilterTypes.HEIGHT, FilterTypes.HEIGHT]]
     default_size = 1
 
-    def __init__(self, height1: Height, height2: Height = None):
+    def __init__(self, height1: Height, height2: Height):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if height2 is None:
+        self.size = self.default_size + height1.size + height2.size
+        self.childTypes = [FilterTypes.HEIGHT, FilterTypes.HEIGHT]
+        if height2.code == "HEIGHT.HeightOf":
             self.code = f"Height_Of(Obj) == {height1.code}"
-            self.size = self.default_size + height1.size + 1  # for object size
             self.children = [height1]
-            self.childTypes = [FilterTypes.HEIGHT]
-        elif height2 is not None:
+        elif height1.code == "HEIGHT.HeightOf":
+            self.code = f"Height_Of(Obj) == {height2.code}"
+            self.children = [height2]
+        else:
             self.code = f"{height2.code} == {height1.code}"
-            self.size = self.default_size + height1.size + height2.size
             self.children = [height1, height2]
-            self.childTypes = [FilterTypes.HEIGHT, FilterTypes.HEIGHT]
+
 
     @classmethod
     def execute(cls, task, children):
+        if children[0].code == "HEIGHT.HeightOf" and children[1].code == "HEIGHT.HeightOf":
+            cls.code = f"(Height_Of(Obj) == Height_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -836,26 +843,31 @@ class Height_Equals(Filters):
 
 
 class Width_Equals(Filters):
-    arity = 1
-    childTypes = [[FilterTypes.WIDTH], [FilterTypes.WIDTH, FilterTypes.WIDTH]]
+    arity = 2
+    childTypes = [[FilterTypes.WIDTH, FilterTypes.WIDTH]]
     default_size = 1
 
-    def __init__(self, width1: Width, width2: Width = None):
+    def __init__(self, width1: Width, width2: Width):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if width2 is None:
+        self.childTypes = [FilterTypes.WIDTH, FilterTypes.WIDTH]
+        self.size = self.default_size + width1.size + width2.size
+        if width2.code == "WIDTH.WidthOf":
             self.code = f"Width_Of(Obj) == {width1.code}"
-            self.size = self.default_size + width1.size + 1  # for object size
             self.children = [width1]
-            self.childTypes = [FilterTypes.WIDTH]
-        elif width2 is not None:
+        elif width1.code == "WIDTH.WidthOf":
+            self.code = f"Width_Of(Obj) == {width2.code}"
+            self.children = [width2]
+        else:
             self.code = f"{width2.code} == {width1.code}"
-            self.size = self.default_size + width1.size + width2.size
             self.children = [width1, width2]
-            self.childTypes = [FilterTypes.WIDTH, FilterTypes.WIDTH]
 
     @classmethod
     def execute(cls, task, children):
+        if children[0].code == "WIDTH.WidthOf" and children[1].code == "WIDTH.WidthOf":
+            cls.code = f"(Width_Of(Obj) == Width_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -863,27 +875,31 @@ class Width_Equals(Filters):
 
 
 class Degree_Equals(Filters):
-    arity = 1
-    childTypes = [[FilterTypes.DEGREE], [
-        FilterTypes.DEGREE, FilterTypes.DEGREE]]
+    arity = 2
+    childTypes = [[FilterTypes.DEGREE, FilterTypes.DEGREE]]
     default_size = 1
 
-    def __init__(self, degree1: Degree, degree2: Degree = None):
+    def __init__(self, degree1: Degree, degree2: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if degree2 is None:
+        self.childTypes = [FilterTypes.DEGREE, FilterTypes.DEGREE]
+        self.size = self.default_size + degree1.size + degree2.size
+        if degree2.code == "Degree.DegreeOf":
             self.code = f"Degree_Of(Obj) == {degree1.code}"
-            self.size = self.default_size + degree1.size + 1  # for object size
             self.children = [degree1]
-            self.childTypes = [FilterTypes.DEGREE]
-        elif degree2 is not None:
+        elif degree1.code == "Degree.DegreeOf":
+            self.code = f"Degree_Of(Obj) == {degree2.code}"
+            self.children = [degree2]
+        else:
             self.code = f"{degree2.code} == {degree1.code}"
-            self.size = self.default_size + degree1.size + degree2.size
             self.children = [degree1, degree2]
-            self.childTypes = [FilterTypes.DEGREE, FilterTypes.DEGREE]
 
     @classmethod
     def execute(cls, task, children):
+        if children[0].code == "DEGREE.DegreeOf" and children[1].code == "DEGREE.DegreeOf":
+            cls.code = f"(Degree_Of(Obj) == Degree_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -891,26 +907,31 @@ class Degree_Equals(Filters):
 
 
 class Shape_Equals(Filters):
-    arity = 1
-    childTypes = [[FilterTypes.SHAPE], [FilterTypes.SHAPE, FilterTypes.SHAPE]]
+    arity = 2
+    childTypes = [[FilterTypes.SHAPE, FilterTypes.SHAPE]]
     default_size = 1
 
-    def __init__(self, shape1: Shape, shape2: Shape = None):
+    def __init__(self, shape1: Shape, shape2: Shape):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if shape2 is None:
+        self.childTypes = [FilterTypes.SHAPE, FilterTypes.SHAPE]
+        self.size = self.default_size + shape1.size + shape2.size
+        if shape2 == Shape.shapeof:
             self.code = f"Shape_Of(Obj) == {shape1.code}"
-            self.size = self.default_size + shape1.size + 1  # for object size
             self.children = [shape1]
-            self.childTypes = [FilterTypes.SHAPE]
-        elif shape2 is not None:
+        elif shape1 == Shape.shapeof:
+            self.code = f"Shape_Of(Obj) == {shape2.code}"
+            self.children = [shape2]
+        else:
             self.code = f"{shape2.code} == {shape1.code}"
-            self.size = self.default_size + shape1.size + shape2.size
             self.children = [shape1, shape2]
-            self.childTypes = [FilterTypes.SHAPE, FilterTypes.SHAPE]
 
     @classmethod
     def execute(cls, task, children):
+        if children[0] == Shape.shapeof and children[1] == Shape.shapeof:
+            cls.code = f"(Shape_Of(Obj) == Shape_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -918,26 +939,32 @@ class Shape_Equals(Filters):
 
 
 class Row_Equals(Filters):
-    arity = 1
-    childTypes = [[FilterTypes.ROW], [FilterTypes.ROW, FilterTypes.ROW]]
+    arity = 2
+    childTypes = [[FilterTypes.ROW, FilterTypes.ROW]]
     default_size = 1
 
-    def __init__(self, row1: Row, row2: Row = None):
+    def __init__(self, row1: Row, row2: Row):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if row2 is None:
+        self.childTypes = [FilterTypes.ROW, FilterTypes.ROW]
+        self.size = self.default_size + row1.size + row2.size
+        if row2.code == "ROW.RowOf":
             self.code = f"Row_Of(Obj) == {row1.code}"
-            self.size = self.default_size + row1.size + 1  # for object size
             self.children = [row1]
-            self.childTypes = [FilterTypes.ROW]
-        elif row2 is not None:
+        elif row1.code == "ROW.RowOf":
+            self.code = f"Row_Of(Obj) == {row2.code}"
+            self.children = [row2]
+        else:
             self.code = f"{row2.code} == {row1.code}"
-            self.size = self.default_size + row1.size + row2.size
             self.children = [row1, row2]
-            self.childTypes = [FilterTypes.ROW, FilterTypes.ROW]
+
 
     @classmethod
     def execute(cls, task, children):
+        if children[0].code == "ROW.RowOf" and children[1].code == "ROW.RowOf":
+            cls.code = f"(Row_Of(Obj) == Row_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -946,26 +973,31 @@ class Row_Equals(Filters):
 
 class Column_Equals(Filters):
     arity = 1
-    childTypes = [[FilterTypes.COLUMN], [
+    childTypes = [[
         FilterTypes.COLUMN, FilterTypes.COLUMN]]
     default_size = 1
 
-    def __init__(self, col1: Row, col2: Row = None):
+    def __init__(self, col1: Row, col2: Row):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if col2 is None:
+        self.childTypes = [FilterTypes.COLUMN, FilterTypes.COLUMN]
+        self.size = self.default_size + col1.size + col2.size
+        if col2.code == "COLUMN.ColumnOf":
             self.code = f"Column_Of(Obj) == {col1.code}"
-            self.size = self.default_size + col1.size + 1  # for object size
             self.children = [col1]
-            self.childTypes = [FilterTypes.COLUMN]
-        elif col2 is not None:
+        elif col1.code == "COLUMN.ColumnOf":
+            self.code = f"Column_Of(Obj) == {col2.code}"
+            self.children = [col2]
+        else:
             self.code = f"{col2.code} == {col1.code}"
-            self.size = self.default_size + col1.size + col2.size
             self.children = [col1, col2]
-            self.childTypes = [FilterTypes.COLUMN, FilterTypes.COLUMN]
 
     @classmethod
     def execute(cls, task, children):
+        if children[0].code == "COLUMN.ColumnOf" and children[1].code == "COLUMN.ColumnOf":
+            cls.code = f"(Column_Of(Obj) == Column_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -977,7 +1009,7 @@ class Neighbor_Size(Filters):
     childTypes = [[FilterTypes.SIZE], [FilterTypes.SIZE, FilterTypes.SIZE]]
     default_size = 1
 
-    def __init__(self, size1: Size, size2: Size = None):
+    def __init__(self, size1: Size, size2: Size):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         if size2 is None:
@@ -998,28 +1030,32 @@ class Neighbor_Size(Filters):
         instance.values = values
         return instance
 
-
 class Neighbor_Color(Filters):
     arity = 1
-    childTypes = [[FilterTypes.COLOR], [FilterTypes.COLOR, FilterTypes.COLOR]]
+    childTypes = [[FilterTypes.COLOR, FilterTypes.COLOR]]
     default_size = 1
 
-    def __init__(self, color1: FColor, color2: FColor = None):
+    def __init__(self, color1: FColor, color2: FColor):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        if color2 is None:
+        self.childTypes = [FilterTypes.COLOR, FilterTypes.COLOR]
+        self.size = self.default_size + color1.size + color2.size
+        if color2 == FColor.colorof:
             self.code = f"Neighbor_Color_Of(Obj) == {color1.code}"
-            self.size = self.default_size + color1.size + 1  # for object color
             self.children = [color1]
-            self.childTypes = [FilterTypes.COLOR]
-        elif color2 is not None:
+        elif color1 == FColor.colorof:
+            self.code = f"Neighbor_Color_Of(Obj) == {color2.code}"
+            self.children = [color2]
+        else:
             self.code = f"{color2.code} == {color1.code}"
-            self.size = self.default_size + color1.size + color2.size
             self.children = [color1, color2]
-            self.childTypes = [FilterTypes.COLOR, FilterTypes.COLOR]
 
     @classmethod
     def execute(cls, task, children):
+        if children[0] == FColor.colorof and children[1] == FColor.colorof:
+            cls.code = f"(Color_Of(Obj) == Color_Of(Obj))"
+            cls.values = []
+            return cls
         instance = cls(*children)
         values = task.filter_values(instance)
         instance.values = values
@@ -1032,7 +1068,7 @@ class Neighbor_Degree(Filters):
         FilterTypes.DEGREE, FilterTypes.DEGREE]]
     default_size = 1
 
-    def __init__(self, degree1: Degree, degree2: Degree = None):
+    def __init__(self, degree1: Degree, degree2: Degree):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         if degree2 is None:

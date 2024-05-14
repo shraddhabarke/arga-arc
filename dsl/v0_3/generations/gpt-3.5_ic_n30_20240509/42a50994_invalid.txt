@@ -1,0 +1,14 @@
+{
+    "nl_description": "Move all objects of color Y one step down, and then extend them in all directions until they hit another object",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node down)\n            (extend_node all true)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects of color Y toward the object of color X, if they are neighbors of it.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this x)\n                (color_equals (color_of x) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend the objects of maximum size in each column until they reach another object, without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (column_equals (column_of this) x)\n                (not (neighbor_of this x))\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}

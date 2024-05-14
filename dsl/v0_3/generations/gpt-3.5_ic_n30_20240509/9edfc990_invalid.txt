@@ -1,0 +1,34 @@
+{
+    "nl_description": "Move objects of color B in any direction except down towards the object of color W.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (direction_of this down))\n                (neighbor_of this x)\n                (color_equals (color_of x) W)\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all squares up, down, left, or right, and fill them with color B",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (extend_node (direction up) false)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (extend_node (direction down) false)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (extend_node (direction left) false)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (extend_node (direction right) false)\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color all the objects in the bottom row and the bottom-right corner to color B",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) W)\n                    (column_equals (column_of this) min)\n                )\n                (and\n                    (neighbor_of this (this, (move_node_max down)))\n                    (color_equals (color_of this) Y)\n                    (column_equals (column_of this) max)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects of color different than B toward the diagonal-left symmetry axis, while extending the objects with color B in their way.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (not (color_equals (color_of this) B))\n                (color_equals (color_of x) B)\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n            (extend_node diagonal_left false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects of size 2 by one step, till hitting another object, in the direction of the object with color F.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (size_equals (size_of this) 2)\n            (neighbor_of this x)\n            (color_equals (color_of x) F)\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "For each object, color it to a different color than its neighbors",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (neighbor_of this x)\n        )\n        (apply\n            (update_color (not (color_of x)))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects to the maximum size, rotate them all by 180 degrees, and color them all blue.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node (up) false)\n            (rotate_node 180)\n            (update_color B)\n        )\n    )\n)"
+}

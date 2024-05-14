@@ -1,0 +1,44 @@
+{
+    "nl_description": "Recolor all objects of color F to color O",
+    "code": "(do\n    (rule\n        (filter (filter_by_color F))\n        (apply (update_color O))\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all C colored objects.",
+    "code": "(do\n    (rule\n        (filter (filter_by_color C))\n        (apply (update_color O))\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all objects of color F and X, and align all objects of color Y to the top",
+    "code": "(do\n    (rule\n        (filter (or (filter_by_color F) (filter_by_color X)))\n        (apply (update_color O))\n    )\n    (rule\n        (filter (filter_by_color Y))\n        (apply (move_node_max up))\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor every object that has exactly one direct neighbor to its original color",
+    "code": "(do\n    (rule\n        (filter\n            (filter_by_degree 1)\n        )\n        (apply\n            (update_color var_update_color)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all F colored objects",
+    "code": "(do\n    (rule\n        (filter (filter_by_color F))\n        (apply (update_color O))\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all isolated objects and align objects to the left if they have a neighbor on the right.",
+    "code": "(do\n    (rule\n        (filter\n            (filter_by_degree 0)\n        )\n        (apply\n            (noop)\n        )\n    )\n    (rule\n        (filter\n            (varand\n                (is_direct_neighbor)\n                (filter_by_neighbor_degree min)\n            )\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor the objects that have neighbors to color 'O'.",
+    "code": "(do\n    (rule\n        (filter\n            (filter_by_neighbor_color O)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all objects of color C and move all objects of size 1 one step toward the object of color X.",
+    "code": "(do\n    (rule\n        (filter (filter_by_color C))\n        (apply (noop))\n    )\n    (rule\n        (filter\n            (and\n                (filter_by_size 1)\n                (varand\n                    (is_any_neighbor)\n                    (filter_by_color X)\n                )\n            )\n        )\n        (apply\n            (move_node_max var_move_node_max)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Remove all F colored objects from the input grid.",
+    "code": "(do\n    (rule\n        (filter (filter_by_color F))\n        (apply (update_color O))\n    )\n)"
+}

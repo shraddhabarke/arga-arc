@@ -1,0 +1,19 @@
+{
+    "nl_description": "Extend objects that are squares and move them one step down. Then, update the color to color B.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) odd)\n                (neighbor_of this x)\n                (size_equals (size_of x) max)\n            )\n        )\n        (apply\n            (move_node down)\n            (extend_node (direction_of x) false)\n            (update_color B)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects of color F towards the object of color W.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this x)\n                (color_equals (color_of x) W)\n            )\n        )\n        (apply\n            (move_node_max (direction_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Color all objects to the color of the object in the same column and row, if the object below it is of color B.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this x)\n                    (and\n                        (color_equals (color_of x) B)\n                        (column_equals (column_of this) (column_of x))\n                        (column_equals (column_of this) (column_of x))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color (color_of x))\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Rotate all objects by 180 degrees and color the outermost border of the grid with color W.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 180)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (or\n                    (column_equals (column_of this) 0)\n                    (column_equals (column_of this) max)\n                )\n                (or\n                    (degree_equals (degree_of this) 0)\n                    (degree_equals (degree_of this) 180)\n                )\n            )\n        )\n        (apply\n            (add_border W)\n        )\n    )\n)"
+}

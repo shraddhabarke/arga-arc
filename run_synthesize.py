@@ -18,9 +18,9 @@ import math
 
 tleaf_makers = [NoOp, Color, Dir, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
                 Symmetry_Axis, Mirror_Axis, ObjectId, UpdateColor, MoveNode, MoveNodeMax, AddBorder, ExtendNode, Mirror,
-                HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
+                HollowRectangle, RotateNode, Flip, FillRectangle, Insert, Transforms]
 
-fleaf_makers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, Neighbor_Of,
+fleaf_makers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, Neighbor_Of, Direct_Neighbor_Of,
                 Color_Equals, Size_Equals, Degree_Equals, Shape_Equals, Height_Equals, Row_Equals, Column_Equals,
                 Neighbor_Color, Neighbor_Size, Neighbor_Degree, Not, And, Or]
 
@@ -112,7 +112,7 @@ if debug:
     transform_probabilities = compute_transform_costs()
     filter_probabilites = compute_filter_costs()
     t_vocabMakers = [NoOp, UpdateColor, MoveNodeMax, MoveNode, AddBorder, ExtendNode, Mirror, HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
-    f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, Neighbor_Of,
+    f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, Neighbor_Of, Direct_Neighbor_Of,
                 Color_Equals, Size_Equals, Degree_Equals, Shape_Equals, Height_Equals, Row_Equals, Column_Equals,
                 Neighbor_Color, Neighbor_Size, Neighbor_Degree, Not, And, Or]
     transform_values = get_all_t_probabilities(t_vocabMakers, transform_probabilities)
@@ -227,6 +227,7 @@ def run_synthesis(taskNumber, abstraction):
         filter_vocab = VocabFactory.create(fleaf_makers)
         enumerator = FSizeEnumerator(task, filter_vocab, ValuesManager())
         i = 0
+        print("Subset:", subset)
         while enumerator.hasNext():
             program = enumerator.next()
             i += 1
@@ -238,7 +239,7 @@ def run_synthesis(taskNumber, abstraction):
     correct_transforms = set()
     while enumerator.hasNext():
         program = enumerator.next()
-        print("enumerator:", program.code, program.size)
+        #print("enumerator:", program.code, program.size)
         #if program.spec:
             #print("spec:", program.values_apply)
         if program.values:  # Check if program.values is not empty
@@ -302,7 +303,6 @@ def run_synthesis(taskNumber, abstraction):
 
         if any(val for val in correct_nodes_for_this_transform):
             correct_nodes_per_transform[program.code] = correct_nodes_for_this_transform
-            # todo: create a dictionary from the program.code -> program object?
         full_coverage_per_task = [set(aggregated_correct_nodes) == set(dict(expected_graphs[task_idx]).keys())
                                 for task_idx, aggregated_correct_nodes in enumerate(aggregated_correct_nodes_per_task)]
 
@@ -347,6 +347,7 @@ def run_synthesis(taskNumber, abstraction):
             minimal_transforms = list(minimal_transforms)
             if minimal_transforms != correct_transforms:
                 correct_transforms = minimal_transforms
+                print("Minimal-transforms:", correct_transforms)
                 # Candidate set of transforms found: initiating filter synthesis...
                 all_filters_found, filters_sol = True, []
                 for program in minimal_transforms:
@@ -360,6 +361,8 @@ def run_synthesis(taskNumber, abstraction):
                     else:
                         if "Var" not in program:
                             input_nodes = find_input_nodes(input_graphs, correct_nodes_per_transform[program])
+                            print("program:", program, input_nodes)
+
                             subset = [{tup: [] for tup in subset} for subset in input_nodes]
                         else:
                             if len(task.all_specs) == 1:
@@ -385,7 +388,6 @@ def run_synthesis(taskNumber, abstraction):
 evals = {"e73095fd": "ccgbr2"}
 evals = {"25d487eb": "ccgbr"}
 evals = {"29c11459": "nbccg"}
-evals = {"f8a8fe49": "nbccg"}
 # ARGA Problems --
 # Augmentation: 29c11459, 67a423a3, 88a10436, 22168020
 # 4093f84a -- [filterbySize(Size.1) -> updateColor(gray), moveNodeMax(Variable)]
@@ -396,19 +398,19 @@ evals = {"dbc1a6ce": "nbccg"}
 evals = {"7ddcd7ec": "nbccg"} # todo -- blue print for extendNode
 evals = {"88a10436": "mcccg"}
 #evals = {"3618c87e": "nbccg"}
-evals = {"dc433765": "nbccg"}
-#evals = {"a48eeaf7": "nbccg"}
-evals = {"f8a8fe49": "nbccg"}
-evals = {"25d487eb": "lrg"}
-evals = {"67a423a3": "nbccg"}
 #
-evals = {"a48eeaf7": "nbccg"}
-evals = {"d43fd935": "nbccg"}
-evals = {"6855a6e4": "nbccg"}
-evals = {"ae3edfdc": "nbccg"}
+evals = {"67a423a3": "nbccg"}
 evals = {"ded97339": "nbccg"}
 evals = {"63613498": "nbccg"}
+evals = {"3618c87e": "nbccg"}
+# todo
+evals = {"25d487eb": "lrg"}
+evals = {"f8a8fe49": "nbccg"}
 
+evals = {"4258a5f9": "nbccg"}
+evals = {"b27ca6d3": "nbccg"}
+evals = {"3906de3d": "nbvcg"}
+evals = {"ddf7fa4f": "nbccg"}
 for task, abstraction in evals.items():
     start_time = time.time()
     print("taskNumber:", task)
@@ -612,10 +614,10 @@ class TestEvaluation(unittest.TestCase):
         self.assertCountEqual(['moveNode(Dir.DOWN)'], mt0)
         self.assertCountEqual(['Color_Of(Obj) == FColor.least'], mf0)
 
-        #print("Solving problem 1e0a9b12") # todo
+        #print("Solving problem 1e0a9b12")
         #mt1, mf1 = run_synthesis("1e0a9b12", "nbccg")
         #self.assertCountEqual(['[moveNodeMax(Dir.DOWN), moveNodeMax(Dir.DOWN)]'], mt1)
-        #self.assertCountEqual(['Not(Color_Of(Obj) == FColor.Black)'], mf1)
+        #self.assertCountEqual(['FColor.black == FColor.black)'], mf1)
 
         print("Solving problem e9afcf9a")
         mt1, mf1 = run_synthesis("e9afcf9a", "nbvcg")
@@ -772,32 +774,32 @@ class TestEvaluation(unittest.TestCase):
         print("Solving problem 6855a6e4")
         vt0, vf0 = run_synthesis("6855a6e4", "nbccg")
         self.assertCountEqual(['mirror(Var.mirror_axis)'], vt0)
-        self.assertCountEqual(['And(Color_Of(Obj) == FColor.grey, And(Neighbor_Of(Obj) == X, Color_Of(X) == FColor.red))'], vf0)
+        self.assertCountEqual(['And(Color_Of(Obj) == FColor.grey, And(Direct_Neighbor_Of(Obj) == X, Color_Of(X) == FColor.red))'], vf0)
 
         print("Solving problem dc433765")
         vt3, vf3 = run_synthesis("dc433765", "nbccg")
         self.assertCountEqual(['moveNode(Dir.Variable)'], vt3)
-        self.assertCountEqual(['And(Color_Of(Obj) == FColor.green, VarAnd(Var.IsAnyNeighbor, Var.Color_Of(Obj) == FColor.yellow))'], vf3)
+        self.assertCountEqual(['And(Color_Of(Obj) == FColor.green, And(Neighbor_Of(Obj) == X, Color_Of(X) == FColor.yellow))'], vf3)
 
         print("Solving problem a48eeaf7")
         vt6, vf6 = run_synthesis("a48eeaf7", "nbccg")
         self.assertCountEqual(['moveNodeMax(Dir.Variable)'], vt6)
-        self.assertCountEqual(['And(Color_Of(Obj) == FColor.grey, VarAnd(Var.IsAnyNeighbor, Var.Color_Of(Obj) == FColor.red))'], vf6)
+        self.assertCountEqual(['And(Color_Of(Obj) == FColor.grey, And(Neighbor_Of(Obj) == X, Color_Of(X) == FColor.red))'], vf6)
 
         print("Solving problem ddf7fa4f")
         vt1, vf1 = run_synthesis("ddf7fa4f", "nbccg")
         self.assertCountEqual(['updateColor(Var.color)_137'], vt1)
-        self.assertCountEqual(['And(Color_Of(Obj) == FColor.grey, And(Neighbor_Of(Obj) == X, Size_Of(X) == SIZE.MIN))'], vf1)
+        self.assertCountEqual(['And(Color_Of(Obj) == FColor.grey, And(Direct_Neighbor_Of(Obj) == X, Size_Of(X) == SIZE.MIN))'], vf1)
 
         print("Solving problem 2c608aff")
         vt6, vf6 = run_synthesis("2c608aff", "ccgbr")
         self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)_2'], vt6)
-        self.assertCountEqual(['And(Neighbor_Size_Of(Obj) == SIZE.MAX, And(Neighbor_Of(Obj) == X, Size_Of(X) == SIZE.MAX))'], vf6)
+        self.assertCountEqual(['And(Neighbor_Size_Of(Obj) == SIZE.MAX, And(Direct_Neighbor_Of(Obj) == X, Size_Of(X) == SIZE.MAX))'], vf6)
 
         print("Solving problem d43fd935")
         vt5, vf5 = run_synthesis("d43fd935", "nbccg")
         self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)_64'], vt5)
-        self.assertCountEqual(['And(Neighbor_Size_Of(Obj) == SIZE.MAX, And(Neighbor_Of(Obj) == X, Color_Of(X) == FColor.green))'], vf5)
+        self.assertCountEqual(['And(Neighbor_Size_Of(Obj) == SIZE.MAX, And(Direct_Neighbor_Of(Obj) == X, Color_Of(X) == FColor.green))'], vf5)
 
         print("Solving problem ae3edfdc")
         vt4, vf4 = run_synthesis("ae3edfdc", "nbccg")
@@ -821,11 +823,17 @@ class TestEvaluation(unittest.TestCase):
         #vt8, vf8 = run_synthesis("ded97339", "nbccg") #todo
         #self.assertCountEqual(['extendNode(Var.direction, Overlap.TRUE)'], vt8)
 
+
+
+
+
+
+
 #3618c87e: nbccg
 #transformations: ['[flip(Symmetry_Axis.DIAGONAL_LEFT), moveNode(Dir.DOWN_LEFT)]', "insert(('OBJECT_ID.0', 'ImagePoints.BOTTOM_RIGHT', 'RelativePosition.TARGET'))", '[rotateNode(Rotation_Angle.CW2), moveNodeMax(Dir.DOWN)]', '[moveNode(Dir.DOWN), updateColor(Color.grey)]', "insert(('OBJECT_ID.1', 'ImagePoints.BOTTOM', 'RelativePosition.MIDDLE'))", "insert(('OBJECT_ID.1', 'ImagePoints.BOTTOM_RIGHT', 'RelativePosition.MIDDLE'))", '[flip(Symmetry_Axis.DIAGONAL_RIGHT), moveNodeMax(Dir.DOWN)]', '[flip(Symmetry_Axis.VERTICAL), addBorder(Color.grey)]']
 #filters: ['Not(FilterBySize(SIZE.7))', 'Size_Of(Obj) == SIZE.6', 'Not(Color_Of(Obj) == FColor.Black)', 'Not(Color_Of(Obj) == FColor.Black)', 'Color_Of(Obj) == FColor.grey', 'Color_Of(Obj) == FColor.grey', 'Not(And(Degree_Of(Obj) == DEGREE.2, Or(Column_Of(Obj) == COLUMN.EVEN, Column_Of(Obj) == COLUMN.MOD3)))', 'FilterBySize(SIZE.7)']
 
-#6c434453: nbccg
+#6c434453: nbccg # todo
 #transformations: ['mirror(Var.mirror_axis)_0', "insert(('OBJECT_ID.0', 'ImagePoints.TOP', 'RelativePosition.SOURCE'))"]
 #filters: ['And(Size_Of(Obj) == SIZE.MAX, VarAnd(Var.IsDirectNeighbor, Var.Or(Neighbor_Size(Obj) == SIZE.MIN, FilterByNeighborSize(SIZE.ODD))))', 'Or(Size_Of(Obj) == SIZE.MAX, FilterBySize(SIZE.4))']
 

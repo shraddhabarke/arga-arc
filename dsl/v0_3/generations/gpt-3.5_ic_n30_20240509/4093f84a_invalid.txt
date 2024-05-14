@@ -1,0 +1,24 @@
+{
+    "nl_description": "Extend all objects of color F towards the object of color B, until they reach another object.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this x)\n                (color_equals (color_of x) B)\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Recolor objects to color X if they are neighbors of another object with color B and are not of color B themselves.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (neighbor_of this x)\n                (not (color_equals (color_of this) B))\n                (color_equals (color_of x) B)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend objects of color B towards the neighbor object of color X, without overlapping.",
+    "code": "(do\n    (rule\n        (vars (this x))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this x)\n                (color_equals (color_of x) X)\n            )\n        )\n        (apply\n            (extend_node (direction_of x) false)\n        )    \n    )\n)"
+}
+
+{
+    "nl_description": "Move all objects of color different than B one step down, and then mirror them vertically.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) B))\n        )\n        (apply\n            (move_node down)\n            (mirror this vertical)\n        )\n    )\n)"
+}
+
+{
+    "nl_description": "Extend all objects in the input grid in an overlapping fashion.",
+    "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node (direction_of X) true)\n        )\n    )\n)"
+}
