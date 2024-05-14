@@ -16,10 +16,10 @@ def is_parseable(src):
     try:
         grammar_file = "dsl/v0_3/dsl.lark"
         dsl.v0_3.parser.Parser(grammar_file).parse_tree(src)
-        return True
+        return (True, None)
     except Exception as e:
         # print(f"Error parsing code: {e}")
-        return False
+        return (False, e)
 
 def get_last_code_snippet(response:str) -> str:
     """
@@ -29,13 +29,15 @@ def get_last_code_snippet(response:str) -> str:
     code block.
     """
     # If the response is bare code, return it
-    if is_parseable(response):
+    can_parse, error = is_parseable(response)
+    if can_parse:
         return response
     # Otherwise, extract the last valid code block
     pattern = r'^```(?:\w+)?\s*\n(.*?)(?=^```)```'
     code_blocks = re.findall(pattern, response, re.DOTALL | re.MULTILINE)
     for block in code_blocks[::-1]:
-        if is_parseable(block):
+        can_parse, error = is_parseable(block)
+        if can_parse:
             return block
     return None
 
@@ -44,13 +46,28 @@ def process_responses_json(responses):
     # We want to extract the last code snippet from the "code" field and try to parse it
     valid_programs, valid_responses, invalid_responses = [], [], []
     for response in responses:
-        jobject = json.loads(response)
+        try:
+            jobject = json.loads(response)
+        except Exception as e:
+            invalid_response = {
+                "response": response,
+                "error_type": "json_parse_error",
+                "error_message": str(e)
+            }
+            invalid_responses.append(invalid_response)
+            continue
         code = jobject["code"]
-        if is_parseable(code):
+        can_parse, error = is_parseable(code)
+        if can_parse:
             valid_programs.append(code)
             valid_responses.append(response)
         else:
-            invalid_responses.append(response)
+            invalid_response = {
+                "response": response,
+                "error_type": "parse_error",
+                "error_message": str(error)
+            }
+            invalid_responses.append(invalid_response)
     return valid_programs, valid_responses, invalid_responses
 
 def query_task(task_id, n_responses, output_dir, model):

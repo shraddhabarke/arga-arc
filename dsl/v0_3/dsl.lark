@@ -20,8 +20,13 @@ decl: "(" "vars" "(" VAR_THIS VAR_OTHER? ")" ")"
 filter: "(" "filter" filter_expr? ")"
 
 // It can be a primitive filter operation, or a boolean expression using the `and`, `or`, and `not` connectives.
-// The `and` and `or` connectives are strictly binary, so to take the conjunction or disjunction of more than two expressions,
-// the binary connectives must be nested.
+// IMPORTANT: The `and` and `or` connectives are strictly binary, so to take the conjunction or disjunction 
+// of more than two expressions, the binary connectives must be nested.
+// AGAIN, the `and` and `or` connectives are not variadic, so the following is not allowed:
+// (and true true false)
+// Instead, the following must be used:
+// (and true (and true false))
+// The `not` connective is unary as expected.
 // The objects that are transformed are the ones that satisfy the filter expression.
 filter_expr: filter_prim
            | "(" OP_AND filter_expr filter_expr ")"   
@@ -102,11 +107,11 @@ FCOLOR: "O" // black
       | "C" // cyan  
       | "W" // brown
 
-SIZE: "min" | "max" | "odd" | /[0-9]+/  // size of objects
-DEGREE: "min" | "max" | "odd" | /[0-9]+/  // degree of objects
-HEIGHT: "min" | "max" | "odd" | /[0-9]+/  // height of objects
-WIDTH: "min" | "max" | "odd" | /[0-9]+/  // width of objects
-COLUMN: "center" | "even" | /[0-9]+/  // column of objects
+SIZE: "min" | "max" | "even" | "odd" | /[0-9]+/  // size of objects
+DEGREE: "min" | "max" | "even" | "odd" | /[0-9]+/  // degree of objects
+HEIGHT: "min" | "max" | "even" | "odd" | /[0-9]+/  // height of objects
+WIDTH: "min" | "max" | "even" | "odd" | /[0-9]+/  // width of objects
+COLUMN: "center" | "even" | "odd" | /[0-9]+/  // column of objects
 SHAPE: "square" | "enclosed"  // shape of objects
 
 DIRECTION: "up"
