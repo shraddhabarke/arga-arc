@@ -68,21 +68,21 @@ OCTO = octoai.client.OctoAI(api_key=CONFIG.OCTO_SECRET_KEY)
 
 ExampleTuple = t.Tuple[t.List[str], str]
 
-BenchmarkName = t.Literal["larger-string", "string", "circuit", "hackers-delight"]
-BENCHMARK_NAMES = ["larger-string", "string", "circuit", "hackers-delight"]
+BenchmarkName = t.Literal["larger-string", "string"]  # , "circuit", "hackers-delight"]
+BENCHMARK_NAMES = ["larger-string", "string"]  # , "circuit", "hackers-delight"]
 
 BENCHMARKS_DIRECTORY = CONFIG.ROOT_DIR / "sygus/Probe/src/test/benchmarks"
 BENCHMARK_DIRECTORIES: dict[BenchmarkName, Path] = {
     "larger-string": BENCHMARKS_DIRECTORY / "larger-grammar",
     "string": BENCHMARKS_DIRECTORY / "string",
-    "circuit": BENCHMARKS_DIRECTORY / "circuit/test",
-    "hackers-delight": BENCHMARKS_DIRECTORY / "hackers-delight",
+    # "circuit": BENCHMARKS_DIRECTORY / "circuit/test",
+    # "hackers-delight": BENCHMARKS_DIRECTORY / "hackers-delight",
 }
 EXAMPLE_FILES: dict[BenchmarkName, t.Optional[Path]] = {
     "larger-string": None,
     "string": None,
-    "circuit": CONFIG.ROOT_DIR / "sygus/io-results-circuit.json",
-    "hackers-delight": CONFIG.ROOT_DIR / "sygus/io-results-bitvec.json",
+    # "circuit": CONFIG.ROOT_DIR / "sygus/io-results-circuit.json",
+    # "hackers-delight": CONFIG.ROOT_DIR / "sygus/io-results-bitvec.json",
 }
 
 # region CLI COMMANDS
@@ -271,28 +271,30 @@ def resample_benchmark(benchmark: BenchmarkName, model: ModelName, n: int):
         examples,
     )
     for filename, output in benchmark_obj.output.items():
-        non_null_solution_idxs = [
-            i for i, s in enumerate(output["solutions"]) if s is not None
-        ]
-        non_null_solutions = [output["solutions"][i] for i in non_null_solution_idxs]
-        non_null_completions = [
-            output["completions"][i] for i in non_null_solution_idxs
-        ]
-        non_null_constants = [output["constants"][i] for i in non_null_solution_idxs]
-
-        if len(non_null_solutions) < n:
+        if len(output["completions"]) < n:
             print(
-                f"for {filename}, Expected at least {n} solutions to resample, got {len(non_null_solutions)}"
+                f"for {filename}, Expected at least {n} solutions to resample, got {len(output['completions'])}"
             )
             resampled.output[filename] = None
             continue
 
-        idxs = random.sample(range(len(non_null_solutions)), n)
+        idxs = random.sample(range(len(output["completions"])), n)
         resampled_output: CompletionJSON = {
-            "completions": [non_null_completions[i] for i in idxs],
-            "solutions": [non_null_solutions[i] for i in idxs],
-            "constants": [non_null_constants[i] for i in idxs],
-            "all_constants": list(set(sum([non_null_constants[i] for i in idxs], []))),
+            "completions": [output["completions"][i] for i in idxs],
+            "solutions": [output["solutions"][i] for i in idxs],
+            "constants": [output["constants"][i] for i in idxs],
+            "all_constants": list(
+                set(
+                    sum(
+                        [
+                            output["constants"][i]
+                            for i in idxs
+                            if output["constants"][i] is not None
+                        ],
+                        [],
+                    )
+                )
+            ),
             "time_diff_ms": output["time_diff_ms"],
         }
 
@@ -449,19 +451,29 @@ class SygusProblem:
     @property
     def user_message(self) -> str:
         EXAMPLES = ""
-        for args, output in self.examples:
+        examples = (
+            random.sample(self.examples, 5) if len(self.examples) > 5 else self.examples
+        )
+        for args, output in examples:
             EXAMPLES += f"{' , '.join(args)} -> {output}\n"
-        return f"""[GRAMMAR]
+
+        ans = f"""[GRAMMAR]
 {self.synth_fun}
 
-[NATURAL LANGUAGE SPECIFICATION]
+"""
+        if self.natural_language_spec.strip() != "":
+            ans += f"""[NATURAL LANGUAGE SPECIFICATION]
 {self.natural_language_spec}
 
-[EXAMPLES]
+"""
+
+        ans += f"""[EXAMPLES]
 {EXAMPLES}
 
 [SOLUTION]
 {self.function_definition_prefix}"""
+
+        return ans
 
 
 SYSTEM_PROMPT = """You are a coding assistant. Be precise and terse.
@@ -600,7 +612,7 @@ class SygusBenchmark:
         directory: Path,
         examples: t.Optional[t.Dict[str, t.List[ExampleTuple]]] = None,
     ):
-        assert filename.exists()
+        assert filename.exists(), f"{filename} does not exist"
         with open(filename, "r") as f:
             output = json.load(f)
             benchmark = cls(name, directory, examples)
@@ -623,11 +635,28 @@ class SygusBenchmark:
         average_num_completions = num_completions / num_items
         average_num_solutions = num_solutions / num_items
 
+        min_num_completions = min(
+            (
+                len(output["completions"])
+                for output in self.output.values()
+                if output["completions"] is not None
+            )
+        )
+        max_num_completions = max(
+            (
+                len(output["completions"])
+                for output in self.output.values()
+                if output["completions"] is not None
+            )
+        )
+
         print(f"# {self.name}")
         print(f"Total problems: {num_items}")
         print(f"Total completions: {num_completions}")
         print(f"Total parsed solutions: {num_solutions}")
         print(f"Average completions per problem: {average_num_completions}")
+        print(f"Minimum completions per problem: {min_num_completions}")
+        print(f"Maximum completions per problem: {max_num_completions}")
         print(f"Average solutions per problem: {average_num_solutions}")
 
         if len([o for o in self.output.values() if "solutions" in o]) == 0:
@@ -669,6 +698,9 @@ class SygusBenchmark:
             )
 
         for key, output in self.output.items():
+            if "solutions" not in output:
+                print(f"Problem {key} has no solutions")
+                continue
             num_solutions_for_problem = len(
                 [s for s in output["solutions"] if s is not None]
             )
@@ -695,7 +727,11 @@ class SygusBenchmark:
         for idx, (filename, problem) in tqdm(
             list(enumerate(self.sygus.items())), desc=self.name
         ):
-            if filename in self.output and "completions" in self.output[filename]:
+            if (
+                filename in self.output
+                and "completions" in self.output[filename]
+                and self.output[filename]["completions"] is not None
+            ):
                 print(f"already have output for {filename}")
                 continue
             if filename_of_interest is not None and filename != filename_of_interest:
@@ -730,15 +766,36 @@ class SygusBenchmark:
             if filename not in self.output:
                 continue
             completions = self.output[filename]["completions"]
-            try:
-                solutions = [
-                    problem.completion_to_function_definition(c) for c in completions
-                ]
-                self.output[filename]["solutions"] = solutions
-            except Exception as e:
-                print(f"Error parsing solution for {filename}: {e}")
-                print(traceback.format_exc())
-                continue
+            self.output[filename]["solutions"] = []
+            for completion in completions:
+                try:
+                    parsed = sexp.loads(completion)
+                    self.output[filename]["solutions"].append(sexp.dumps(parsed))
+                    continue
+                except Exception:
+                    pass
+
+                extracted = extract_code(completion)
+                normalized = None
+
+                if extracted is None:
+                    print(f"# Error extracting completion")
+                    print(f"## completion")
+                    print('"""' + completion + '"""')
+                    print()
+                    print()
+                    self.output[filename]["solutions"].append(None)
+                    continue
+
+                try:
+                    normalized = normalize_code(
+                        extracted, self.sygus[filename].function_definition_prefix
+                    )
+                    self.output[filename]["solutions"].append(normalized)
+                except Exception as e:
+                    self.output[filename]["solutions"].append(None)
+                    print(f"Error parsing solution for {filename}: {e}")
+                    print(traceback.format_exc())
         return self.output
 
     def parse_constants(self):
@@ -746,6 +803,8 @@ class SygusBenchmark:
             list(self.sygus.items()), desc=f"{self.name}-constants"
         ):
             if filename not in self.output:
+                continue
+            if "solutions" not in self.output[filename]:
                 continue
             solutions = self.output[filename]["solutions"]
             try:
@@ -778,6 +837,77 @@ class SygusBenchmark:
 
 
 # region SEXP PARSING
+
+CODE_BLOCK_REGEX = r"```((?:(?!\n).)*\n)?((?:(?!```).)*)```"
+
+
+def extract_code_block(completion: str) -> t.Optional[str]:
+    match = re.search(CODE_BLOCK_REGEX, completion, re.DOTALL)
+    if match:
+        group_number = len(match.groups())
+        return match.group(group_number).rstrip()
+    else:
+        return None
+
+
+def extract_plain_code(completion: str) -> t.Optional[str]:
+    return completion.split("\n\n")[0].strip()
+
+
+def remove_leading_close_paren(completion: str) -> str:
+    return (
+        completion.strip()[1:]
+        if completion.strip().startswith(")")
+        else completion.strip()
+    )
+
+
+def extract_code(completion: str) -> t.Optional[str]:
+    code_block_result = extract_code_block(completion)
+
+    if code_block_result is not None:
+        ans = code_block_result
+    else:
+        ans = extract_plain_code(completion)
+
+    return remove_leading_close_paren(ans)
+
+
+def add_definition(code: str, definition: str) -> str:
+    if "define-fun" in code:
+        return code
+
+    return definition + code
+
+
+def add_closing_bracket(completion: str) -> str:
+    return completion + ")"
+
+
+def remove_closing_bracket(completion: str) -> str:
+    return completion[:-1]
+
+
+def balance_parens(completion: str) -> t.Optional[str]:
+    current_completion = completion.strip()
+    for _ in range(10):
+        try:
+            parsed = sexp.loads(current_completion)
+            return sexp.dumps(parsed)
+        except Exception as e:
+            if "Not enough closing brackets." in str(e):
+                current_completion = add_closing_bracket(completion)
+            elif "Too many closing brackets." in str(e):
+                current_completion = remove_closing_bracket(completion)
+            else:
+                print(f"Caught unexpected error parsing completion:")
+                print(f"{completion}")
+                print(traceback.format_exc())
+                return None
+
+
+def normalize_code(code: str, definition: str) -> str:
+    return balance_parens(add_definition(code, definition))
 
 
 SExpItem = t.Union[sexp.Symbol, str, int]
