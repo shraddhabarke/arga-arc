@@ -11,7 +11,7 @@
             )
         )
         (apply
-            (mirror var)
+            (mirror (mirror_axis_of var))
         )
     )
 )
