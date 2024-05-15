@@ -1,17 +1,17 @@
 (do
     (rule
-        (vars (this var))
+        (vars (this other))
         (filter
             (and
                 (color_equals (color_of this) X)     
                 (and
-                    (neighbor_of this var)
-                    (color_equals (color_of var) R)
+                    (neighbor_of this other)
+                    (color_equals (color_of other) R)
                 )
             )
         )
         (apply
-            (mirror var)
+            (mirror (mirror_axis_of other))
         )
     )
 )
