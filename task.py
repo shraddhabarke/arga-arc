@@ -293,10 +293,32 @@ class Task:
         for i, _ in enumerate(filtered_nodes):
             filtered_nodes_dict = {node: [] for node in filtered_nodes[i]}
             filtered_nodes_dict_list.append(filtered_nodes_dict)
+        
         if self.current_spec: # todo
             return filtered_nodes_dict_list
         else:
             return filtered_nodes_dict_list
+
+    def var_filter_values(self, filter: FilterASTNode): # returns the objects that satisfy the filter
+        filtered_nodes, filtered_nodes_dict_list = [], []
+        self.input_abstracted_graphs_original[self.abstraction] = [
+            getattr(input, Image.abstraction_ops[self.abstraction])()
+            for input in self.train_input
+        ]
+
+        for input_abstracted_graph in self.input_abstracted_graphs_original[
+            self.abstraction
+        ]:
+            filtered_nodes_i = []
+            for node in input_abstracted_graph.graph.nodes(data=True):
+                if input_abstracted_graph.apply_filters(node[0], filter):
+                    filtered_nodes_i.append(node[0])
+            filtered_nodes.append(filtered_nodes_i)
+
+        for input_abstracted_graph, filtered_node in zip(self.input_abstracted_graphs_original[self.abstraction], filtered_nodes):
+            filtered_nodes_dict = {key[0]: filtered_node for key in input_abstracted_graph.graph.nodes(data=True)}
+            filtered_nodes_dict_list.append(filtered_nodes_dict)
+        return filtered_nodes_dict_list
 
     def compute_transformation_params(self, input_graph, transformation):
         """
@@ -347,6 +369,7 @@ class Task:
                 for neighbor in input_graph.graph.neighbors(node_obj):
                     target_axis = input_graph.get_mirror_axis(
                         node_obj, neighbor)
+                    # todo: can-see
                     object_params.append(target_axis)
                     if target_axis is not None:
                             object_params_dict[node_obj].append(

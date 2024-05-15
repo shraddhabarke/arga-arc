@@ -35,7 +35,6 @@ class ValuesManager(OEValuesManager):
             return False
         if results in self.class_values:
             return False
-
         self.class_values.add(results)
         return True
 

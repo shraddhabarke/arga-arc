@@ -646,7 +646,12 @@ class ARCGraph:
             color = color_map[color2]
 
         if self.is_multicolor:
-            return color1 in color # ColorOf(Obj)
+            if not isinstance(color, int):
+                return color == [color_map[color1]] * sum(
+                    len(data["nodes"]) for node, data in self.graph.nodes(data=True)
+                )
+            else:
+                return color == color_map[color1]
         else:
             return color == color_map[color1]
 
@@ -749,46 +754,20 @@ class ARCGraph:
         if not isinstance(node, Tuple):
             return node == size
         elif isinstance(node, Tuple):
-            if size == "MAX":
-                size = self.get_attribute_max("size")
-            elif size == "MIN":
-                size = self.get_attribute_min("size")
-
             for neighbor in self.graph.neighbors(node):
-                if size == "ODD":
+                if size == "MAX":
+                    if self.graph.nodes[neighbor]["size"] == self.get_attribute_max("size"):
+                        return True
+                elif size == "MIN":
+                    if self.graph.nodes[neighbor]["size"] == self.get_attribute_min("size"):
+                        return True
+                elif size == "ODD":
                     if self.graph.nodes[neighbor]["size"] % 2 != 0:
                         return True
                 else:
                     if self.graph.nodes[neighbor]["size"] == size:
                         return True
             return False
-
-    def Neighbor_Color(self, color: Color, color2):
-        """
-        return true if node has a neighbor of a given color.
-        if exclude, return true if node does not have a neighbor of a given color.
-        """
-        color_map = {
-            "most": self.most_common_color,
-            "least": self.least_common_color,
-            "O": 0,
-            "B": 1,
-            "R": 2,
-            "G": 3,
-            "Y": 4,
-            "X": 5,
-            "F": 6,
-            "A": 7,
-            "C": 8,
-            "W": 9,
-        }
-        if isinstance(color2, Tuple): # object
-            for neighbor in self.graph.neighbors(color2):
-                if self.graph.nodes[neighbor]["color"] == color:
-                    return True
-            return False
-        else:
-            color == color_map[color2]
 
     def Neighbor_Degree(self, degree: Degree, degree2):
         """
