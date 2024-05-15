@@ -39,6 +39,8 @@ import click
 from datetime import datetime
 import logging
 import time
+import tokenize
+import io
 
 # need this to properly evaluate code, even though it isn't used explicitly
 import math
@@ -625,6 +627,7 @@ class Task:
     aggregate_constant_count: "ConstantCounts" = field(default_factory=dict)
 
     __asts: t.List[ast.Module] = field(default_factory=list)
+    __tokens: t.List[t.List[tokenize.TokenInfo]] = field(default_factory=list)
 
     @classmethod
     def from_json(cls, task_json: TaskJSON):
@@ -768,12 +771,14 @@ class Task:
                 print()
                 print()
                 self.__asts.append(None)
+                self.__tokens.append(None)
                 self.normalized_completions.append(None)
                 continue
 
+            normalized = normalize_code(extracted, self.function_definition)
             try:
-                normalized = normalize_code(extracted, self.function_definition)
                 self.__asts.append(ast.parse(normalized))
+                self.__tokens.append(lex(normalized))
                 self.normalized_completions.append(normalized)
             except Exception:
                 num_errored += 1
@@ -789,12 +794,18 @@ class Task:
                 print()
                 print()
                 self.__asts.append(None)
+                self.__tokens.append(lex(normalized))
                 self.normalized_completions.append(None)
         print(f"Errored: {num_errored}")
 
     def compute_constants(self):
         self.parsed_constants = [
-            get_constants(ast_node) if ast_node else [] for ast_node in self.__asts
+            (
+                get_constants(ast_node)
+                if ast_node
+                else get_constants_lexed(tokens) if tokens is not None else []
+            )
+            for ast_node, tokens in zip(self.__asts, self.__tokens)
         ]
         self.all_constants = list(
             set(
@@ -806,8 +817,12 @@ class Task:
             )
         )
         self.constant_counts = [
-            count_constants(ast_node, self.examples) if ast_node else None
-            for ast_node in self.__asts
+            (
+                count_constants(ast_node, self.examples)
+                if ast_node
+                else count_constants_lexed(tokens, self.examples) if tokens else None
+            )
+            for ast_node, tokens in zip(self.__asts, self.__tokens)
         ]
         self.aggregate_constant_count = {
             "common": 0,
@@ -1206,6 +1221,140 @@ def prompt(
 
 
 # endregion PROMPT
+
+# region LEXING
+
+
+def lex(code: str) -> t.List[tokenize.TokenInfo]:
+    ans = []
+    try:
+        for token in tokenize.tokenize(io.BytesIO(code.encode("utf-8")).readline):
+            ans.append(token)
+    except:
+        pass
+    return ans
+
+
+ALL_OPERATORS = TFOPERATORS + SPARSETF_OPERATORS
+
+
+def count_operators_lexed(tokens: t.List[tokenize.TokenInfo]) -> t.Dict[str, int]:
+    seen_tf = False
+    seen_sparse = False
+
+    ans = {}
+
+    for token in tokens:
+        if token.string == ".":
+            continue
+
+        if token.string == "tf":
+            seen_tf = True
+            continue
+
+        if seen_tf:
+            if seen_sparse:
+                if any(
+                    f"tf.sparse.{token.string}(" in operator
+                    for operator in ALL_OPERATORS
+                ):
+                    ans[f"tf.sparse.{token.string}"] = (
+                        ans.get(f"tf.sparse.{token.string}", 0) + 1
+                    )
+                seen_sparse = False
+                seen_tf = False
+            elif token.string == "sparse":
+                seen_sparse = True
+            else:
+                if any(f"tf.{token.string}(" in operator for operator in ALL_OPERATORS):
+                    ans[f"tf.{token.string}"] = ans.get(f"tf.{token.string}", 0) + 1
+                seen_tf = False
+
+    return ans
+
+
+def get_constants_lexed(tokens: t.List[tokenize.TokenInfo]) -> t.List[int]:
+    ans = []
+    seen_minus = False
+    for token in tokens:
+        if token.type == tokenize.OP:
+            if token.string == "-":
+                seen_minus = True
+                continue
+        elif token.type == tokenize.NUMBER:
+            try:
+                value = -int(token.string) if seen_minus else int(token.string)
+            except:
+                continue
+            ans.append(value)
+
+        seen_minus = False
+    return list(set(ans))
+
+
+def count_constants_lexed(
+    tokens: t.List[tokenize.TokenInfo], example: Example
+) -> "ConstantCounts":
+    counts = {
+        "common": 0,
+        "axis": 0,
+        "shape": 0,
+        "provided": 0,
+        "tf_int32": 0,
+        "tf_float32": 0,
+        "tf_int64": 0,
+        "tf_bool": 0,
+        "input_var": 0,
+        "shape_tuple": 0,
+    }
+    # example.max_input_rank,
+    #     example.dimension_lengths,
+    #     example.output_shape,
+    seen_minus = False
+    seen_tf = False
+    for token in tokens:
+        if token.type == tokenize.OP:
+            if token.string == "-":
+                seen_minus = True
+                continue
+        elif token.type == tokenize.NUMBER:
+            try:
+                value = -int(token.string) if seen_minus else int(token.string)
+            except:
+                continue
+            if is_common(value):
+                counts["common"] += 1
+            elif is_axis(value, example.max_input_rank):
+                counts["axis"] += 1
+            elif is_shape(value, example.dimension_lengths):
+                counts["shape"] += 1
+            else:
+                counts["provided"] += 1
+        elif token.type == tokenize.NAME:
+            if token.string == "tf":
+                seen_tf = True
+                continue
+            elif seen_tf:
+                if token.string == "int32":
+                    counts["tf_int32"] += 1
+                elif token.string == "float32":
+                    counts["tf_float32"] += 1
+                elif token.string == "int64":
+                    counts["tf_int64"] += 1
+                elif token.string == "bool":
+                    counts["tf_bool"] += 1
+        elif token.type == tokenize.DOT:
+            continue
+
+        # TODO: shape tuple (not sure if it's worth implementing at the lexer level)
+        # if we see an open paren, take all the tokens until the close paren, attempt to parse a shape tuple out of them. if that works, count as shape. else, treat as tokens
+        seen_minus = False
+        seen_tf = False
+
+    return counts
+
+
+# endregion LEXING
 
 # region PARSING
 
