@@ -627,5 +627,5 @@ def test_reference_programs():
                 print("\n")
 
 if __name__ == "__main__":
-    test_gpt_gens()
-    # test_reference_programs()
+    # test_gpt_gens()
+    test_reference_programs()

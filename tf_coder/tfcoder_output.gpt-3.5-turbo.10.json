@@ -21,21 +21,33 @@
             "return tf.transpose(tf.stack([in1, tf.range(tf.shape(in1)[0])]))",
             "def transform(in1):\n    pairs = tf.stack([in1, tf.range(tf.size(in1))], axis=1)\n    return pairs\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.stack([in1, tf.range(tf.size(in1))], axis=1)\n",
+            "def transform(in1):\n    return tf.transpose(tf.stack([in1, tf.range(tf.size(in1))]))",
+            "def transform(in1):\n    indices = tf.expand_dims(in1, axis=1)\n    indices = tf.concat([indices, tf.range(tf.shape(in1)[0], dtype=tf.int64)], axis=1)\n    return indices\n",
+            "def transform(in1):\n    return tf.concat([tf.expand_dims(in1, -1), tf.range(tf.size(in1), dtype=tf.int32)], axis=1)",
+            "def transform(in1):\n    return tf.stack([in1, tf.range(tf.size(in1))], axis=1)",
+            "def transform(in1):\n    indices = tf.expand_dims(tf.range(tf.size(in1), dtype=tf.int64), axis=1)\n    values = tf.cast(tf.expand_dims(in1, axis=1), tf.int64)\n    return tf.concat([indices, values], axis=1)\n",
+            "def transform(in1):\n    return tf.transpose(tf.stack([tf.tile(tf.range(tf.shape(in1)[0]), [tf.math.count_nonzero(in1)]), tf.boolean_mask(tf.range(tf.reduce_max(in1)+1), tf.tile(tf.expand_dims(in1, 1), [1, tf.shape(in1)[0]]))]))\n    ",
+            "def transform(in1):\n    return tf.transpose(tf.stack([tf.repeat(tf.range(tf.size(in1)), tf.ones_like(in1)), in1]))",
+            "def transform(in1):\n    return tf.transpose(tf.stack([in1, tf.range(tf.shape(in1)[0])]))",
+            "def transform(in1):\n    pairs = tf.stack([in1, tf.range(tf.size(in1))], axis=1)\n    return pairs\n"
+        ],
         "tf_operators": {
             "tf.size": 7,
             "tf.range": 10,
             "tf.stack": 7,
             "tf.transpose": 4,
-            "tf.concat": 3,
             "tf.shape": 3,
             "tf.int64": 2,
             "tf.expand_dims": 4,
+            "tf.concat": 3,
             "tf.int32": 1,
             "tf.cast": 1,
-            "tf.boolean_mask": 1,
-            "tf.reduce_max": 1,
             "tf.tile": 1,
+            "tf.reduce_max": 1,
             "tf.math.count_nonzero": 1,
+            "tf.boolean_mask": 1,
             "tf.repeat": 1,
             "tf.ones_like": 1
         },
@@ -207,16 +219,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 30,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 17,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 3,
-            "tf_int32": 1
+            "shape_tuple": 0,
+            "input_var": 30,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 1,
+            "axis": 0
         }
     },
     {
@@ -241,11 +253,23 @@
             "return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])\n",
             "return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    output_indices = tf.sparse.slice(in1.indices, [0, 0, 0], [2, -1, -1])\n    output_values = tf.sparse.slice(in1.values, [0], [2])\n    output_dense_shape = tf.sparse.slice(in1.dense_shape, [0], [1])\n    \n    return tf.SparseTensor(indices=output_indices, values=output_values, dense_shape=output_dense_shape)\n    ",
+            "def transform(in1):\n    return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])",
+            "def transform(in1):\n    return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])",
+            "def transform(in1):\n    return tf.sparse.slice(in1, [0, 0, 0], [2, -1, -1])",
+            "def transform(in1):\n    return tf.sparse.slice(in1, tf.constant([0, 0, 0], dtype=tf.int64), tf.constant([1, 2, 800], dtype=tf.int64))",
+            "def transform(in1):\n    output = tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])\n    return output\n    ",
+            "def transform(in1):\n    return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])",
+            "def transform(in1):\n    return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])\n    ",
+            "def transform(in1):\n    return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])\n    ",
+            "def transform(in1):\n    return tf.sparse.slice(in1, [0, 0, 0], [1, 2, 800])"
+        ],
         "tf_operators": {
             "tf.sparse.slice": 10,
             "tf.SparseTensor": 1,
-            "tf.int64": 1,
-            "tf.constant": 1
+            "tf.constant": 1,
+            "tf.int64": 1
         },
         "coverage_percentage": 0.0,
         "total_covered": 0,
@@ -466,16 +490,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 9,
             "shape": 8,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 45,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 11,
             "tf_int64": 2,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 9,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 11
         }
     },
     {
@@ -499,6 +523,18 @@
             "return tf.reshape(in1, (4, 3, 2))",
             "return tf.reshape(in1, (4, 3, 2))\n",
             "return tf.reshape(in1, (4, 3, 2))"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))\n",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))\n    ",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))\n    ",
+            "def transform(in1):\n    return tf.reshape(in1, (4, 3, 2))"
         ],
         "tf_operators": {
             "tf.reshape": 10
@@ -686,16 +722,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 0,
-            "shape_tuple": 10,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 10,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -720,9 +756,21 @@
             "return tf.repeat(tf.expand_dims(in1, axis=2), repeats=6, axis=2)",
             "return tf.repeat(in1, 6, axis=1)"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, 2), [1, 1, 6])\n    ",
+            "def transform(in1):\n    return tf.repeat(in1, 6)",
+            "def transform(in1):\n    return tf.repeat(in1, repeats=6, axis=1)",
+            "def transform(in1):\n    return tf.repeat(in1, 6, axis=0)",
+            "def transform(in1):\n    return tf.repeat(in1, 6)",
+            "def transform(in1):\n    out1 = tf.tile(tf.expand_dims(in1, axis=-1), [1, 1, 6])\n    ",
+            "def transform(in1):\n    return tf.repeat(in1, repeats=6, axis=1)\n    ",
+            "def transform(in1):\n    return tf.repeat(in1, repeats=6, axis=1)",
+            "def transform(in1):\n    return tf.repeat(tf.expand_dims(in1, axis=2), repeats=6, axis=2)",
+            "def transform(in1):\n    return tf.repeat(in1, 6, axis=1)"
+        ],
         "tf_operators": {
-            "tf.tile": 2,
             "tf.expand_dims": 3,
+            "tf.tile": 2,
             "tf.repeat": 8
         },
         "coverage_percentage": 100.0,
@@ -903,16 +951,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 10,
             "common": 10,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 3,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 10,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 3
         }
     },
     {
@@ -937,13 +985,25 @@
             "return tf.math.unsorted_segment_max(in2, in1, tf.reduce_max(in1)+1)",
             "return tf.math.unsorted_segment_max(in2, in1, tf.reduce_max(in1) + 1)"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_max(in2, in1, tf.reduce_max(in1) + 1)",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, tf.expand_dims(tf.argmax(in1, axis=0), axis=1))\n    ",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    max_values = tf.math.segment_max(in2, segment_ids=in1)\n    return max_values\n",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_max(in2, in1, tf.reduce_max(in1)+1)",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_max(in2, in1, tf.reduce_max(in1) + 1)"
+        ],
         "tf_operators": {
-            "tf.math.unsorted_segment_max": 3,
             "tf.reduce_max": 3,
+            "tf.math.unsorted_segment_max": 3,
             "tf.math.segment_max": 6,
             "tf.expand_dims": 1,
-            "tf.gather_nd": 1,
-            "tf.argmax": 1
+            "tf.argmax": 1,
+            "tf.gather_nd": 1
         },
         "coverage_percentage": 100.0,
         "total_covered": 1,
@@ -1096,16 +1156,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 23,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 5,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 23,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -1130,11 +1190,23 @@
             "return tf.argmax(tf.math.segment_max(in2, in1), axis=1)\n",
             "return tf.unsorted_segment_max(in2, in1, tf.reduce_max(in1)+1)"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    max_indices = tf.math.segment_max(in2, in1)\n    return max_indices\n    ",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    return tf.math.segment_max(in2, in1)",
+            "def transform(in1, in2):\n    return tf.argmax(tf.math.unsorted_segment_max(in2, in1, tf.reduce_max(in1)+1), axis=0)",
+            "def transform(in1, in2):\n    return tf.argmax(tf.unstack(in2), axis=1)\n    ",
+            "def transform(in1, in2):\n    grouped_max = tf.math.segment_max(in2, segment_ids=in1)\n    result = tf.argmax(grouped_max, axis=1)\n    return result\n",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_max(in2, in1, tf.reduce_max(in1)+1)\n    ",
+            "def transform(in1, in2):\n    return tf.argmax(tf.math.segment_max(in2, in1), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.unsorted_segment_max(in2, in1, tf.reduce_max(in1)+1)"
+        ],
         "tf_operators": {
             "tf.math.segment_max": 6,
-            "tf.math.unsorted_segment_max": 2,
-            "tf.argmax": 4,
             "tf.reduce_max": 3,
+            "tf.argmax": 4,
+            "tf.math.unsorted_segment_max": 2,
             "tf.unstack": 1,
             "tf.unsorted_segment_max": 1
         },
@@ -1293,16 +1365,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 22,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 7,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 22,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -1326,6 +1398,18 @@
             "def transform(in1):\n    return tf.sequence_mask(in1)\n",
             "return tf.sequence_mask(in1, maxlen=5)\n",
             "return tf.sequence_mask(in1, maxlen=5)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n    ",
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n",
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n    ",
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n",
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n    ",
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n",
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n    ",
+            "def transform(in1):\n    return tf.sequence_mask(in1)\n",
+            "def transform(in1):\n    return tf.sequence_mask(in1, maxlen=5)\n    ",
+            "def transform(in1):\n    return tf.sequence_mask(in1, maxlen=5)\n    "
         ],
         "tf_operators": {
             "tf.sequence_mask": 10
@@ -1475,16 +1559,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 2,
             "common": 0,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 2,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -1509,13 +1593,25 @@
             "return tf.gather(in2, tf.argsort(in1))\n",
             "def transform(in1, in2):\n    sorted_indices = tf.argsort(in1)\n    return tf.gather(in2, sorted_indices)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    sorted_indices = tf.argsort(in1)\n    return tf.gather(in2, sorted_indices)\n    ",
+            "def transform(in1, in2):\n    return tf.math.segment_min(in2, in1)\n    ",
+            "def transform(in1, in2):\n    values, indices = tf.sort(in2, axis=0)\n    return tf.gather(values, indices)\n",
+            "def transform(in1, in2):\n    sorted_indices = tf.argsort(in1)\n    out = tf.gather(in2, sorted_indices)\n    return out\n    ",
+            "def transform(in1, in2):\n    return tf.unsorted_segment_max(in2, in1, tf.reduce_max(in1)+1)\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in2, tf.argsort(in1))\n    ",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_sum(in2, in1, tf.reduce_max(in1) + 1)",
+            "def transform(in1, in2):\n    segment_ids, sorted_indices = tf.math.top_k(in1, k=tf.reduce_max(in1) + 1)\n    sorted_values = tf.gather(in2, sorted_indices)\n    return sorted_values\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in2, tf.argsort(in1))\n    ",
+            "def transform(in1, in2):\n    sorted_indices = tf.argsort(in1)\n    return tf.gather(in2, sorted_indices)\n"
+        ],
         "tf_operators": {
             "tf.gather": 7,
             "tf.argsort": 5,
             "tf.math.segment_min": 1,
             "tf.sort": 1,
-            "tf.reduce_max": 3,
             "tf.unsorted_segment_max": 1,
+            "tf.reduce_max": 3,
             "tf.math.unsorted_segment_sum": 1,
             "tf.math.top_k": 1
         },
@@ -1669,16 +1765,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 23,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 4,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 23,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -1703,11 +1799,23 @@
             "return tf.math.count_nonzero(tf.greater(in1, 0), axis=1)\n",
             "return tf.reduce_sum(tf.cast(tf.greater(in1, 0), tf.int32), axis=1)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.reduce_sum(tf.cast(tf.greater(in1, 0), tf.int32), axis=1)\n    ",
+            "def transform(in1):\n    return tf.math.count_nonzero(tf.greater(in1, 0), axis=1)\n    ",
+            "def transform(in1):\n    return tf.math.count_nonzero(tf.greater(in1, 0), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.cast(tf.greater(in1, 0), tf.int32), axis=1)\n    ",
+            "def transform(in1):\n    return tf.math.count_nonzero(tf.greater(in1, 0), axis=1)\n    ",
+            "def transform(in1):\n    return tf.math.count_nonzero(tf.greater(in1, 0), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.cast(tf.greater(in1, 0), tf.int32), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.cast(tf.greater(in1, 0), tf.int32), axis=1)\n    ",
+            "def transform(in1):\n    return tf.math.count_nonzero(tf.greater(in1, 0), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.cast(tf.greater(in1, 0), tf.int32), axis=1)\n    "
+        ],
         "tf_operators": {
-            "tf.cast": 5,
             "tf.reduce_sum": 5,
-            "tf.greater": 10,
             "tf.int32": 5,
+            "tf.greater": 10,
+            "tf.cast": 5,
             "tf.math.count_nonzero": 5
         },
         "coverage_percentage": 100.0,
@@ -1882,16 +1990,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 20,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 5
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 5,
+            "axis": 0
         }
     },
     {
@@ -1916,10 +2024,22 @@
             "return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))",
             "return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))",
+            "def transform(in1):\n    return tf.where(tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1)), 1, 0)",
+            "def transform(in1):\n    return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))\n    ",
+            "def transform(in1):\n    result = tf.cast(tf.logical_and(in1 >= 0, in1 <= 1), tf.int32)\n    return result\n    ",
+            "def transform(in1):\n    return tf.cast(tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1)), tf.int32)\n    ",
+            "def transform(in1):\n    output = tf.math.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))\n    return tf.cast(output, tf.int32)\n    ",
+            "def transform(in1):\n    return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))\n    ",
+            "def transform(in1):\n    return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))\n    ",
+            "def transform(in1):\n    return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))",
+            "def transform(in1):\n    return tf.logical_and(tf.greater_equal(in1, 0), tf.less_equal(in1, 1))"
+        ],
         "tf_operators": {
-            "tf.greater_equal": 9,
             "tf.less_equal": 9,
             "tf.logical_and": 9,
+            "tf.greater_equal": 9,
             "tf.where": 1,
             "tf.int32": 3,
             "tf.cast": 3,
@@ -2099,16 +2219,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 22,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 3
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 3,
+            "axis": 0
         }
     },
     {
@@ -2132,6 +2252,18 @@
             "return tf.concat([in1, in2], axis=1)\n",
             "return tf.concat([in1, in2], axis=1)\n",
             "return tf.concat([in1, in2], axis=1)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=-1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1, in2], axis=1)\n    "
         ],
         "tf_operators": {
             "tf.concat": 10
@@ -2298,16 +2430,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 10,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -2331,6 +2463,18 @@
             "return tf.roll(in1, shift=1, axis=1)\n",
             "return tf.roll(in1, shift=1, axis=1)\n",
             "return tf.roll(in1, shift=1, axis=1)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.roll(in1, shift=1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.roll(in1, shift=-1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.roll(in1, shift=1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.roll(in1, shift=-1, axis=1)\n",
+            "def transform(in1):\n    return tf.roll(in1, shift=-1, axis=1)\n",
+            "def transform(in1):\n    return tf.roll(in1, shift=1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.roll(in1, shift=1, axis=1)\n",
+            "def transform(in1):\n    return tf.roll(in1, shift=1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.roll(in1, shift=1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.roll(in1, shift=1, axis=1)\n    "
         ],
         "tf_operators": {
             "tf.roll": 10
@@ -2507,16 +2651,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 20,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -2540,6 +2684,18 @@
             "return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')",
             "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')\n",
             "return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.pad(in1, [[0, 0], [0, 1]], mode='CONSTANT')\n    ",
+            "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')\n    ",
+            "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')\n    ",
+            "def transform(in1):\n    return tf.pad(in1, [[0, 0], [0, 1]], 'CONSTANT')\n    ",
+            "def transform(in1):\n    return tf.pad(in1, [[0, 0], [0, 1]], mode='CONSTANT')\n    ",
+            "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')",
+            "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')\n    ",
+            "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')",
+            "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')\n",
+            "def transform(in1):\n    return tf.pad(in1, paddings=[[0, 0], [0, 1]], mode='CONSTANT')\n    "
         ],
         "tf_operators": {
             "tf.pad": 10
@@ -2736,16 +2892,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 40,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -2769,6 +2925,18 @@
             "repeated = tf.repeat(in1, in2)\nreturn repeated\n",
             "return tf.repeat(in1, in2)\n",
             "return tf.repeat(in1, in2)"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)\n    ",
+            "def transform(in1, in2):\n    repeated = tf.repeat(in1, in2)\n    return repeated\n    ",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.repeat(in1, in2)"
         ],
         "tf_operators": {
             "tf.repeat": 10
@@ -2912,16 +3080,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 0,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -2945,6 +3113,18 @@
             "def transform(in1, in2):\n    return tf.where(in1, in2, -10*in2)\n",
             "return tf.where(in1, in2, -10*in2)",
             "return tf.where(in1, in2, tf.math.negative(in2))"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.where(in1, in2, -in2)",
+            "def transform(in1, in2):\n    return tf.where(in1, in2, -in2)",
+            "def transform(in1, in2):\n    return tf.where(tf.expand_dims(in1, axis=-1), in2, -10 * in2)",
+            "def transform(in1, in2):\n    return tf.where(in1, in2, -in2)",
+            "def transform(in1, in2):\n    return tf.where(in1, in2, -1*in2)",
+            "def transform(in1, in2):\n    result = tf.where(in1, in2, -10*in2)\n    return result\n",
+            "def transform(in1, in2):\n    return tf.where(in1, in2, -10 * in2)\n",
+            "def transform(in1, in2):\n    return tf.where(in1, in2, -10*in2)\n",
+            "def transform(in1, in2):\n    return tf.where(in1, in2, -10*in2)",
+            "def transform(in1, in2):\n    return tf.where(in1, in2, tf.math.negative(in2))"
         ],
         "tf_operators": {
             "tf.where": 10,
@@ -3106,16 +3286,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 30,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 5,
             "common": 2,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 30,
+            "tf_float32": 0,
+            "provided": 5,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -3139,6 +3319,18 @@
             "return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2) + 1)",
             "return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2)+1)",
             "return tf.math.segment_sum(in1, in2)"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2)+1)",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2) + 1)",
+            "def transform(in1, in2):\n    return tf.math.segment_sum(in1, in2)",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2) + 1)",
+            "def transform(in1, in2):\n    result = tf.math.segment_sum(in1, in2)\n    return result\n    ",
+            "def transform(in1, in2):\n    return tf.math.segment_sum(in1, in2)\n",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2)+1)",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2) + 1)",
+            "def transform(in1, in2):\n    return tf.math.unsorted_segment_sum(in1, in2, tf.reduce_max(in2)+1)",
+            "def transform(in1, in2):\n    return tf.math.segment_sum(in1, in2)"
         ],
         "tf_operators": {
             "tf.reduce_max": 6,
@@ -3298,16 +3490,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 26,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 6,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 26,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -3332,11 +3524,23 @@
             "return tf.gather_nd(in1, tf.transpose(in2))\n",
             "return tf.gather_nd(in1, tf.stack([tf.range(in1.shape[0]), in2], axis=1))\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.scatter_nd(indices=tf.stack([tf.range(tf.shape(in1)[0]), in2], axis=-1), updates=in1, shape=tf.shape(in1))",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([tf.range(tf.shape(in2)[0]), in2], axis=1))\n    ",
+            "def transform(in1, in2):\n    result = tf.scatter_nd(tf.expand_dims(in2, axis=-1), in1, tf.shape(in1))\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.transpose(tf.stack([tf.range(tf.shape(in1)[0]), in2])))",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([tf.range(tf.shape(in1)[0]), in2], axis=1))\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, in2)",
+            "def transform(in1, in2):\n    output = tf.scatter_nd(indices=in2, updates=in1, shape=(3, 3))\n    return output\n    ",
+            "def transform(in1, in2):\n    return tf.scatter_nd(in2, in1, tf.shape(in1))",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.transpose(in2))\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([tf.range(in1.shape[0]), in2], axis=1))\n    "
+        ],
         "tf_operators": {
-            "tf.stack": 5,
+            "tf.scatter_nd": 4,
             "tf.range": 5,
             "tf.shape": 6,
-            "tf.scatter_nd": 4,
+            "tf.stack": 5,
             "tf.gather_nd": 6,
             "tf.expand_dims": 1,
             "tf.transpose": 2
@@ -3504,16 +3708,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 27,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 10,
-            "shape_tuple": 1,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 1,
+            "input_var": 27,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -3537,6 +3741,18 @@
             "def transform(in1):\n    sorted_indices = tf.argsort(in1)\n    return sorted_indices\n",
             "return tf.argsort(in1)",
             "return tf.argsort(in1, axis=0)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.argsort(in1, stable=True)",
+            "def transform(in1):\n    return tf.argsort(in1)",
+            "def transform(in1):\n    return tf.argsort(in1)",
+            "def transform(in1):\n    return tf.argsort(in1)",
+            "def transform(in1):\n    return tf.argsort(in1, stable=True)",
+            "def transform(in1):\n    return tf.argsort(in1)",
+            "def transform(in1):\n    sorted_indices = tf.argsort(in1)\n    ",
+            "def transform(in1):\n    sorted_indices = tf.argsort(in1)\n    return sorted_indices\n",
+            "def transform(in1):\n    return tf.argsort(in1)",
+            "def transform(in1):\n    return tf.argsort(in1, axis=0)\n    "
         ],
         "tf_operators": {
             "tf.argsort": 10
@@ -3684,16 +3900,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 3,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -3717,6 +3933,18 @@
             "return tf.tensor_scatter_nd_update(tensor, indices, updates)",
             "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n",
             "return tf.tensor_scatter_nd_update(tensor, indices, updates)\n"
+        ],
+        "normalized_completions": [
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    ",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    ",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    ",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    ",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    ",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    ",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    ",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n",
+            "def transform(tensor, indices, updates):\n    return tf.tensor_scatter_nd_update(tensor, indices, updates)\n    "
         ],
         "tf_operators": {
             "tf.tensor_scatter_nd_update": 10
@@ -3860,16 +4088,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 30,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 0,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 30,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -3894,17 +4122,29 @@
             "indices = tf.reshape(in1, [-1])\nrow_indices = tf.repeat(tf.range(tf.shape(in1)[0]), 2)\nreturn tf.transpose(tf.stack([row_indices, indices]))\n",
             "return tf.repeat(in1, repeats=2)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.tile(in1, [2, 1])\n    ",
+            "def transform(in1):\n    return tf.repeat(tf.range(tf.shape(in1)[0]), 2)\n    ",
+            "def transform(in1):\n    indices = tf.range(0, tf.shape(in1)[0])\n    return tf.repeat(indices, in1[:, 1] - in1[:, 0] + 1) + tf.range(0, in1[:, 1] - in1[:, 0] + 1)\n    ",
+            "def transform(in1):\n    return tf.repeat(in1, 2, axis=0) - tf.cast(tf.range(in1.shape[0])[:, None] // 2, in1.dtype)\n                                                                                                                                                                                                                    ",
+            "def transform(in1):\n    row_idx = tf.range(tf.shape(in1)[0])\n    pair_idx = tf.gather(tf.tile(row_idx, [2]), tf.argsort(in1[:,0]))\n    return tf.stack([tf.repeat(pair_idx, 2), tf.cast(tf.unstack(in1), tf.int32)], axis=1)\n    ",
+            "def transform(in1):\n    row_indices = tf.repeat(tf.range(tf.shape(in1)[0]), repeats=2)\n    pair_indices = tf.tile(in1, multiples=[2, 1])\n    return tf.stack([row_indices, pair_indices], axis=1)\n",
+            "def transform(in1):\n    return tf.repeat(in1, 2, axis=0)",
+            "def transform(in1):\n    return tf.tile(in1, [2, 1]) // tf.shape(in1)[0]\n    ",
+            "def transform(in1):\n    indices = tf.reshape(in1, [-1])\n    row_indices = tf.repeat(tf.range(tf.shape(in1)[0]), 2)\n    return tf.transpose(tf.stack([row_indices, indices]))\n    ",
+            "def transform(in1):\n    return tf.repeat(in1, repeats=2)\n    "
+        ],
         "tf_operators": {
             "tf.tile": 4,
-            "tf.range": 6,
-            "tf.shape": 6,
             "tf.repeat": 8,
+            "tf.shape": 6,
+            "tf.range": 6,
             "tf.cast": 2,
-            "tf.gather": 1,
             "tf.unstack": 1,
+            "tf.gather": 1,
+            "tf.argsort": 1,
             "tf.int32": 1,
             "tf.stack": 3,
-            "tf.argsort": 1,
             "tf.transpose": 1,
             "tf.reshape": 1
         },
@@ -4098,16 +4338,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 23,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 19,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 12,
             "tf_int64": 0,
-            "tf_int32": 1
+            "shape_tuple": 0,
+            "input_var": 23,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 1,
+            "axis": 12
         }
     },
     {
@@ -4132,12 +4372,24 @@
             "return tf.repeat(input=in1, repeats=2, axis=1)",
             "import tensorflow as tf\n\ndef transform(in1):\n    col1 = tf.expand_dims(in1[:, 0], axis=1)\n    col2 = tf.expand_dims(in1[:, 1], axis=1)\n    reshaped = tf.concat([col1, col1, col2, col2], axis=1)\n    return tf.reshape(reshaped, [-1, 2, 2])\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)\n    ",
+            "def transform(in1):\n    return tf.cast(tf.stack([in1, in1], axis=2), tf.float32)",
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)",
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)\n    ",
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)\n    ",
+            "def transform(in1):\n    return tf.reshape(tf.tile(in1, [1, 2]), [3, 2, 2])\n",
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)\n    ",
+            "def transform(in1):\n    return tf.stack([in1[:, 0], in1[:, 0], in1[:, 1], in1[:, 1]], axis=1)\n",
+            "def transform(in1):\n    return tf.repeat(input=in1, repeats=2, axis=1)",
+            "import tensorflow as tf\n\ndef transform(in1):\n    col1 = tf.expand_dims(in1[:, 0], axis=1)\n    col2 = tf.expand_dims(in1[:, 1], axis=1)\n    reshaped = tf.concat([col1, col1, col2, col2], axis=1)\n    return tf.reshape(reshaped, [-1, 2, 2])\n"
+        ],
         "tf_operators": {
             "tf.stack": 7,
             "tf.float32": 1,
             "tf.cast": 1,
-            "tf.tile": 1,
             "tf.reshape": 2,
+            "tf.tile": 1,
             "tf.repeat": 1,
             "tf.expand_dims": 1,
             "tf.concat": 1
@@ -4323,16 +4575,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 1,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 7,
-            "shape_tuple": 0,
-            "tf_float32": 1,
-            "axis": 12,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 1,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 12
         }
     },
     {
@@ -4355,6 +4607,18 @@
             "def transform(in1):\n    return tf.clip_by_value(in1, clip_value_min=-1e9, clip_value_max=1)\n",
             "return tf.clip_by_value(in1, 0, 1)\n",
             "return tf.clip_by_value(in1, clip_value_min=-float('inf'), clip_value_max=1)\n",
+            "def transform(in1):\n    clipped_values = tf.clip_by_value(in1, clip_value_min=-float('inf'), clip_value_max=1)\n    return clipped_values\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.minimum(in1, 1)\n    ",
+            "def transform(in1):\n    return tf.clip_by_value(in1, clip_value_min=-np.inf, clip_value_max=1)\n    ",
+            "def transform(in1):\n    return tf.minimum(in1, 1)\n    ",
+            "def transform(in1):\n    return tf.clip_by_value(in1, clip_value_min=-1, clip_value_max=1)\n    ",
+            "def transform(in1):\n    return tf.minimum(in1, 1)\n    ",
+            "def transform(in1):\n    return tf.clip_by_value(in1, clip_value_min=-np.inf, clip_value_max=1)\n",
+            "def transform(in1):\n    return tf.clip_by_value(in1, clip_value_min=-1e9, clip_value_max=1)\n",
+            "def transform(in1):\n    return tf.clip_by_value(in1, 0, 1)\n    ",
+            "def transform(in1):\n    return tf.clip_by_value(in1, clip_value_min=-float('inf'), clip_value_max=1)\n    ",
             "def transform(in1):\n    clipped_values = tf.clip_by_value(in1, clip_value_min=-float('inf'), clip_value_max=1)\n    return clipped_values\n"
         ],
         "tf_operators": {
@@ -4528,16 +4792,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 12,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -4562,12 +4826,24 @@
             "return tf.concat([tf.concat([in1[:, :3], in2[:, 3:5], in1[:, 5:]], axis=1), \n                     tf.concat([in1[:, :3], in2[:, 3:5], in1[:, 5:]], axis=1)], axis=0)",
             "return tf.concat([in1[:, :3], in2[:, 3:5], in1[:, 5:]], axis=1)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    selected_indices = tf.constant([3, 4])\n    replaced_values = tf.gather(in2, selected_indices, axis=1)\n    updated_tensor = tf.tensor_scatter_nd_update(in1, [[0, 3], [0, 4], [1, 3], [1, 4]], tf.reshape(replaced_values, [-1]))\n    return tf.expand_dims(updated_tensor, axis=0)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([in1[:, :3], in2[:, 3:], in1[:, -3:]], axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([tf.slice(in1, [0, 0, 0], [2, 3, 3]), tf.slice(in2, [0, 0, 3], [2, 3, 4])], axis=2)\n    ",
+            "def transform(in1, in2):\n    return tf.tensor_scatter_nd_update(in1, indices=[[0, 0, 3], [0, 0, 4], [0, 0, 5]], updates=tf.gather(in2, [0, 0, 3, 4, 5], axis=1))",
+            "def transform(in1, in2):\n    return tf.tensor_scatter_nd_update(in1, [[slice(None), [3, 4]]], tf.gather(in2, [3, 4], axis=1))",
+            "def transform(in1, in2):\n    output = tf.tensor_scatter_nd_update(in1, [[0, 3], [0, 4], [1, 3], [1, 4]], tf.gather(in2, [3, 4, 3, 4], axis=1))\n    return output\n    ",
+            "def transform(in1, in2):\n    updates = tf.concat([in2[:, :, :-4], in1[:, :, -3:]], axis=2)\n    indices = tf.constant([[0], [3]])\n    return tf.tensor_scatter_nd_update(in1, indices, updates)\n    ",
+            "def transform(in1, in2):\n    return tf.concat([tf.concat([in1[:, :3], in2[:, 3:5], in1[:, 5:]], axis=1), tf.concat([in2[:, :3], in1[:, 3:5], in2[:, 5:]], axis=1)], axis=0)",
+            "def transform(in1, in2):\n                     return tf.concat([tf.concat([in1[:, :3], in2[:, 3:5], in1[:, 5:]], axis=1), \n                                          tf.concat([in1[:, :3], in2[:, 3:5], in1[:, 5:]], axis=1)], axis=0)",
+            "def transform(in1, in2):\n    return tf.concat([in1[:, :3], in2[:, 3:5], in1[:, 5:]], axis=1)\n    "
+        ],
         "tf_operators": {
-            "tf.gather": 4,
-            "tf.tensor_scatter_nd_update": 5,
-            "tf.expand_dims": 1,
-            "tf.reshape": 1,
             "tf.constant": 2,
+            "tf.reshape": 1,
+            "tf.gather": 4,
+            "tf.expand_dims": 1,
+            "tf.tensor_scatter_nd_update": 5,
             "tf.concat": 6,
             "tf.slice": 1
         },
@@ -4825,16 +5101,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 35,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 55,
             "common": 36,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 4,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 35,
+            "tf_float32": 0,
+            "provided": 55,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 4
         }
     },
     {
@@ -4859,14 +5135,26 @@
             "return tf.stack([in1, in1], axis=2)",
             "return tf.stack([in1, in1], axis=2)"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, axis=2), [1, 1, 2])\n    ",
+            "def transform(in1):\n    indices = tf.stack([tf.range(tf.shape(in1)[0]), tf.repeat(tf.range(tf.shape(in1)[1]), tf.shape(in1)[0])], axis=1)\n    return tf.gather_nd(in1, indices)\n    ",
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, -1), [1, 1, 2])",
+            "def transform(in1):\n    indices = [[i, i] for i in range(in1.shape[0])]\n    return tf.gather_nd(in1, indices)\n      ",
+            "def transform(in1):\n    return tf.repeat(tf.expand_dims(in1, axis=-1), 2, axis=-1)",
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)\n    ",
+            "def transform(in1):\n    return tf.repeat(tf.expand_dims(in1, axis=-1), 2, axis=-1)\n    ",
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, 2), [1, 1, 2])\n    ",
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)",
+            "def transform(in1):\n    return tf.stack([in1, in1], axis=2)"
+        ],
         "tf_operators": {
-            "tf.tile": 3,
             "tf.expand_dims": 5,
+            "tf.tile": 3,
             "tf.repeat": 3,
             "tf.shape": 1,
-            "tf.range": 1,
+            "tf.gather_nd": 2,
             "tf.stack": 4,
-            "tf.gather_nd": 2
+            "tf.range": 1
         },
         "coverage_percentage": 100.0,
         "total_covered": 2,
@@ -5048,16 +5336,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 16,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 10,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 10
         }
     },
     {
@@ -5081,6 +5369,18 @@
             "return tf.tensordot(in1, in2, axes=1)",
             "return tf.tensordot(in1, in2, axes=1)\n",
             "return tf.tensordot(in1, in2, axes=1)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=[[1], [0]])\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=[[1], [0]])",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    "
         ],
         "tf_operators": {
             "tf.tensordot": 10
@@ -5249,16 +5549,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 12,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -5283,12 +5583,24 @@
             "return tf.equal(tf.expand_dims(in1, 1), in1)",
             "return tf.equal(tf.expand_dims(in1, 1), tf.expand_dims(in1, 0))\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.equal(tf.expand_dims(in1, 1), in1)\n    ",
+            "def transform(in1):\n    return tf.math.equal(tf.expand_dims(in1, 1), tf.expand_dims(in1, 0))\n    ",
+            "def transform(in1):\n    equal_matrix = tf.equal(tf.expand_dims(in1, 1), in1)\n    return tf.cast(equal_matrix, dtype=tf.float32)\n    ",
+            "def transform(in1):\n    output = tf.equal(tf.expand_dims(in1, 1), in1)\n    return tf.cast(output, tf.float32)\n    ",
+            "def transform(in1):\n    return tf.equal(tf.expand_dims(in1, 1), tf.expand_dims(in1, 0))",
+            "def transform(in1):\n    return tf.equal(tf.expand_dims(in1, 1), tf.expand_dims(in1, 0))",
+            "def transform(in1):\n    return tf.equal(tf.expand_dims(in1, 1), tf.expand_dims(in1, 0))",
+            "def transform(in1):\n    return tf.equal(tf.expand_dims(in1, 1), tf.expand_dims(in1, 0))\n    ",
+            "def transform(in1):\n    return tf.equal(tf.expand_dims(in1, 1), in1)",
+            "def transform(in1):\n    return tf.equal(tf.expand_dims(in1, 1), tf.expand_dims(in1, 0))\n    "
+        ],
         "tf_operators": {
             "tf.expand_dims": 10,
             "tf.equal": 9,
             "tf.math.equal": 1,
-            "tf.float32": 2,
-            "tf.cast": 2
+            "tf.cast": 2,
+            "tf.float32": 2
         },
         "coverage_percentage": 100.0,
         "total_covered": 4,
@@ -5458,16 +5770,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 16,
-            "shape_tuple": 0,
-            "tf_float32": 2,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 2,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -5492,13 +5804,25 @@
             "return tf.boolean_mask(in2, tf.greater(in1, 1))\n",
             "return tf.boolean_mask(in2, tf.greater(in1, 1))"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, tf.greater(tf.cast(in1, tf.int32), 1))\n      ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, tf.greater(in1, 1))\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, in1 > 1)",
+            "def transform(in1, in2):\n    return tf.gather(in2, tf.where(tf.greater(in1, 1)))",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, tf.greater(in1, 1))",
+            "def transform(in1, in2):\n    return tf.gather(in2, tf.where(tf.greater(in1, 1)))",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, tf.greater(in1, 1))\n",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, tf.greater(in1, 1))",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, tf.greater(in1, 1))\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in2, tf.greater(in1, 1))"
+        ],
         "tf_operators": {
+            "tf.int32": 1,
             "tf.boolean_mask": 8,
             "tf.greater": 9,
             "tf.cast": 1,
-            "tf.int32": 1,
-            "tf.where": 2,
-            "tf.gather": 2
+            "tf.gather": 2,
+            "tf.where": 2
         },
         "coverage_percentage": 66.66666666666666,
         "total_covered": 2,
@@ -5661,16 +5985,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 10,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 1
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 1,
+            "axis": 0
         }
     },
     {
@@ -5695,16 +6019,28 @@
             "return tf.unique_with_counts(in1).idx\n",
             "return tf.unique_with_counts(in1).y"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.unique_with_counts(in1).idx\n    ",
+            "def transform(in1):\n    return tf.cast(tf.unique_with_counts(in1).y, tf.int32)\n    ",
+            "def transform(in1):\n    return tf.unique(in1)[2]\n    ",
+            "def transform(in1):\n    values, _ = tf.unique(in1)\n    return tf.searchsorted(values, in1, side='left')\n    ",
+            "def transform(in1):\n    return tf.argmax(tf.math.segment_max(tf.range(tf.size(in1)), in1), axis=0)\n",
+            "def transform(in1):\n    _, idx = tf.unique(in1)\n    return idx\n",
+            "def transform(in1):\n    return tf.math.segment_max(in1, in1)\n",
+            "def transform(in1):\n    return tf.unique(in1)[2]\n    ",
+            "def transform(in1):\n    return tf.unique_with_counts(in1).idx\n    ",
+            "def transform(in1):\n    return tf.unique_with_counts(in1).y"
+        ],
         "tf_operators": {
             "tf.unique_with_counts": 4,
-            "tf.cast": 1,
             "tf.int32": 1,
+            "tf.cast": 1,
             "tf.unique": 4,
             "tf.searchsorted": 1,
-            "tf.range": 1,
+            "tf.size": 1,
             "tf.argmax": 1,
             "tf.math.segment_max": 2,
-            "tf.size": 1
+            "tf.range": 1
         },
         "coverage_percentage": 100.0,
         "total_covered": 1,
@@ -5854,16 +6190,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 13,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 2,
             "common": 1,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 1
+            "shape_tuple": 0,
+            "input_var": 13,
+            "tf_float32": 0,
+            "provided": 2,
+            "tf_bool": 0,
+            "tf_int32": 1,
+            "axis": 0
         }
     },
     {
@@ -5887,6 +6223,18 @@
             "return tf.tensordot(in1, in2, axes=1)",
             "return tf.matmul(in1, in2)\n",
             "return tf.matmul(in1, in2)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.transpose(tf.tensordot(in1, in2, axes=1), perm=[0, 2, 1])",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)",
+            "def transform(in1, in2):\n    return tf.transpose(tf.tensordot(in1, in2, axes=1), perm=[0, 2, 1])",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)\n    "
         ],
         "tf_operators": {
             "tf.tensordot": 4,
@@ -6050,16 +6398,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 8,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 2,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 2
         }
     },
     {
@@ -6083,6 +6431,18 @@
             "return tf.math.bincount(in1)\n",
             "return tf.math.bincount(in1)",
             "return tf.math.bincount(in1)"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.math.bincount(in1)",
+            "def transform(input_tensor):\n    counts = tf.math.bincount(input_tensor)\n    return tf.boolean_mask(counts, tf.not_equal(counts, 0))\n",
+            "def transform(in1):\n    result = tf.math.bincount(in1)\n    return result[result > 0]\n    ",
+            "def transform(in1):\n    return tf.math.bincount(in1)",
+            "def transform(in1):\n    return tf.math.bincount(in1)",
+            "def transform(in1):\n    return tf.math.bincount(in1)",
+            "def transform(in1):\n    return tf.math.bincount(in1)",
+            "def transform(in1):\n    return tf.math.bincount(in1)\n    ",
+            "def transform(in1):\n    return tf.math.bincount(in1)",
+            "def transform(in1):\n    return tf.math.bincount(in1)"
         ],
         "tf_operators": {
             "tf.math.bincount": 10,
@@ -6234,16 +6594,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 2,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -6268,12 +6628,24 @@
             "def transform(in1):\n    return in1[:, [0, 2]]\n",
             "result = tf.concat([in1[:,0:1], in1[:,2:3]], axis=1)\nreturn result\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.boolean_mask(in1, [True, False, True], axis=1)",
+            "def transform(in1):\n    return tf.slice(in1, [0, 0], [-1, 1])",
+            "def transform(in1):\n    return tf.gather(in1, [0, 2], axis=1)",
+            "def transform(in1):\n    result = tf.slice(in1, [0, 0], [tf.shape(in1)[0], 1])\n    result = tf.concat([result, tf.slice(in1, [0, 2], [tf.shape(in1)[0], 1])], axis=1)\n    return result\n    ",
+            "def transform(in1):\n    return tf.gather(in1, [0, 2], axis=1)\n    ",
+            "def transform(in1):\n    return tf.gather(in1, [0, 2], axis=1)\n    ",
+            "def transform(in1):\n    return tf.concat([in1[:, :1], in1[:, 2:]], axis=1)",
+            "def transform(in1):\n    return tf.concat([in1[:, 0:1], in1[:, 2:3]], axis=1)\n    ",
+            "def transform(in1):\n    return in1[:, [0, 2]]\n",
+            "def transform(in1):\n    result = tf.concat([in1[:,0:1], in1[:,2:3]], axis=1)\n    return result\n    "
+        ],
         "tf_operators": {
             "tf.boolean_mask": 1,
             "tf.slice": 2,
             "tf.gather": 3,
-            "tf.concat": 4,
-            "tf.shape": 1
+            "tf.shape": 1,
+            "tf.concat": 4
         },
         "coverage_percentage": 100.0,
         "total_covered": 1,
@@ -6468,16 +6840,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 16,
             "shape": 2,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 31,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 8,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 16,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 8
         }
     },
     {
@@ -6501,6 +6873,18 @@
             "return tf.matmul(in1, in2)\n",
             "return tf.tensordot(in2, in1, axes=1)\n",
             "return tf.matmul(in2, tf.expand_dims(in1, 2))"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, 1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in2, in1, axes=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in2, in1, axes=1)\n",
+            "def transform(in1, in2):\n    return tf.matmul(in2, tf.reshape(in1, [2, 1, 2]))\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(tf.expand_dims(in1, 1), in2, 1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in2, in1, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.matmul(in2, tf.expand_dims(in1, 2))"
         ],
         "tf_operators": {
             "tf.tensordot": 7,
@@ -6671,16 +7055,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 9,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 3,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 3
         }
     },
     {
@@ -6704,6 +7088,18 @@
             "return tf.reduce_any(in1, axis=1)\n",
             "return tf.reduce_any(in1, axis=1)",
             "return tf.reduce_any(in1, axis=1)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)\n",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=-1)\n",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)",
+            "def transform(in1):\n    return tf.reduce_any(in1, axis=1)\n    "
         ],
         "tf_operators": {
             "tf.reduce_any": 10
@@ -6870,16 +7266,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 10,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -6904,9 +7300,21 @@
             "return tf.where(tf.equal(in1, 1), 0, in1)",
             "def transform(in1):\n    return tf.where(tf.equal(in1, 1), tf.zeros_like(in1), in1)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), 0, in1)\n    ",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), 0, in1)\n",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), 0, in1)\n",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), 0, in1)\n    ",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), tf.zeros_like(in1), in1)",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), tf.zeros_like(in1), in1)\n    ",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), tf.zeros_like(in1), in1)\n    ",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), 0, in1)\n    ",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), 0, in1)",
+            "def transform(in1):\n    return tf.where(tf.equal(in1, 1), tf.zeros_like(in1), in1)\n"
+        ],
         "tf_operators": {
-            "tf.where": 10,
             "tf.equal": 10,
+            "tf.where": 10,
             "tf.zeros_like": 4
         },
         "coverage_percentage": 20.0,
@@ -7077,16 +7485,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 24,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 16,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 24,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -7110,6 +7518,18 @@
             "return tf.multiply(tf.expand_dims(in1, axis=2), tf.expand_dims(in2, axis=1))",
             "return tf.multiply(tf.expand_dims(in1, -1), tf.expand_dims(in2, 0))",
             "return tf.multiply(tf.expand_dims(in1, axis=2), tf.expand_dims(in2, axis=1))"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.matmul(tf.expand_dims(in1, 2), tf.expand_dims(in2, 1))",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, axis=1), tf.expand_dims(in2, axis=0))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, axis=1), tf.expand_dims(in2, axis=0))",
+            "def transform(in1, in2):\n    result = tf.multiply(in1, tf.expand_dims(in2, axis=1))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, -1), tf.expand_dims(in2, 0))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, axis=1), tf.expand_dims(in2, axis=0))",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, axis=2), tf.expand_dims(in2, axis=1))",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, axis=2), tf.expand_dims(in2, axis=1))",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, -1), tf.expand_dims(in2, 0))",
+            "def transform(in1, in2):\n    return tf.multiply(tf.expand_dims(in1, axis=2), tf.expand_dims(in2, axis=1))"
         ],
         "tf_operators": {
             "tf.expand_dims": 10,
@@ -7289,16 +7709,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 15,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 4,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 4
         }
     },
     {
@@ -7323,10 +7743,22 @@
             "def transform(in1):\n    return tf.repeat(in1, 2)\n",
             "return tf.repeat(tf.expand_dims(in1, 1), 2, axis=1)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.repeat(in1, 2)\n",
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, 1), [1, 2])\n",
+            "def transform(in1):\n    result = tf.stack([in1, in1], axis=1)\n    return result\n    ",
+            "def transform(in1):\n    return tf.repeat(in1, 2)\n    ",
+            "def transform(in1):\n    return tf.repeat(in1, 2)",
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, 1), [1, 2])\n",
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, 1), [1, 2])\n",
+            "def transform(in1):\n    return tf.tile(tf.expand_dims(in1, 1), [1, 2])\n",
+            "def transform(in1):\n    return tf.repeat(in1, 2)\n",
+            "def transform(in1):\n    return tf.repeat(tf.expand_dims(in1, 1), 2, axis=1)\n    "
+        ],
         "tf_operators": {
             "tf.repeat": 5,
-            "tf.tile": 4,
             "tf.expand_dims": 5,
+            "tf.tile": 4,
             "tf.stack": 1
         },
         "coverage_percentage": 100.0,
@@ -7501,16 +7933,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 11,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 9,
             "common": 11,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 11,
+            "tf_float32": 0,
+            "provided": 9,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -7535,12 +7967,24 @@
             "mul_result = tf.multiply(in1, in2)\nadd_result = tf.add(mul_result, in3)\nreturn add_result\n",
             "return tf.add(tf.tensordot(in1, in2, axes=1), tf.reshape(in3, [1, 2, 4]))\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2, in3):\n    return tf.add(tf.tensordot(in1, in2, axes=1), in3)\n    ",
+            "def transform(in1, in2, in3):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, 1)), 2) + in3\n    ",
+            "def transform(in1, in2, in3):\n    result = tf.add(tf.matmul(in1, in2), in3)\n    return result\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.tensordot(in1, in2, 1), in3)\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.tensordot(in1, in2, axes=1), in3)\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.tensordot(in1, in2, axes=1), in3)\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.tensordot(in1, in2, 1), in3)\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.tensordot(in1, in2, axes=1), in3)\n    ",
+            "def transform(in1, in2, in3):\n    mul_result = tf.multiply(in1, in2)\n    add_result = tf.add(mul_result, in3)\n    return add_result\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.tensordot(in1, in2, axes=1), tf.reshape(in3, [1, 2, 4]))\n    "
+        ],
         "tf_operators": {
-            "tf.tensordot": 7,
             "tf.add": 9,
-            "tf.expand_dims": 1,
+            "tf.tensordot": 7,
             "tf.reduce_sum": 1,
             "tf.multiply": 2,
+            "tf.expand_dims": 1,
             "tf.matmul": 1,
             "tf.reshape": 1
         },
@@ -7707,16 +8151,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 30,
             "shape": 1,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 9,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 2,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 30,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 2
         }
     },
     {
@@ -7741,12 +8185,24 @@
             "out = tf.gather(in1, tf.argsort(tf.stack([in1[:, 0], in1[:, 1]], axis=1)))\nreturn out\n",
             "return tf.gather(in1, tf.argsort(in1[:, 1], stable=True))"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.gather(in1, tf.argsort(tf.transpose(in1), axis=1)[:, 0])",
+            "def transform(in1):\n    return tf.gather(in1, tf.argsort(in1[:, 0], axis=0))\n    ",
+            "def transform(in1):\n    return tf.gather(params=in1, indices=tf.argsort(tf.transpose(in1), axis=1))\n    ",
+            "def transform(in1):\n    sorted_indices = tf.argsort(in1[:, 0])\n    sorted_in1 = tf.gather(in1, sorted_indices)\n    second_sort_indices = tf.argsort(sorted_in1[:, 1])\n    sorted_in1 = tf.gather(sorted_in1, second_sort_indices)\n    return sorted_in1\n    ",
+            "def transform(in1):\n    return tf.argsort(in1[:, 1:], axis=0, stable=True, direction='ASCENDING') + tf.math.cumsum(tf.ones_like(in1[:, 1:]), axis=0)\n    ",
+            "def transform(in1):\n    return tf.gather(params=in1, indices=tf.argsort(in1[:, 1]), axis=0)\n    ",
+            "def transform(in1):\n    return  tf.gather(in1, tf.argsort(in1[:, 0], stable=True))",
+            "def transform(in1):\n    return tf.gather(in1, tf.argsort(in1[:, 0], stable=True))\n    ",
+            "def transform(in1):\n    out = tf.gather(in1, tf.argsort(tf.stack([in1[:, 0], in1[:, 1]], axis=1)))\n    return out\n    ",
+            "def transform(in1):\n    return tf.gather(in1, tf.argsort(in1[:, 1], stable=True))"
+        ],
         "tf_operators": {
-            "tf.transpose": 2,
             "tf.gather": 9,
+            "tf.transpose": 2,
             "tf.argsort": 10,
-            "tf.math.cumsum": 1,
             "tf.ones_like": 1,
+            "tf.math.cumsum": 1,
             "tf.stack": 1
         },
         "coverage_percentage": 100.0,
@@ -7920,16 +8376,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 21,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 13,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 21,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -7954,13 +8410,25 @@
             "max_indices = tf.argmax(in1, axis=1)\nreturn tf.one_hot(max_indices, depth=tf.shape(in1)[1])\n",
             "return tf.cast(tf.equal(in1, tf.reduce_max(in1, axis=1, keepdims=True)), tf.int32)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    indices = tf.argmax(in1, axis=1)\n    updates = tf.one_hot(indices, tf.shape(in1)[1])\n    return tf.tensor_scatter_nd_update(tf.zeros_like(in1), tf.expand_dims(indices, axis=1), updates)\n",
+            "def transform(in1):\n    return tf.one_hot(tf.argmax(in1, axis=1), depth=in1.shape[1])",
+            "def transform(in1):\n    return tf.cast(tf.one_hot(tf.argmax(in1, axis=1), tf.shape(in1)[1]), tf.int32)\n    ",
+            "def transform(in1):\n    argmax_indices = tf.argmax(in1, axis=1)\n    one_hot = tf.one_hot(argmax_indices, in1.shape[1])\n    return one_hot\n",
+            "def transform(in1):\n    return tf.one_hot(tf.argmax(in1, axis=1), depth=in1.shape[1])\n    ",
+            "def transform(in1):\n    return tf.cast(tf.eye(tf.argmax(in1, axis=1) + 1, depth=in1.shape[1]), tf.int32)\n    ",
+            "def transform(in1):\n    return tf.cast(tf.one_hot(tf.argmax(in1, axis=1), tf.int32), tf.int32)\n    ",
+            "def transform(in1):\n    return tf.cast(tf.equal(in1, tf.reduce_max(in1, axis=1, keepdims=True)), tf.int32)\n    ",
+            "def transform(in1):\n    max_indices = tf.argmax(in1, axis=1)\n    return tf.one_hot(max_indices, depth=tf.shape(in1)[1])\n    ",
+            "def transform(in1):\n    return tf.cast(tf.equal(in1, tf.reduce_max(in1, axis=1, keepdims=True)), tf.int32)\n    "
+        ],
         "tf_operators": {
             "tf.one_hot": 7,
-            "tf.tensor_scatter_nd_update": 1,
+            "tf.argmax": 8,
             "tf.shape": 3,
             "tf.zeros_like": 1,
             "tf.expand_dims": 1,
-            "tf.argmax": 8,
+            "tf.tensor_scatter_nd_update": 1,
             "tf.cast": 5,
             "tf.int32": 5,
             "tf.eye": 1,
@@ -8137,16 +8605,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 21,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 21,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 6
+            "shape_tuple": 0,
+            "input_var": 21,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 6,
+            "axis": 0
         }
     },
     {
@@ -8170,6 +8638,18 @@
             "return tf.gather_nd(in2, in1)\n",
             "return tf.gather_nd(in2, in1)\n",
             "return tf.gather_nd(in2, tf.expand_dims(in1, 1))"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    output = tf.gather_nd(in2, in1)\n    return output\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, tf.expand_dims(in1, 1))\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in2, in1, axis=1)\n      ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, in1)",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, tf.expand_dims(in1, axis=1))",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, in1)",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, in1)\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, in1)\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, in1)\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in2, tf.expand_dims(in1, 1))"
         ],
         "tf_operators": {
             "tf.gather_nd": 9,
@@ -8325,16 +8805,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 4,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -8358,6 +8838,18 @@
             "return tf.tensordot(in2, in1, axes=1)\n",
             "return tf.tensordot(in2, in1, axes=1)",
             "return tf.tensordot(in1, in2, 1)"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, in2), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.matmul(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(tf.repeat(tf.expand_dims(in1, 1), tf.shape(in2)[1], axis=1), in2), axis=1)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, in2), axis=1)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, 0)), axis=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in2, in1, axes=1)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, in2), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in2, in1, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in2, in1, axes=1)",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, 1)"
         ],
         "tf_operators": {
             "tf.reduce_sum": 5,
@@ -8532,16 +9024,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 21,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 13,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 21,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -8566,25 +9058,37 @@
             "indices = tf.where(tf.equal(in1, 0))\nupdates = tf.ones_like(tf.reshape(in1, [-1]))\nshape = tf.shape(in1, out_type=tf.int64) * tf.constant([1, 0]) + tf.constant([0, 1])\nreturn tf.cast(tf.scatter_nd(indices, updates, shape), tf.int32)\n",
             "return tf.scatter_nd(tf.reshape(in1, [-1, 1]), tf.ones_like(tf.reshape(in1, [-1, 1])), [3, 9])"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.one_hot(tf.cast(tf.reshape(in1, [-1]), tf.int32), tf.reduce_max(in1)+1)\n    ",
+            "def transform(in1):\n    return tf.one_hot(tf.cast(in1, tf.int32), tf.reduce_max(in1)+1)\n",
+            "def transform(in1):\n    indices = tf.where(tf.equal(in1, 1))\n    return tf.scatter_nd(indices, tf.ones_like(indices[:, 0]), shape=[in1.shape[0], 9])\n    ",
+            "def transform(in1):\n    indices = tf.where(tf.cast(in1, tf.bool))\n    updates = tf.ones(tf.shape(indices)[0])\n    return tf.scatter_nd(indices, updates, [tf.size(in1)])\n    ",
+            "def transform(in1):\n    indices = tf.where(tf.equal(in1, 1))\n    output = tf.tensor_scatter_nd_update(tf.zeros(tf.reduce_prod(tf.shape(in1))), indices, tf.ones(tf.shape(indices)[0]))\n    return tf.reshape(output, tf.shape(in1) * 2)\n",
+            "def transform(in1):\n    return tf.one_hot(tf.reshape(in1, [-1]), depth=tf.reduce_max(in1)+1)\n    ",
+            "def transform(in1):\n    return tf.tensor_scatter_nd_update(tf.zeros([3, 9], dtype=tf.int32), [[0, 1], [0, 3], [0, 5], [1, 0], [1, 2], [1, 3], [1, 4], [2, 1], [2, 5], [2, 8]], tf.ones(9, dtype=tf.int32))\n    ",
+            "def transform(in1):\n    return tf.one_hot(in1, depth=9)\n",
+            "def transform(in1):\n    indices = tf.where(tf.equal(in1, 0))\n    updates = tf.ones_like(tf.reshape(in1, [-1]))\n    shape = tf.shape(in1, out_type=tf.int64) * tf.constant([1, 0]) + tf.constant([0, 1])\n    return tf.cast(tf.scatter_nd(indices, updates, shape), tf.int32)\n    ",
+            "def transform(in1):\n    return tf.scatter_nd(tf.reshape(in1, [-1, 1]), tf.ones_like(tf.reshape(in1, [-1, 1])), [3, 9])"
+        ],
         "tf_operators": {
             "tf.one_hot": 4,
-            "tf.reduce_max": 3,
             "tf.cast": 4,
-            "tf.int32": 4,
             "tf.reshape": 5,
-            "tf.where": 4,
-            "tf.equal": 3,
-            "tf.ones_like": 3,
+            "tf.reduce_max": 3,
+            "tf.int32": 4,
             "tf.scatter_nd": 4,
+            "tf.equal": 3,
+            "tf.where": 4,
+            "tf.ones_like": 3,
             "tf.bool": 1,
             "tf.shape": 3,
             "tf.ones": 3,
             "tf.size": 1,
-            "tf.tensor_scatter_nd_update": 2,
-            "tf.reduce_prod": 1,
             "tf.zeros": 2,
-            "tf.int64": 1,
-            "tf.constant": 1
+            "tf.reduce_prod": 1,
+            "tf.tensor_scatter_nd_update": 2,
+            "tf.constant": 1,
+            "tf.int64": 1
         },
         "coverage_percentage": 100.0,
         "total_covered": 4,
@@ -8794,16 +9298,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 33,
             "shape": 4,
-            "tf_bool": 1,
-            "provided": 9,
             "common": 30,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 5,
             "tf_int64": 1,
-            "tf_int32": 5
+            "shape_tuple": 0,
+            "input_var": 33,
+            "tf_float32": 0,
+            "provided": 9,
+            "tf_bool": 1,
+            "tf_int32": 5,
+            "axis": 5
         }
     },
     {
@@ -8828,11 +9332,23 @@
             "return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))",
             "return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.math.divide_no_nan(in1, in2)",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))\n    ",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))\n    ",
+            "def transform(in1, in2):\n    return tf.math.divide_no_nan(in1, in2)",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))",
+            "def transform(in1, in2):\n    return tf.math.divide_no_nan(in1, in2)",
+            "def transform(in1, in2):\n    return tf.math.divide_no_nan(in1, in2)",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(in2, 0), in1, tf.divide(in1, in2))"
+        ],
         "tf_operators": {
             "tf.math.divide_no_nan": 4,
+            "tf.equal": 6,
             "tf.where": 6,
-            "tf.divide": 6,
-            "tf.equal": 6
+            "tf.divide": 6
         },
         "coverage_percentage": 50.0,
         "total_covered": 2,
@@ -8987,16 +9503,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 32,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 6,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 32,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -9021,9 +9537,21 @@
             "return tf.tile(tf.eye(in1), [in2, 1])",
             "return tf.repeat(tf.eye(in1), in2, axis=0)"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])\n",
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])",
+            "def transform(in1, in2):\n    res = tf.tile(tf.eye(in1), [in2, 1])\n    return res\n    ",
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])",
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])\n",
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])\n",
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])\n    ",
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])\n    ",
+            "def transform(in1, in2):\n    return tf.tile(tf.eye(in1), [in2, 1])",
+            "def transform(in1, in2):\n    return tf.repeat(tf.eye(in1), in2, axis=0)"
+        ],
         "tf_operators": {
-            "tf.tile": 9,
             "tf.eye": 10,
+            "tf.tile": 9,
             "tf.repeat": 1
         },
         "coverage_percentage": 100.0,
@@ -9188,16 +9716,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 10,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -9221,6 +9749,18 @@
             "return tf.reduce_sum(in1, axis=[1, 2])\n",
             "return tf.reduce_sum(in1, axis=[1, 2])\n",
             "return tf.reduce_sum(in1, axis=[1, 2])\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(in1, axis=[1, 2])\n    "
         ],
         "tf_operators": {
             "tf.reduce_sum": 10
@@ -9397,16 +9937,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 10,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 10,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 10
         }
     },
     {
@@ -9431,13 +9971,25 @@
             "return tf.one_hot(indices=in1, depth=in2)",
             "return tf.sequence_mask(in1, in2, dtype=tf.int32)"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.where(tf.equal(tf.range(in2), tf.expand_dims(in1, 1)), tf.ones(in2), tf.zeros(in2))",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(tf.range(in2), tf.expand_dims(in1, axis=1)), 1, 0)\n",
+            "def transform(in1, in2):\n    return tf.equal(tf.range(in2), in1)\n    ",
+            "def transform(in1, in2):\n    return tf.sequence_mask(indices=in1, maxlen=in2)",
+            "def transform(in1, in2):\n    return tf.sequence_mask(in1, in2)",
+            "def transform(in1, in2):\n    return tf.sequence_mask(in1, in2)",
+            "def transform(in1, in2):\n    result = tf.one_hot(indices=in1, depth=in2)\n    return result\n    ",
+            "def transform(in1, in2):\n    return tf.sequence_mask(in1, in2)",
+            "def transform(in1, in2):\n    return tf.one_hot(indices=in1, depth=in2)",
+            "def transform(in1, in2):\n    return tf.sequence_mask(in1, in2, dtype=tf.int32)"
+        ],
         "tf_operators": {
+            "tf.zeros": 1,
+            "tf.ones": 1,
+            "tf.equal": 3,
+            "tf.expand_dims": 2,
             "tf.where": 2,
             "tf.range": 3,
-            "tf.equal": 3,
-            "tf.ones": 1,
-            "tf.zeros": 1,
-            "tf.expand_dims": 2,
             "tf.sequence_mask": 5,
             "tf.one_hot": 2,
             "tf.int32": 1
@@ -9590,16 +10142,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 22,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 4,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 1
+            "shape_tuple": 0,
+            "input_var": 22,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 1,
+            "axis": 0
         }
     },
     {
@@ -9624,15 +10176,27 @@
             "return tf.gather_nd(in1, tf.stack([tf.range(tf.shape(in1)[0]), in2], axis=1))\n",
             "return tf.gather(in1, in2, axis=2)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.gather(in1, in2, axis=2)\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2, axis=2)\n      ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2, axis=2)\n    ",
+            "def transform(in1, in2):\n    return tf.transpose(tf.gather(in1, in2, axis=1), perm=[0, 2, 1])\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([tf.range(tf.shape(in1)[0]), in2], axis=1))\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2, axis=2)\n    ",
+            "def transform(in1, in2):\n    return tf.cast(tf.gather(in1, in2, axis=2), tf.int32)\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2, axis=2)\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([tf.range(tf.shape(in1)[0]), in2], axis=1))\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2, axis=2)\n    "
+        ],
         "tf_operators": {
             "tf.gather": 8,
             "tf.transpose": 1,
             "tf.range": 2,
-            "tf.gather_nd": 2,
             "tf.shape": 2,
+            "tf.gather_nd": 2,
             "tf.stack": 2,
-            "tf.cast": 1,
-            "tf.int32": 1
+            "tf.int32": 1,
+            "tf.cast": 1
         },
         "coverage_percentage": 33.33333333333333,
         "total_covered": 1,
@@ -9802,16 +10366,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 22,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 7,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 8,
             "tf_int64": 0,
-            "tf_int32": 1
+            "shape_tuple": 0,
+            "input_var": 22,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 1,
+            "axis": 8
         }
     },
     {
@@ -9835,6 +10399,18 @@
             "return tf.searchsorted(in1, in2, side='right')\n",
             "return tf.searchsorted(in1, in2, side='right')\n",
             "return tf.searchsorted(in1, in2, side='right')"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='right')\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='left')\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='left')\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='left')\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2)",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='right')\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='right')\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='right')\n    ",
+            "def transform(in1, in2):\n    return tf.searchsorted(in1, in2, side='right')"
         ],
         "tf_operators": {
             "tf.searchsorted": 10
@@ -9978,16 +10554,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 0,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -10012,12 +10588,24 @@
             "return tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(tf.expand_dims(in1, 1), tf.expand_dims(in2, 0))), axis=2))\n",
             "diff = tf.subtract(in1, in2)\nsquare_diff = tf.square(diff)\nsum_square_diff = tf.reduce_sum(square_diff, axis=1)\neuclidean_distance = tf.sqrt(sum_square_diff)\nreturn euclidean_distance\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.norm(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0), axis=2)",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2))",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2))",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2))",
+            "def transform(in1, in2):\n    return tf.norm(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0), axis=2)\n    ",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(tf.expand_dims(in1, 1), tf.expand_dims(in2, 0))), axis=2))",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2))\n    ",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(tf.expand_dims(in1, 1), tf.expand_dims(in2, 0))), axis=2))\n    ",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(tf.expand_dims(in1, 1), tf.expand_dims(in2, 0))), axis=2))\n    ",
+            "def transform(in1, in2):\n    diff = tf.subtract(in1, in2)\n    square_diff = tf.square(diff)\n    sum_square_diff = tf.reduce_sum(square_diff, axis=1)\n    euclidean_distance = tf.sqrt(sum_square_diff)\n    return euclidean_distance\n    "
+        ],
         "tf_operators": {
             "tf.norm": 2,
             "tf.expand_dims": 9,
-            "tf.square": 8,
-            "tf.sqrt": 8,
             "tf.reduce_sum": 8,
+            "tf.sqrt": 8,
+            "tf.square": 8,
             "tf.subtract": 4
         },
         "coverage_percentage": 100.0,
@@ -10201,16 +10789,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 19,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 9,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 9
         }
     },
     {
@@ -10235,10 +10823,22 @@
             "return tf.reduce_mean(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))\n",
             "return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))",
+            "def transform(in1, in2):\n    return tf.math.reduce_sum(tf.math.squared_difference(in2, tf.sparse.to_dense(in1)))",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))\n    ",
+            "return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1,\ndefault_value=0.0), in2))",
+            "def transform(in1, in2):\n    return tf.reduce_mean(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.math.squared_difference(tf.sparse.to_dense(in1), in2))\n    "
+        ],
         "tf_operators": {
-            "tf.math.squared_difference": 10,
             "tf.reduce_sum": 8,
             "tf.sparse.to_dense": 10,
+            "tf.math.squared_difference": 10,
             "tf.math.reduce_sum": 1,
             "tf.reduce_mean": 1
         },
@@ -10381,16 +10981,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 0,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -10415,13 +11015,25 @@
             "return tf.reduce_sum(tf.multiply(in1, tf.constant([[0, 1, 2, 3]], dtype=tf.float32)), axis=1)",
             "return tf.reduce_sum(tf.multiply(in1, tf.cast(tf.range(tf.shape(in1)[-1]), in1.dtype)), axis=1)"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    weights = tf.constant([[0, 1, 2, 3]], dtype=tf.float32)\n    return tf.reduce_sum(tf.multiply(in1, weights), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.multiply(in1, tf.cast(tf.range(in1.shape[1]), tf.float32)), axis=1)",
+            "def transform(in1):\n    return tf.reduce_sum(tf.multiply(in1, tf.range(1, tf.shape(in1)[1] + 1)), axis=1)",
+            "def transform(in1):\n    weights = tf.range(tf.shape(in1)[1])\n    return tf.reduce_sum(tf.multiply(in1, weights), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.multiply(tf.cast(tf.range(tf.shape(in1)[1]), tf.float32), in1), axis=1)",
+            "def transform(in1):\n    weighted_sum = tf.reduce_sum(in1 * tf.constant([[0], [1], [2], [3]]), axis=1)\n    return weighted_sum\n",
+            "def transform(in1):\n    return tf.reduce_sum(tf.multiply(in1, tf.range(1, tf.shape(in1)[1] + 1)), axis=1)",
+            "def transform(in1):\n    return tf.reduce_sum(tf.multiply(in1, tf.reshape(tf.range(tf.shape(in1)[1], dtype=tf.float32), (1, -1))), axis=1)",
+            "def transform(in1):\n    return tf.reduce_sum(tf.multiply(in1, tf.constant([[0, 1, 2, 3]], dtype=tf.float32)), axis=1)",
+            "def transform(in1):\n    return tf.reduce_sum(tf.multiply(in1, tf.cast(tf.range(tf.shape(in1)[-1]), in1.dtype)), axis=1)"
+        ],
         "tf_operators": {
-            "tf.float32": 5,
             "tf.reduce_sum": 10,
-            "tf.constant": 3,
             "tf.multiply": 9,
-            "tf.range": 7,
+            "tf.float32": 5,
+            "tf.constant": 3,
             "tf.cast": 3,
+            "tf.range": 7,
             "tf.shape": 6,
             "tf.reshape": 1
         },
@@ -10615,16 +11227,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 16,
             "shape": 3,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 28,
-            "shape_tuple": 0,
-            "tf_float32": 5,
-            "axis": 3,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 16,
+            "tf_float32": 5,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 3
         }
     },
     {
@@ -10649,11 +11261,23 @@
             "pairwise_dist = tf.reduce_min(tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2)), axis=1)\nreturn pairwise_dist\n",
             "dist = tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)\ndist = tf.reduce_min(tf.reduce_sum(tf.square(dist), axis=-1), axis=1)\nreturn dist\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2))\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_min(tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2)), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_min(tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2)), axis=1)\n    ",
+            "def transform(in1, in2):\n    distances = tf.reduce_min(tf.math.squared_difference(tf.expand_dims(in1, 1), tf.expand_dims(in2, 0)), axis=2)\n    return tf.sqrt(distances)\n    ",
+            "def transform(in1, in2):\n    dist = tf.reduce_min(tf.math.reduce_euclidean_distance(in1, in2), axis=1)\n    return dist\n    ",
+            "def transform(in1, in2):\n    return tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2))\n    ",
+            "def transform(in1, in2):\n    distances = tf.reduce_min(tf.reduce_sum(tf.square(tf.expand_dims(in1, axis=1) - tf.expand_dims(in2, axis=0)), axis=2), axis=1)\n    return distances\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_min(tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2)), axis=1)\n    ",
+            "def transform(in1, in2):\n    pairwise_dist = tf.reduce_min(tf.sqrt(tf.reduce_sum(tf.square(tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)), axis=2)), axis=1)\n    return pairwise_dist\n    ",
+            "def transform(in1, in2):\n    dist = tf.expand_dims(in1, 1) - tf.expand_dims(in2, 0)\n    dist = tf.reduce_min(tf.reduce_sum(tf.square(dist), axis=-1), axis=1)\n    return dist\n    "
+        ],
         "tf_operators": {
-            "tf.square": 8,
-            "tf.sqrt": 7,
             "tf.reduce_sum": 8,
+            "tf.sqrt": 7,
             "tf.expand_dims": 9,
+            "tf.square": 8,
             "tf.reduce_min": 8,
             "tf.math.squared_difference": 1,
             "tf.math.reduce_euclidean_distance": 1
@@ -10846,16 +11470,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 26,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 8,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 8
         }
     },
     {
@@ -10880,11 +11504,23 @@
             "return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, axis=-1)), axis=0)\n",
             "return tf.reduce_sum(tf.multiply(tf.tile(tf.expand_dims(in2, 1), [1, 2, 2]), in1), axis=0)"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    result = tf.tensordot(in1, in2, axes=([0], [0]))\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, axis=-1)), axis=0)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, 1)), axis=0)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, 1)), axis=0)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, axis=-1)), axis=0)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(tf.expand_dims(in2, axis=-1), axis=-1)), axis=0)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, axis=-1)), axis=0)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(in1 * tf.expand_dims(in2, axis=1), axis=0)",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, axis=-1)), axis=0)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(tf.tile(tf.expand_dims(in2, 1), [1, 2, 2]), in1), axis=0)"
+        ],
         "tf_operators": {
             "tf.tensordot": 1,
-            "tf.expand_dims": 9,
             "tf.reduce_sum": 9,
             "tf.multiply": 8,
+            "tf.expand_dims": 9,
             "tf.tile": 1
         },
         "coverage_percentage": 100.0,
@@ -11065,16 +11701,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 22,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 2,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 2
         }
     },
     {
@@ -11099,9 +11735,21 @@
             "result = in1 + in3[:, None, None] * (in2 - in1)\nreturn result\n",
             "return in1 * (1 - in3) + in2 * in3\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2, in3):\n    result = in1 + in3 * (in2 - in1)\n    ",
+            "def transform(in1, in2, in3):\n    result = in1 * (1 - in3) + in2 * in3\n    ",
+            "def transform(in1, in2, in3):\n    return in1 * (1 - in3) + in2 * in3\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.multiply(in1, 1 - in3), tf.multiply(in2, in3))\n    ",
+            "def transform(in1, in2, in3):\n    result = in1 * (1 - in3) + in2 * in3\n    ",
+            "def transform(in1, in2, in3):\n    return in1 * (1 - in3) + in2 * in3\n    ",
+            "def transform(in1, in2, in3):\n    return tf.add(tf.multiply(tf.subtract(1.0, in3), in1), tf.multiply(in3, in2))\n    ",
+            "def transform(in1, in2, in3):\n    alpha = tf.expand_dims(in3, -1)\n    return tf.add(tf.multiply(1 - alpha, in1), tf.multiply(alpha, in2))\n    ",
+            "def transform(in1, in2, in3):\n    result = in1 + in3[:, None, None] * (in2 - in1)\n    return result\n    ",
+            "def transform(in1, in2, in3):\n    return in1 * (1 - in3) + in2 * in3\n    "
+        ],
         "tf_operators": {
-            "tf.add": 3,
             "tf.multiply": 3,
+            "tf.add": 3,
             "tf.subtract": 1,
             "tf.expand_dims": 1
         },
@@ -11262,16 +11910,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 39,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 8,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 39,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -11296,12 +11944,24 @@
             "return tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[0] + 1), tf.float32))\n",
             "return tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[0] + 1), tf.float32))\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.divide(tf.cast(in1, tf.float32), tf.range(1, tf.shape(in1)[0] + 1))\n    ",
+            "def transform(in1):\n    return tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[-1] + 1), tf.float32))\n    ",
+            "def transform(in1):\n    return tf.divide(tf.cast(in1, tf.float32), tf.range(1, tf.shape(in1)[0]+1))\n    ",
+            "def transform(in1):\n    return tf.divide(tf.cast(in1, tf.float32), tf.range(1, tf.shape(in1)[0]+1))\n    ",
+            "def transform(in1):\n    return tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[0] + 1), tf.float32))\n",
+            "def transform(in1):\n    return tf.divide(in1, tf.range(1, tf.size(in1)+1, 1))\n    ",
+            "def transform(in1):\n    result = tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[0] + 1), tf.float32))\n    return result\n",
+            "def transform(in1):\n    return tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[0]+1), tf.float32))\n",
+            "def transform(in1):\n    return tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[0] + 1), tf.float32))\n    ",
+            "def transform(in1):\n    return tf.divide(in1, tf.cast(tf.range(1, tf.shape(in1)[0] + 1), tf.float32))\n    "
+        ],
         "tf_operators": {
-            "tf.shape": 9,
             "tf.float32": 9,
-            "tf.range": 10,
             "tf.cast": 9,
+            "tf.shape": 9,
             "tf.divide": 10,
+            "tf.range": 10,
             "tf.size": 1
         },
         "coverage_percentage": 80.0,
@@ -11487,16 +12147,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 30,
-            "shape_tuple": 0,
-            "tf_float32": 9,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 9,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -11521,11 +12181,23 @@
             "return tf.tensordot(in1, in2, axes=(-1, 0))",
             "return tf.tensordot(in1, in2, axes=(-1,0))\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=(-1, 0))\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=(-1, 0))\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_sum(tf.multiply(in1, tf.expand_dims(in2, -1)), axis=-1)\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=[[-1], [0]])\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=1)\n    ",
+            "def transform(in1, in2):\n    result = tf.tensordot(in1, in2, axes=1)\n    return result\n    ",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=(-1, 0))",
+            "def transform(in1, in2):\n    return tf.tensordot(in1, in2, axes=(-1,0))\n    "
+        ],
         "tf_operators": {
             "tf.tensordot": 9,
-            "tf.expand_dims": 1,
             "tf.reduce_sum": 1,
-            "tf.multiply": 1
+            "tf.multiply": 1,
+            "tf.expand_dims": 1
         },
         "coverage_percentage": 100.0,
         "total_covered": 1,
@@ -11696,16 +12368,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 12,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -11730,11 +12402,23 @@
             "return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool)), axis=1)",
             "marked_elements = tf.boolean_mask(in1, tf.cast(in2, tf.bool))\nresult = tf.reduce_prod(marked_elements, axis=1)\nreturn result\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool), axis=1), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool)), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool), axis=1), axis=1)\n    ",
+            "def transform(in1, in2):\n    marked_elements = tf.boolean_mask(in1, tf.cast(in2, tf.bool))\n    result = tf.reduce_prod(marked_elements, axis=1)\n    return result\n",
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool)), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool), axis=1), axis=1)\n    ",
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool), axis=1), axis=1)",
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool)), axis=1)",
+            "def transform(in1, in2):\n    return tf.reduce_prod(tf.boolean_mask(in1, tf.cast(in2, tf.bool)), axis=1)",
+            "def transform(in1, in2):\n    marked_elements = tf.boolean_mask(in1, tf.cast(in2, tf.bool))\n    result = tf.reduce_prod(marked_elements, axis=1)\n    return result\n    "
+        ],
         "tf_operators": {
             "tf.boolean_mask": 10,
+            "tf.bool": 10,
             "tf.cast": 10,
-            "tf.reduce_prod": 10,
-            "tf.bool": 10
+            "tf.reduce_prod": 10
         },
         "coverage_percentage": 25.0,
         "total_covered": 1,
@@ -11901,16 +12585,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 10,
-            "provided": 0,
             "common": 14,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 10,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -11935,16 +12619,28 @@
             "def transform(in1):\n    return tf.where(tf.abs(in1) < 1, tf.zeros_like(in1), tf.square(in1))\n",
             "def transform(in1):\n    mask = tf.cast(tf.abs(in1) < 1, tf.float32)\n    return tf.multiply(tf.square(in1), 1 - mask)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.where(tf.abs(in1) < 1, tf.zeros_like(in1), tf.square(in1))\n    ",
+            "def transform(in1):\n    return tf.where(tf.abs(in1) < 1, tf.zeros_like(in1), tf.square(in1))\n    ",
+            "def transform(in1):\n    return tf.where(tf.greater_equal(tf.abs(in1), 1), tf.square(in1), tf.zeros_like(in1))",
+            "def transform(in1):\n    return tf.where(tf.less(tf.abs(in1), 1), tf.zeros_like(in1), tf.square(in1))\n    ",
+            "def transform(in1):\n    return tf.multiply(tf.cast(tf.greater_equal(tf.abs(in1), 1), tf.float32), tf.square(in1))\n    ",
+            "def transform(in1):\n    return tf.where(tf.abs(in1) < 1, tf.zeros_like(in1), tf.square(in1))",
+            "def transform(in1):\n    return tf.multiply(tf.cast(tf.greater_equal(tf.abs(in1), 1), in1), tf.square(tf.cast(tf.greater_equal(tf.abs(in1), 1), in1)))\n    ",
+            "def transform(in1):\n    return tf.where(tf.abs(in1) < 1, tf.zeros_like(in1), tf.square(in1))",
+            "def transform(in1):\n    return tf.where(tf.abs(in1) < 1, tf.zeros_like(in1), tf.square(in1))\n",
+            "def transform(in1):\n    mask = tf.cast(tf.abs(in1) < 1, tf.float32)\n    return tf.multiply(tf.square(in1), 1 - mask)\n"
+        ],
         "tf_operators": {
+            "tf.abs": 10,
             "tf.where": 7,
             "tf.zeros_like": 7,
-            "tf.abs": 10,
             "tf.square": 10,
             "tf.greater_equal": 3,
             "tf.less": 1,
-            "tf.multiply": 3,
+            "tf.cast": 3,
             "tf.float32": 2,
-            "tf.cast": 3
+            "tf.multiply": 3
         },
         "coverage_percentage": 66.66666666666666,
         "total_covered": 4,
@@ -12109,16 +12805,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 29,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 12,
-            "shape_tuple": 0,
-            "tf_float32": 2,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 29,
+            "tf_float32": 2,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -12143,14 +12839,26 @@
             "return tf.sparse.SparseTensor(indices=in2, values=in1, dense_shape=(3, 5))",
             "return tf.scatter_nd(in2, in1, tf.reduce_max(in1) + 1)"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.sparse.SparseTensor(tf.cast(in2, tf.int64), in1, [3, 5])",
+            "def transform(in1, in2):\n    return tf.scatter_nd(in2, in1, tf.reduce_max(in2, axis=0) + 1)",
+            "def transform(in1, in2):\n    values = in1\n    indices = in2\n    return tf.scatter_nd(indices, values, shape=(3, 5))\n    ",
+            "def transform(in1, in2):\n    return tf.sparse.SparseTensor(indices=in2, values=in1, dense_shape=[3, 5])",
+            "def transform(in1, in2):\n    values, indices = tf.unstack(in2, axis=1)\n    return tf.sparse.SparseTensor(indices, values, dense_shape=tf.constant([3, 5]))\n    ",
+            "def transform(in1, in2):\n    values = in1\n    indices = in2\n    return tf.cast(tf.scatter_nd(indices, values, shape=[3, 5]), tf.int32)\n    ",
+            "def transform(in1, in2):\n    return tf.sparse.SparseTensor(indices=in2, values=in1, dense_shape=(3, 5))",
+            "def transform(in1, in2):\n    return tf.sparse.SparseTensor(indices=in2, values=in1, dense_shape=[3, 5])",
+            "def transform(in1, in2):\n    return tf.sparse.SparseTensor(indices=in2, values=in1, dense_shape=(3, 5))",
+            "def transform(in1, in2):\n    return tf.scatter_nd(in2, in1, tf.reduce_max(in1) + 1)"
+        ],
         "tf_operators": {
             "tf.sparse.SparseTensor": 6,
             "tf.cast": 2,
             "tf.int64": 1,
-            "tf.reduce_max": 2,
             "tf.scatter_nd": 4,
-            "tf.constant": 1,
+            "tf.reduce_max": 2,
             "tf.unstack": 1,
+            "tf.constant": 1,
             "tf.int32": 1
         },
         "coverage_percentage": 50.0,
@@ -12327,16 +13035,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 26,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 10,
             "common": 4,
-            "shape_tuple": 3,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 1,
-            "tf_int32": 1
+            "shape_tuple": 3,
+            "input_var": 26,
+            "tf_float32": 0,
+            "provided": 10,
+            "tf_bool": 0,
+            "tf_int32": 1,
+            "axis": 0
         }
     },
     {
@@ -12361,13 +13069,25 @@
             "return tf.concat([in1[:in2], in1[in2+1:]], axis=0)\n",
             "return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.shape(in1)[0]), in2))"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.shape(in1)[0]), in2))",
+            "def transform(in1, in2):\n    return tf.gather(in1, tf.where(tf.not_equal(tf.range(tf.shape(in1)[0]), in2))[:, 0])\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.shape(in1)[0]), in2))",
+            "def transform(in1, in2):\n    return tf.concat([in1[:in2], in1[in2+1:]], axis=0)\n",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.shape(in1)[0]), in2))",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.size(in1)), in2))\n",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.shape(in1)[0]), in2))",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.size(in1)), in2))",
+            "def transform(in1, in2):\n    return tf.concat([in1[:in2], in1[in2+1:]], axis=0)\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.not_equal(tf.range(tf.shape(in1)[0]), in2))"
+        ],
         "tf_operators": {
-            "tf.boolean_mask": 7,
             "tf.not_equal": 8,
+            "tf.boolean_mask": 7,
             "tf.shape": 6,
             "tf.range": 8,
-            "tf.where": 1,
             "tf.gather": 1,
+            "tf.where": 1,
             "tf.concat": 2,
             "tf.size": 2
         },
@@ -12532,16 +13252,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 32,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 10,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 32,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -12566,11 +13286,23 @@
             "def transform(in1):\n    max_val = tf.reduce_max(in1)\n    return tf.cast(tf.equal(in1, max_val), tf.int32)\n",
             "def transform(in1):\n    max_val = tf.reduce_max(in1)\n    binary_vector = tf.cast(tf.equal(in1, max_val), tf.int32)\n    return binary_vector\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.equal(in1, tf.reduce_max(in1))",
+            "def transform(in1):\n    return tf.cast(tf.equal(in1, tf.reduce_max(in1)), tf.int32)\n    ",
+            "def transform(in1):\n    return tf.equal(in1, tf.reduce_max(in1))\n",
+            "def transform(in1):\n    return tf.one_hot(tf.argmax(in1), depth=tf.size(in1), dtype=tf.int32)",
+            "def transform(in1):\n    max_val = tf.reduce_max(in1)\n    binary_vector = tf.cast(tf.equal(in1, max_val), tf.int32)\n    return binary_vector\n",
+            "def transform(in1):\n    return tf.cast(tf.equal(in1, tf.reduce_max(in1)), tf.int32)",
+            "def transform(in1):\n    return tf.equal(in1, tf.reduce_max(in1))\n    ",
+            "def transform(in1):\n    return tf.cast(tf.equal(in1, tf.reduce_max(in1)), tf.int32)",
+            "def transform(in1):\n    max_val = tf.reduce_max(in1)\n    return tf.cast(tf.equal(in1, max_val), tf.int32)\n",
+            "def transform(in1):\n    max_val = tf.reduce_max(in1)\n    binary_vector = tf.cast(tf.equal(in1, max_val), tf.int32)\n    return binary_vector\n"
+        ],
         "tf_operators": {
             "tf.reduce_max": 9,
             "tf.equal": 9,
-            "tf.cast": 6,
             "tf.int32": 7,
+            "tf.cast": 6,
             "tf.one_hot": 1,
             "tf.argmax": 1,
             "tf.size": 1
@@ -12714,16 +13446,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 0,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 7
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 7,
+            "axis": 0
         }
     },
     {
@@ -12747,6 +13479,18 @@
             "return tf.gather(in1, in2)\n",
             "return tf.gather(in1, in2)\n",
             "return tf.gather_nd(in1, tf.stack([tf.range(tf.shape(in2)[0]), in2], axis=1))\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.gather(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2)",
+            "def transform(in1, in2):\n    return tf.gather(params=in1, indices=in2)\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([in2, tf.range(tf.size(in2))], axis=1))\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2)",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.gather(params=in1, indices=in2, axis=0)\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.gather(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([tf.range(tf.shape(in2)[0]), in2], axis=1))\n    "
         ],
         "tf_operators": {
             "tf.gather": 8,
@@ -12905,16 +13649,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 22,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 4,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 22,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -12939,13 +13683,25 @@
             "return tf.reduce_sum(tf.reshape(in1, (4, 2, 3)), axis=1)",
             "return tf.math.unsorted_segment_sum(in1, tf.repeat(tf.range(4), 2), 4)\n"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.reduce_sum(tf.stack([in1[::2], in1[1::2]], axis=0), axis=0)\n      ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.stack([in1[i:i+2] for i in range(0, tf.shape(in1)[0], 2)], axis=1), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.reshape(in1, (-1, 2, tf.shape(in1)[1])), axis=1)\n    ",
+            "def transform(in1):\n    return tf.math.segment_sum(in1, tf.range(tf.shape(in1)[0]) // 2)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.stack([in1[i:i+2] for i in range(0, in1.shape[0], 2)], axis=2), axis=2)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.reshape(in1, (-1, 2, 3)), axis=1)",
+            "def transform(in1):\n    return tf.reduce_sum(tf.concat([in1[i:i+2] for i in range(0, len(in1), 2)], axis=1), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.stack([in1[i:i+2] for i in range(0, in1.shape[0], 2)], axis=2), axis=1)\n    ",
+            "def transform(in1):\n    return tf.reduce_sum(tf.reshape(in1, (4, 2, 3)), axis=1)",
+            "def transform(in1):\n    return tf.math.unsorted_segment_sum(in1, tf.repeat(tf.range(4), 2), 4)\n    "
+        ],
         "tf_operators": {
             "tf.reduce_sum": 8,
             "tf.stack": 4,
             "tf.shape": 3,
             "tf.reshape": 3,
-            "tf.range": 2,
             "tf.math.segment_sum": 1,
+            "tf.range": 2,
             "tf.concat": 1,
             "tf.repeat": 1,
             "tf.math.unsorted_segment_sum": 1
@@ -13151,16 +13907,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 15,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 2,
             "common": 22,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 15,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 15,
+            "tf_float32": 0,
+            "provided": 2,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 15
         }
     },
     {
@@ -13185,15 +13941,27 @@
             "return tf.where(in2, tf.reverse(in1, [-1]), in1)",
             "return tf.stack([tf.reverse(row, axis=[0]) if mark else row for row, mark in zip(tf.unstack(in1, axis=1), tf.unstack(in2))], axis=1)"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.reverse(tf.boolean_mask(in1, tf.cast(in2, tf.bool), axis=1), axis=[-2])",
+            "def transform(in1, in2):\n    result = tf.reverse(in1, axis=[1])\n    mask = tf.equal(in2, 0)\n    indices = tf.where(mask)\n    return tf.tensor_scatter_nd_update(result, indices, tf.reverse(tf.gather_nd(in1, indices), axis=[2]))\n    ",
+            "def transform(in1, in2):\n    return tf.reverse(in1, axis=[1])[0, in2]\n",
+            "def transform(in1, in2):\n    marked_rows = tf.where(in2)\n    reversed_rows = tf.reverse(in1, axis=[1])\n    result = tf.tensor_scatter_nd_update(in1, marked_rows, reversed_rows)\n    return result\n    ",
+            "def transform(in1, in2):\n    return tf.gather_nd(in1, tf.stack([in2, tf.argsort(in2)], axis=1))",
+            "def transform(in1, in2):\n    return tf.reverse(tf.boolean_mask(in1, in2, axis=2), axis=[2])\n",
+            "def transform(in1, in2):\n    return tf.reverse(tf.boolean_mask(in1, tf.cast(in2, tf.bool), axis=1), axis=[-1])",
+            "def transform(in1, in2):\n    return tf.stack([tf.reverse(row, axis=[-1]) if mark == 1 else row for row, mark in zip(tf.squeeze(in1, 0), in2)])",
+            "def transform(in1, in2):\n    return tf.where(in2, tf.reverse(in1, [-1]), in1)",
+            "def transform(in1, in2):\n    return tf.stack([tf.reverse(row, axis=[0]) if mark else row for row, mark in zip(tf.unstack(in1, axis=1), tf.unstack(in2))], axis=1)"
+        ],
         "tf_operators": {
+            "tf.boolean_mask": 3,
             "tf.reverse": 9,
             "tf.cast": 2,
-            "tf.boolean_mask": 3,
             "tf.bool": 2,
             "tf.where": 3,
-            "tf.tensor_scatter_nd_update": 2,
-            "tf.equal": 1,
             "tf.gather_nd": 2,
+            "tf.equal": 1,
+            "tf.tensor_scatter_nd_update": 2,
             "tf.argsort": 1,
             "tf.stack": 3,
             "tf.squeeze": 1,
@@ -13374,16 +14142,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 26,
             "shape": 0,
-            "tf_bool": 2,
-            "provided": 1,
             "common": 15,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 3,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 26,
+            "tf_float32": 0,
+            "provided": 1,
+            "tf_bool": 2,
+            "tf_int32": 0,
+            "axis": 3
         }
     },
     {
@@ -13408,19 +14176,31 @@
             "return tf.repeat(tf.range(tf.size(in1)), in1)",
             "return tf.expand_dims(tf.cast(tf.repeat(tf.range(tf.shape(in1)[0]), in1), tf.int32), 1)"
         ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.concat([tf.fill([length], i) for i, length in enumerate(in1)], axis=0)",
+            "def transform(in1):\n    return tf.repeat(tf.range(tf.shape(in1)[0]), in1)",
+            "def transform(in1):\n    return tf.repeat(tf.range(tf.shape(in1)[0]), in1)",
+            "def transform(in1):\n    return tf.argsort(tf.repeat(tf.range(tf.reduce_sum(in1)), tf.unstack(in1)), stable=True)",
+            "def transform(in1):\n    segment_lengths = tf.cast(in1, tf.int32)\n    segment_ids = tf.cumsum(tf.ones_like(segment_lengths), exclusive=True)\n    return tf.repeat(segment_ids, segment_lengths)\n",
+            "def transform(in1):\n    segment_lengths = in1\n    segment_ids = tf.repeat(tf.range(tf.size(segment_lengths)), segment_lengths)\n    return segment_ids\n",
+            "def transform(in1):\n    return tf.repeat(tf.range(tf.shape(in1)[0]), in1)",
+            "def transform(in1):\n    segment_ids = tf.repeat(tf.range(tf.size(in1)), in1)\n    return segment_ids\n",
+            "def transform(in1):\n    return tf.repeat(tf.range(tf.size(in1)), in1)",
+            "def transform(in1):\n    return tf.expand_dims(tf.cast(tf.repeat(tf.range(tf.shape(in1)[0]), in1), tf.int32), 1)"
+        ],
         "tf_operators": {
-            "tf.concat": 1,
             "tf.fill": 1,
-            "tf.range": 8,
-            "tf.shape": 4,
+            "tf.concat": 1,
             "tf.repeat": 9,
+            "tf.shape": 4,
+            "tf.range": 8,
             "tf.unstack": 1,
-            "tf.reduce_sum": 1,
             "tf.argsort": 1,
-            "tf.ones_like": 1,
+            "tf.reduce_sum": 1,
             "tf.cast": 2,
-            "tf.int32": 2,
             "tf.cumsum": 1,
+            "tf.int32": 2,
+            "tf.ones_like": 1,
             "tf.size": 3,
             "tf.expand_dims": 1
         },
@@ -13577,16 +14357,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 17,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 8,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 2
+            "shape_tuple": 0,
+            "input_var": 17,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 2,
+            "axis": 0
         }
     },
     {
@@ -13611,13 +14391,25 @@
             "return tf.boolean_mask(in1, in2)\n",
             "return tf.multiply(tf.cast(in1, tf.int32), tf.cast(in2, tf.int32))"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.cast(in2, tf.bool))\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, in2)*tf.cast(in2, tf.int32)\n    ",
+            "def transform(in1, in2):\n    return tf.where(in2, in1, tf.zeros_like(in1))\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.sequence_mask(tf.reduce_sum(in2, axis=1), maxlen=tf.shape(in1)[1]))\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, tf.transpose(in2))\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.where(in2, in1, tf.zeros_like(in1))\n    ",
+            "def transform(in1, in2):\n    return tf.where(in2, in1, tf.zeros_like(in1))\n    ",
+            "def transform(in1, in2):\n    return tf.boolean_mask(in1, in2)\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(tf.cast(in1, tf.int32), tf.cast(in2, tf.int32))"
+        ],
         "tf_operators": {
             "tf.boolean_mask": 6,
             "tf.cast": 3,
             "tf.bool": 1,
             "tf.int32": 2,
-            "tf.where": 3,
             "tf.zeros_like": 3,
+            "tf.where": 3,
             "tf.reduce_sum": 1,
             "tf.sequence_mask": 1,
             "tf.shape": 1,
@@ -13768,16 +14560,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 25,
             "shape": 0,
-            "tf_bool": 1,
-            "provided": 0,
             "common": 2,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 3
+            "shape_tuple": 0,
+            "input_var": 25,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 1,
+            "tf_int32": 3,
+            "axis": 0
         }
     },
     {
@@ -13802,14 +14594,26 @@
             "return tf.searchsorted(tf.sort(in1), in2)",
             "return tf.searchsorted(tf.sort(in1), in2, side='left')\n"
         ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.argsort(tf.constant(in1), axis=-1, stable=True).numpy()[tf.argsort(in1, in2)].numpy()\n",
+            "def transform(in1, in2):\n    return tf.argsort(tf.constant(in1), stable=True), tf.argsort(tf.constant(in1), tf.constant(in2), stable=True)\n",
+            "def transform(in1, in2):\n    return tf.where(tf.equal(tf.expand_dims(in1, axis=1), in2))",
+            "def transform(in1, in2):\n    return tf.searchsorted(tf.sort(in1), in2)",
+            "def transform(in1, in2):\n    return tf.searchsorted(tf.sort(in1), in2)",
+            "def transform(in1, in2):\n    return tf.searchsorted(tf.sort(in1), in2)",
+            "def transform(in1, in2):\n    return tf.argsort(in1, axis=-1)\n",
+            "def transform(in1, in2):\n    return tf.argsort(in1, stable=True)\n",
+            "def transform(in1, in2):\n    return tf.searchsorted(tf.sort(in1), in2)",
+            "def transform(in1, in2):\n    return tf.searchsorted(tf.sort(in1), in2, side='left')\n    "
+        ],
         "tf_operators": {
             "tf.constant": 2,
             "tf.argsort": 4,
-            "tf.where": 1,
-            "tf.equal": 1,
             "tf.expand_dims": 1,
-            "tf.searchsorted": 5,
-            "tf.sort": 5
+            "tf.equal": 1,
+            "tf.where": 1,
+            "tf.sort": 5,
+            "tf.searchsorted": 5
         },
         "coverage_percentage": 40.0,
         "total_covered": 2,
@@ -13959,16 +14763,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 20,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 7,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 20,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     },
     {
@@ -13992,6 +14796,18 @@
             "return tf.multiply(in1, tf.expand_dims(in2, axis=(1, 2)))\n",
             "tf.multiply(in1, tf.reshape(in2, (1, 1, 1, -1)))\n",
             "return tf.multiply(in1, tf.reshape(in2, [tf.shape(in2)[0], 1, 1, 1]))\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.expand_dims(tf.expand_dims(in2, -1), -1))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.reshape(in2, [3, 1, 1, 1]))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.expand_dims(tf.expand_dims(in2, 1), 2))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.reshape(in2, [3, 1, 1]))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.expand_dims(in2, axis=(1, 2)))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.expand_dims(tf.expand_dims(in2, 1), 2))\n    ",
+            "def transform(in1, in2):\n    return tf.math.multiply(in1, tf.expand_dims(in2, (1, 2)))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.expand_dims(in2, axis=(1, 2)))\n    ",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.reshape(in2, (1, 1, 1, -1)))",
+            "def transform(in1, in2):\n    return tf.multiply(in1, tf.reshape(in2, [tf.shape(in2)[0], 1, 1, 1]))\n    "
         ],
         "tf_operators": {
             "tf.expand_dims": 6,
@@ -14182,16 +14998,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 21,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 0,
             "common": 14,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 4,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 21,
+            "tf_float32": 0,
+            "provided": 0,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 4
         }
     },
     {
@@ -14215,6 +15031,18 @@
             "def transform(in1):\n    return tf.one_hot(in1, depth=6)\n",
             "return tf.one_hot(in1, depth=6)[:, :, 3]\n",
             "return tf.one_hot([3], in1)\n"
+        ],
+        "normalized_completions": [
+            "def transform(in1):\n    return tf.one_hot(in1, depth=6, on_value=1, off_value=0)\n    ",
+            "import tensorflow as tf\n\ndef transform(in1):\n    return tf.one_hot(in1, depth=6)\n",
+            "def transform(in1):\n    return tf.one_hot(in1, depth=6)\n    ",
+            "def transform(in1):\n    return tf.transpose(tf.one_hot(indices=in1, depth=6))\n    ",
+            "def transform(in1):\n    return tf.one_hot(in1, depth=6)\n    ",
+            "def transform(in1):\n    return tf.one_hot(in1, 6)\n",
+            "def transform(in1):\n    return tf.one_hot(tf.constant(in1), 6)\n    ",
+            "def transform(in1):\n    return tf.one_hot(in1, depth=6)\n",
+            "def transform(in1):\n    return tf.one_hot(in1, depth=6)[:, :, 3]\n    ",
+            "def transform(in1):\n    return tf.one_hot([3], in1)\n    "
         ],
         "tf_operators": {
             "tf.one_hot": 10,
@@ -14388,16 +15216,16 @@
             }
         ],
         "aggregate_constant_count": {
-            "input_var": 10,
             "shape": 0,
-            "tf_bool": 0,
-            "provided": 10,
             "common": 2,
-            "shape_tuple": 0,
-            "tf_float32": 0,
-            "axis": 0,
             "tf_int64": 0,
-            "tf_int32": 0
+            "shape_tuple": 0,
+            "input_var": 10,
+            "tf_float32": 0,
+            "provided": 10,
+            "tf_bool": 0,
+            "tf_int32": 0,
+            "axis": 0
         }
     }
 ]

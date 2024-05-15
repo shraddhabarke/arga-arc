@@ -1,4 +1,7 @@
 import os
+
+# disable tensorflow debug logs
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import sys
 from pathlib import Path
 
@@ -14,7 +17,12 @@ import typing as t
 import json
 from pprint import pprint
 from dataclasses import dataclass, field
+
 import tensorflow as tf
+
+tf.get_logger().disabled = True
+tf.autograph.set_verbosity(0)
+
 import numpy as np
 import math
 from config import CONFIG
@@ -31,6 +39,8 @@ import click
 from datetime import datetime
 import logging
 import time
+import tokenize
+import io
 
 # need this to properly evaluate code, even though it isn't used explicitly
 import math
@@ -256,7 +266,21 @@ def parse(model, num_samples):
     required=False,
     help="The number of completions to sample for each problem. used to identify the output file",
 )
-def stats(model, num_samples):
+@click.option(
+    "-lt",
+    "--log-task-stats",
+    is_flag=True,
+    default=False,
+    help="Whether to log stats for each task",
+)
+@click.option(
+    "-lr",
+    "--log-runtime-errors",
+    is_flag=True,
+    default=False,
+    help="Whether to log runtime errors",
+)
+def stats(model, num_samples, log_task_stats, log_runtime_errors):
     output_file = compute_output_file(model, num_samples)
     if output_file.exists():
         dataset_json: t.List[TaskJSONWithOutput] = json.loads(output_file.read_text())
@@ -267,6 +291,43 @@ def stats(model, num_samples):
 
     num_completions = sum([len(task.completions) for task in tasks])
     average_num_completion = num_completions / len(tasks)
+
+    aggregate_correctness_stats: CorrectnessStats = {
+        "total": 0,
+        "num_correct": 0,
+        "num_correct_tasks": 0,
+        "num_incorrect": 0,
+        "num_runtime_error": 0,
+        "num_syntax_error": 0,
+    }
+    for task in tasks:
+        correctness_stats = task.compute_correctness_stats(
+            log_runtime_errors=log_runtime_errors
+        )
+        if log_task_stats:
+            print(f"# {task.name}")
+            print(f"total: {correctness_stats['total']}")
+            print(f"num correct: {correctness_stats['num_correct']}")
+            print(f"num incorrect samples: {correctness_stats['num_incorrect']}")
+            print(f"num runtime error: {correctness_stats['num_runtime_error']}")
+            print(f"num syntax error: {correctness_stats['num_syntax_error']}")
+            print()
+            print()
+
+        aggregate_correctness_stats["total"] += correctness_stats["total"]
+        aggregate_correctness_stats["num_correct"] += correctness_stats["num_correct"]
+        aggregate_correctness_stats["num_correct_tasks"] += correctness_stats[
+            "num_correct_tasks"
+        ]
+        aggregate_correctness_stats["num_incorrect"] += correctness_stats[
+            "num_incorrect"
+        ]
+        aggregate_correctness_stats["num_runtime_error"] += correctness_stats[
+            "num_runtime_error"
+        ]
+        aggregate_correctness_stats["num_syntax_error"] += correctness_stats[
+            "num_syntax_error"
+        ]
 
     print(f"Total tasks: {len(tasks)}")
     print(f"Total completions: {num_completions}")
@@ -294,6 +355,19 @@ def stats(model, num_samples):
 
     print(f"Total num completions with constants: {num_constants}")
     print(f"Average num completions with constants per task: {average_num_constants}")
+
+    print()
+    print()
+
+    print(f"# aggregate evaluation stats")
+    print(f"total: {aggregate_correctness_stats['total']}")
+    print(f"num correct samples: {aggregate_correctness_stats['num_correct']}")
+    print(f"num correct tasks: {aggregate_correctness_stats['num_correct_tasks']}")
+    print(f"num incorrect: {aggregate_correctness_stats['num_incorrect']}")
+    print(f"num runtime error: {aggregate_correctness_stats['num_runtime_error']}")
+    print(f"num syntax error: {aggregate_correctness_stats['num_syntax_error']}")
+    print()
+    print()
 
 
 @cli.command(help="sample completions")
@@ -553,6 +627,7 @@ class Task:
     aggregate_constant_count: "ConstantCounts" = field(default_factory=dict)
 
     __asts: t.List[ast.Module] = field(default_factory=list)
+    __tokens: t.List[t.List[tokenize.TokenInfo]] = field(default_factory=list)
 
     @classmethod
     def from_json(cls, task_json: TaskJSON):
@@ -683,14 +758,8 @@ class Task:
 
     def compute_asts(self):
         num_errored = 0
+        self.normalized_completions = []
         for completion in self.completions:
-            try:
-                self.__asts.append(ast.parse(completion))
-                self.normalized_completions.append(completion)
-                continue
-            except Exception:
-                pass
-
             extracted = extract_code(completion)
             normalized = None
 
@@ -702,12 +771,14 @@ class Task:
                 print()
                 print()
                 self.__asts.append(None)
+                self.__tokens.append(None)
                 self.normalized_completions.append(None)
                 continue
 
+            normalized = normalize_code(extracted, self.function_definition)
             try:
-                normalized = normalize_code(extracted, self.function_definition)
                 self.__asts.append(ast.parse(normalized))
+                self.__tokens.append(lex(normalized))
                 self.normalized_completions.append(normalized)
             except Exception:
                 num_errored += 1
@@ -723,12 +794,18 @@ class Task:
                 print()
                 print()
                 self.__asts.append(None)
+                self.__tokens.append(lex(normalized))
                 self.normalized_completions.append(None)
         print(f"Errored: {num_errored}")
 
     def compute_constants(self):
         self.parsed_constants = [
-            get_constants(ast_node) if ast_node else [] for ast_node in self.__asts
+            (
+                get_constants(ast_node)
+                if ast_node
+                else get_constants_lexed(tokens) if tokens is not None else []
+            )
+            for ast_node, tokens in zip(self.__asts, self.__tokens)
         ]
         self.all_constants = list(
             set(
@@ -740,8 +817,12 @@ class Task:
             )
         )
         self.constant_counts = [
-            count_constants(ast_node, self.examples) if ast_node else None
-            for ast_node in self.__asts
+            (
+                count_constants(ast_node, self.examples)
+                if ast_node
+                else count_constants_lexed(tokens, self.examples) if tokens else None
+            )
+            for ast_node, tokens in zip(self.__asts, self.__tokens)
         ]
         self.aggregate_constant_count = {
             "common": 0,
@@ -761,6 +842,130 @@ class Task:
                     self.aggregate_constant_count, count
                 )
 
+    def compute_correctness_stats(self, log_runtime_errors=False) -> "CorrectnessStats":
+        ans = {
+            "total": 0,
+            "num_correct_tasks": 0,
+            "num_correct": 0,
+            "num_incorrect": 0,
+            "num_runtime_error": 0,
+            "num_syntax_error": 0,
+        }
+
+        for normalized_completion in self.normalized_completions:
+            ans["total"] += 1
+
+            if normalized_completion is None:
+                ans["num_syntax_error"] += 1
+                continue
+
+            # these programs cause a segfault in TF, and I don't wanna come up with a graceful way to handle them!
+            if normalized_completion.strip() in [
+                """def transform(in1):
+    argmax = tf.cast(tf.argmax(in1, axis=1), tf.int32)
+    shape = tf.shape(in1, out_type=tf.int32)
+    indices = tf.meshgrid(tf.range(shape[0]), argmax, indexing='ij')
+    updates = tf.ones_like(argmax)
+    return tf.tensor_scatter_nd_update(tf.zeros_like(in1, dtype=tf.int32), tf.stack(indices, axis=-1), updates)""",
+                """def transform(in1):
+    max_value = tf.reduce_max(in1)
+    indices = tf.stack([tf.cast(in1, tf.int32), tf.zeros(tf.shape(in1), tf.int32)], -1)
+    on_values = tf.ones(tf.shape(in1)[:-1], tf.int32)
+    return tf.scatter_nd(indices, on_values, [max_value+1, 1])[:, 0]""",
+                """in1 = tf.constant(in1)
+out1 = tf.add(in1[0::2], in1[1::2])
+
+out1
+inburgh_airport = tf.zeros((32,))
+freswick_airport = tf.zeros((32,))
+inns_bridge = tf.zeros((32,))
+craiglockhart = tf.zeros((32,))
+
+def filter(a):
+    avg = tf.reduce_mean(a)
+    stddev = tf.math.reduce_std(a)
+    return a[(a > (avg - 2 * stddev)) & (a < (avg + 2 * stddev))]
+
+for i in range(1000):
+    u = tf.random.normal((32,), mean=0, stddev=1)
+    v = tf.random.normal((32,), mean=1, stddev=1)
+    w = tf.random.normal((32,), mean=2, stddev=1)
+    array = filter(u) + filter(v) + filter(w)
+    array = array / tf.norm(array)
+    array = tf.math""",
+                """def transform(in1, in2):
+    return tf.sparse.reorder(tf.sparse.from_dense(tf.scatter_nd(tf.expand_dims(in2, 1), in1, [3, 5])))""",
+            ]:
+                ans["num_runtime_error"] += 1
+                continue
+
+            try:
+                # print("### total so far: " + str(ans["total"]))
+                # print("### running completion")
+                # print('"""' + normalized_completion.strip() + '"""')
+                try:
+                    blockPrint()
+                    exec(normalized_completion)
+                except:
+                    # runtime errors in the completion are OK as long as the transform function is defined and runs without errors.
+                    pass
+                finally:
+                    enablePrint()
+                transform_fn = locals()["transform"]
+                output = transform_fn(*self.examples.inputs)
+                if matches_expected_value(output, self.examples.output):
+                    ans["num_correct"] += 1
+                    ans["num_correct_tasks"] = 1
+                else:
+                    ans["num_incorrect"] += 1
+            except Exception as e:
+                if log_runtime_errors:
+                    print("# completion for " + self.name)
+                    print(normalized_completion)
+                    print()
+                    print("## exception")
+                    print(str(e))
+                    print()
+                    print()
+                ans["num_runtime_error"] += 1
+
+        return ans
+
+
+# region EXECUTING CODE
+
+
+def matches_expected_value(
+    actual: t.Union[np.ndarray, tf.SparseTensor],
+    expected: t.Union[np.ndarray, tf.SparseTensor],
+) -> bool:
+    if isinstance(actual, np.ndarray) and isinstance(expected, np.ndarray):
+        return np.array_equal(actual, expected)
+    elif isinstance(actual, tf.SparseTensor) and isinstance(expected, tf.SparseTensor):
+        return tf.sparse.equal(actual, expected)
+    else:
+        return False
+
+
+class CorrectnessStats(t.TypedDict):
+    total: int
+    num_correct: int
+    num_correct_tasks: int
+    num_incorrect: int
+    num_runtime_error: int
+    num_syntax_error: int
+
+
+def blockPrint():
+    sys.stdout = open(os.devnull, "w")
+
+
+# Restore
+def enablePrint():
+    sys.stdout = sys.__stdout__
+
+
+# endregion EXECUTING CODE
 
 # region PROMPT
 
@@ -814,9 +1019,6 @@ TFOPERATORS = [op.strip() for op in TFOPERATORS_STR.split("\n") if op.strip() !=
 SPARSETF_OPERATORS = [
     op.strip() for op in SPARSETF_OPERATORS_STR.split("\n") if op.strip() != ""
 ]
-
-print(f"TF Operators: {len(TFOPERATORS)}, {TFOPERATORS[:5]}")
-print(f"SparseTF Operators: {len(SPARSETF_OPERATORS)}, {SPARSETF_OPERATORS[:5]}")
 
 TFOPERATORS_WEIGHT_ORDER = [
     "tf.cast(x, dtype)",
@@ -1020,6 +1222,140 @@ def prompt(
 
 # endregion PROMPT
 
+# region LEXING
+
+
+def lex(code: str) -> t.List[tokenize.TokenInfo]:
+    ans = []
+    try:
+        for token in tokenize.tokenize(io.BytesIO(code.encode("utf-8")).readline):
+            ans.append(token)
+    except:
+        pass
+    return ans
+
+
+ALL_OPERATORS = TFOPERATORS + SPARSETF_OPERATORS
+
+
+def count_operators_lexed(tokens: t.List[tokenize.TokenInfo]) -> t.Dict[str, int]:
+    seen_tf = False
+    seen_sparse = False
+
+    ans = {}
+
+    for token in tokens:
+        if token.string == ".":
+            continue
+
+        if token.string == "tf":
+            seen_tf = True
+            continue
+
+        if seen_tf:
+            if seen_sparse:
+                if any(
+                    f"tf.sparse.{token.string}(" in operator
+                    for operator in ALL_OPERATORS
+                ):
+                    ans[f"tf.sparse.{token.string}"] = (
+                        ans.get(f"tf.sparse.{token.string}", 0) + 1
+                    )
+                seen_sparse = False
+                seen_tf = False
+            elif token.string == "sparse":
+                seen_sparse = True
+            else:
+                if any(f"tf.{token.string}(" in operator for operator in ALL_OPERATORS):
+                    ans[f"tf.{token.string}"] = ans.get(f"tf.{token.string}", 0) + 1
+                seen_tf = False
+
+    return ans
+
+
+def get_constants_lexed(tokens: t.List[tokenize.TokenInfo]) -> t.List[int]:
+    ans = []
+    seen_minus = False
+    for token in tokens:
+        if token.type == tokenize.OP:
+            if token.string == "-":
+                seen_minus = True
+                continue
+        elif token.type == tokenize.NUMBER:
+            try:
+                value = -int(token.string) if seen_minus else int(token.string)
+            except:
+                continue
+            ans.append(value)
+
+        seen_minus = False
+    return list(set(ans))
+
+
+def count_constants_lexed(
+    tokens: t.List[tokenize.TokenInfo], example: Example
+) -> "ConstantCounts":
+    counts = {
+        "common": 0,
+        "axis": 0,
+        "shape": 0,
+        "provided": 0,
+        "tf_int32": 0,
+        "tf_float32": 0,
+        "tf_int64": 0,
+        "tf_bool": 0,
+        "input_var": 0,
+        "shape_tuple": 0,
+    }
+    # example.max_input_rank,
+    #     example.dimension_lengths,
+    #     example.output_shape,
+    seen_minus = False
+    seen_tf = False
+    for token in tokens:
+        if token.type == tokenize.OP:
+            if token.string == "-":
+                seen_minus = True
+                continue
+        elif token.type == tokenize.NUMBER:
+            try:
+                value = -int(token.string) if seen_minus else int(token.string)
+            except:
+                continue
+            if is_common(value):
+                counts["common"] += 1
+            elif is_axis(value, example.max_input_rank):
+                counts["axis"] += 1
+            elif is_shape(value, example.dimension_lengths):
+                counts["shape"] += 1
+            else:
+                counts["provided"] += 1
+        elif token.type == tokenize.NAME:
+            if token.string == "tf":
+                seen_tf = True
+                continue
+            elif seen_tf:
+                if token.string == "int32":
+                    counts["tf_int32"] += 1
+                elif token.string == "float32":
+                    counts["tf_float32"] += 1
+                elif token.string == "int64":
+                    counts["tf_int64"] += 1
+                elif token.string == "bool":
+                    counts["tf_bool"] += 1
+        elif token.type == tokenize.DOT:
+            continue
+
+        # TODO: shape tuple (not sure if it's worth implementing at the lexer level)
+        # if we see an open paren, take all the tokens until the close paren, attempt to parse a shape tuple out of them. if that works, count as shape. else, treat as tokens
+        seen_minus = False
+        seen_tf = False
+
+    return counts
+
+
+# endregion LEXING
+
 # region PARSING
 
 
@@ -1059,6 +1395,12 @@ def calculate_tf_operator_coverage_and_count(
 
 
 def extract_code(completion: str) -> t.Optional[str]:
+    try:
+        ast.parse(completion)
+        return completion
+    except:
+        pass
+
     plain_code_result = extract_plain_code(completion)
     code_block_result = extract_code_block(completion)
 
