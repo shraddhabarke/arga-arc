@@ -334,6 +334,12 @@ class ToAst(Transformer):
             return Height(int(token.value))
         except ValueError:
             return Height(token.value)
+        
+    def WIDTH(self, token):
+        try:
+            return Width(int(token.value))
+        except ValueError:
+            return Width(token.value)
     
     def COLUMN(self, token):
         try:
@@ -627,5 +633,5 @@ def test_reference_programs():
                 print("\n")
 
 if __name__ == "__main__":
-    # test_gpt_gens()
-    test_reference_programs()
+    test_gpt_gens()
+    # test_reference_programs()
