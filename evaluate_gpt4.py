@@ -4,11 +4,21 @@ import transform as tf
 import filters as f
 import typing as t
 from enum import Enum
+import click
+from tqdm import tqdm
+import logging
+import builtins
+from pprint import pprint
+from pathlib import Path
+import traceback
 
 from utils import TASK_IDS, TASK_IDS_TYPE
 from config import CONFIG
 from image import Image
 
+LOGGER = logging.getLogger(__name__)
+
+# TODO: get abstraction list for every task
 TASKS = [
     {"task_id": "08ed6ac7", "abstraction": "nbccg"},
     {"task_id": "1e0a9b12", "abstraction": None},
@@ -52,14 +62,77 @@ TASKS = [
 TASK_IDS = [task["task_id"] for task in TASKS]
 TASK_ABSTRACTIONS = [task["abstraction"] for task in TASKS]
 
+# region CLI
+
 
 def main():
-    # abstraction = "nbccg"
-    for idx, task in enumerate(TASKS):
+    original_print = builtins.print
+    builtins.print = tqdm_print
+
+    cli()
+
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@click.option("--task-id", "-t", type=click.Choice(TASK_IDS), multiple=True)
+@click.option(
+    "--path",
+    "-p",
+    type=click.Path(exists=True),
+    default="dsl/v0_3/generations/gpt4o_20240514",
+)
+def parse(task_id, path):
+    if len(task_id) == 0:
+        task_id = TASK_IDS
+
+    for task in tqdm(TASKS):
+        if task["task_id"] not in task_id:
+            continue
         task_id = task["task_id"]
         abstraction = task["abstraction"] if task["abstraction"] else "nbccg"
         try:
-            programs = parse_programs(task_id, abstraction)
+            get_task(task_id, abstraction)
+
+            programs = parse_programs(task_id, abstraction, path)
+            print(f"{task_id}: parsed {len(programs)}")
+            pprint(programs)
+            print()
+            print()
+
+            executable_programs = [
+                convert_ast_to_executable(program) for program in programs
+            ]
+            print(f"{task_id}: converted {len(executable_programs)}")
+            pprint(executable_programs)
+            print()
+            print()
+        except Exception as e:
+            print(f"{task_id}: {e}")
+            traceback.print_exc()
+            continue
+
+
+@cli.command()
+@click.option("--task-id", "-t", type=click.Choice(TASK_IDS), multiple=True)
+@click.option(
+    "--path",
+    "-p",
+    type=click.Path(exists=True),
+    default="dsl/v0_3/generations/gpt4o_20240514",
+)
+def evaluate(task_id, path):
+    if len(task_id) == 0:
+        task_id = TASK_IDS
+
+    for task in tqdm(TASKS):
+        task_id = task["task_id"]
+        abstraction = task["abstraction"] if task["abstraction"] else "nbccg"
+        try:
+            programs = parse_programs(task_id, abstraction, path)
             num_correct = num_correct_programs(task_id, abstraction, programs)
         except Exception as e:
             print(f"{task_id}: {e}")
@@ -67,15 +140,31 @@ def main():
         print(f"{task_id}: correct/total {num_correct}/{len(programs)}")
 
 
+def tqdm_print(*args, **kwargs):
+    # if no arguments are passed, write the empty string
+    if not args:
+        args = [""]
+    message = " ".join([str(arg) for arg in args])
+    tqdm.write(message, **kwargs)
+    LOGGER.info(" ".join([str(arg) for arg in args]))
+
+
+# endregion CLI
+
+
 def parse_programs(
     task_id: TASK_IDS_TYPE, abstraction: str, directory="dsl/gens/gens_20231120"
-) -> t.List[ast.DoOperation]:
-    file = (CONFIG.ROOT_DIR / directory / f"{task_id}_correct.txt").resolve().absolute()
+) -> t.List[ast.Program]:
+    file = (
+        (CONFIG.ROOT_DIR / directory / f"{task_id}_valid_programs.txt")
+        .resolve()
+        .absolute()
+    )
     with open(file, "r") as f:
         program = f.read()
 
     ast_program = ast.parse(program)
-    programs = ast_program.children
+    programs = ast_program.programs
     return programs
 
 
@@ -93,7 +182,7 @@ def get_task(task_id: TASK_IDS_TYPE, abstraction: str) -> Task:
 
 
 def num_correct_programs(
-    task_id: TASK_IDS_TYPE, abstraction: str, programs: t.List[ast.DoOperation]
+    task_id: TASK_IDS_TYPE, abstraction: str, programs: t.List[ast.Program]
 ) -> int:
     task = get_task(task_id, abstraction)
     num_correct = 0
@@ -109,73 +198,99 @@ def num_correct_programs(
 
 
 def convert_ast_to_executable(
-    program: ast.DoOperation,
+    program: ast.Program,
 ) -> t.List[t.Tuple[f.FilterASTNode, t.List[tf.TransformASTNode]]]:
     rules = [
-        rule if isinstance(rule, ast._Rule) else rule.rules[0]
-        for rule in program.rule_list
+        rule if isinstance(rule, ast.Rule) else rule.rules[0] for rule in program.rules
     ]
     return [convert_rule_to_executable(rule) for rule in rules]
 
 
 def convert_rule_to_executable(
-    rule: ast._Rule,
+    rule: ast.Rule,
 ) -> t.Tuple[f.FilterASTNode, t.List[tf.TransformASTNode]]:
     return (
-        convert_filter_op_to_executable(rule.filter_op),
+        convert_filter_to_executable(rule.filter),
         convert_transforms_to_executable(rule.transforms),
     )
 
 
-def convert_filter_op_to_executable(filter_op: ast._Filter_Op) -> f.FilterASTNode:
-    if isinstance(filter_op, ast.FilterByNeighborDegree):
-        return f.FilterByNeighborDegree(
-            degree=convert_filter_op_to_executable(filter_op.degree)
+def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
+    if isinstance(_filter, ast.Degree_Equals):
+        return f.Degree_Equals(
+            degree1=convert_filter_to_executable(_filter.degree1),
+            degree2=convert_filter_to_executable(_filter.degree2),
         )
-    elif isinstance(filter_op, ast.FilterByNeighborColor):
-        return f.FilterByNeighborColor(
-            color=convert_color_to_filter_ast_node(filter_op.color)
+    elif isinstance(_filter, ast.Color_Equals):
+        return f.Color_Equals(
+            color1=convert_color_to_filter_ast_node(_filter.color1),
+            color2=convert_color_to_filter_ast_node(_filter.color2),
+            obj=get_obj_from_arguments(_filter.color1, _filter.color2),
         )
-    elif isinstance(filter_op, ast.FilterByNeighborSize):
-        return f.FilterByNeighborSize(
-            size=convert_filter_op_to_executable(filter_op.size)
+    elif isinstance(_filter, ast.Size_Equals):
+        return f.Size_Equals(
+            size1=convert_filter_to_executable(_filter.size1),
+            size2=convert_filter_to_executable(_filter.size2),
+            obj=get_obj_from_arguments(_filter.size1, _filter.size2),
         )
-    elif isinstance(filter_op, ast.FilterByDegree):
-        return f.FilterByDegree(
-            degree=convert_filter_op_to_executable(filter_op.degree)
+    elif isinstance(_filter, ast.Height_Equals):
+        return f.Height_Equals(
+            height1=convert_filter_to_executable(_filter.height1),
+            height2=convert_filter_to_executable(_filter.height2),
+            obj=get_obj_from_arguments(_filter.height1, _filter.height2),
         )
-    elif isinstance(filter_op, ast.FilterByColor):
-        return f.FilterByColor(color=convert_color_to_filter_ast_node(filter_op.color))
-    elif isinstance(filter_op, ast.FilterBySize):
-        return f.FilterBySize(size=convert_filter_op_to_executable(filter_op.size))
-    elif isinstance(filter_op, ast.Or):
-        assert len(filter_op.filters) >= 2
-        first_two_filters = filter_op.filters[:2]
+    elif isinstance(_filter, ast.Width_Equals):
+        return f.Width_Equals(
+            width1=convert_filter_to_executable(_filter.width1),
+            width2=convert_filter_to_executable(_filter.width2),
+            obj=get_obj_from_arguments(_filter.width1, _filter.width2),
+        )
+    elif isinstance(_filter, ast.Shape_Equals):
+        return f.Shape_Equals(
+            shape1=convert_filter_to_executable(_filter.shape1),
+            shape2=convert_filter_to_executable(_filter.shape2),
+            obj=get_obj_from_arguments(_filter.shape1, _filter.shape2),
+        )
+    elif isinstance(_filter, ast.Row_Equals):
+        return f.Row_Equals(
+            row1=convert_filter_to_executable(_filter.row1),
+            row2=convert_filter_to_executable(_filter.row2),
+            obj=get_obj_from_arguments(_filter.row1, _filter.row2),
+        )
+    elif isinstance(_filter, ast.Column_Equals):
+        return f.Column_Equals(
+            column1=convert_filter_to_executable(_filter.column1),
+            column2=convert_filter_to_executable(_filter.column2),
+            obj=get_obj_from_arguments(_filter.column1, _filter.column2),
+        )
+    elif isinstance(_filter, ast.Or):
+        assert len(_filter.filters) >= 2
+        first_two_filters = _filter.filters[:2]
         ans = f.Or(
-            convert_filter_op_to_executable(first_two_filters[0]),
-            convert_filter_op_to_executable(first_two_filters[1]),
+            convert_filter_to_executable(first_two_filters[0]),
+            convert_filter_to_executable(first_two_filters[1]),
         )
-        for filter in filter_op.filters[2:]:
-            ans = f.Or(ans, convert_filter_op_to_executable(filter))
+        for _filter in _filter.filters[2:]:
+            ans = f.Or(ans, convert_filter_to_executable(_filter))
         return ans
-    elif isinstance(filter_op, ast.And):
-        assert len(filter_op.filters) >= 2
-        first_two_filters = filter_op.filters[:2]
+    elif isinstance(_filter, ast.And):
+        assert len(_filter.filters) >= 2
+        first_two_filters = _filter.filters[:2]
         ans = f.And(
-            convert_filter_op_to_executable(first_two_filters[0]),
-            convert_filter_op_to_executable(first_two_filters[1]),
+            convert_filter_to_executable(first_two_filters[0]),
+            convert_filter_to_executable(first_two_filters[1]),
         )
-        for filter in filter_op.filters[2:]:
-            ans = f.And(ans, convert_filter_op_to_executable(filter))
+        for _filter in _filter.filters[2:]:
+            ans = f.And(ans, convert_filter_to_executable(_filter))
         return ans
-    elif isinstance(filter_op, ast.Not):
-        return f.Not(convert_filter_op_to_executable(filter_op.not_filter))
-    elif isinstance(filter_op, ast.Color):
-        return convert_color_to_filter_ast_node(filter_op)
-    elif isinstance(filter_op, ast.Size):
-        return convert_value_to_size_filter_ast_node(filter_op.value)
-    elif isinstance(filter_op, ast.Degree):
-        return convert_value_to_degree_filter_ast_node(filter_op.value)
+    elif isinstance(_filter, ast.Not):
+        return f.Not(convert_filter_to_executable(_filter.not_filter))
+    elif isinstance(_filter, ast.Color):
+        return convert_color_to_filter_ast_node(_filter)
+    elif isinstance(_filter, ast.Size):
+        return convert_value_to_size_filter_ast_node(_filter.value)
+    elif isinstance(_filter, ast.Degree):
+        return convert_value_to_degree_filter_ast_node(_filter.value)
 
 
 def convert_value_to_size_filter_ast_node(value: t.Union[str, int]) -> f.Size:
@@ -228,39 +343,89 @@ def convert_value_to_degree_filter_ast_node(value: t.Union[str, int]) -> f.Degre
     return convert_value_to_degree_filter_ast_node(value)
 
 
-def convert_color_to_filter_ast_node(color: ast.Color) -> f.FColor:
-    if color.value == "O":
-        return f.FColor.black
-    elif color.value == "B":
-        return f.FColor.blue
-    elif color.value == "R":
-        return f.FColor.red
-    elif color.value == "G":
-        return f.FColor.green
-    elif color.value == "Y":
-        return f.FColor.yellow
-    elif color.value == "X":
-        return f.FColor.grey
-    elif color.value == "F":
-        return f.FColor.fuchsia
-    elif color.value == "A":
-        return f.FColor.orange
-    elif color.value == "C":
-        return f.FColor.cyan
-    elif color.value == "W":
-        return f.FColor.brown
+OBJ_REFERENCE_AST_CLASSES = [
+    ast.ColorOf,
+    ast.SizeOf,
+    ast.HeightOf,
+    ast.WidthOf,
+    ast.DegreeOf,
+    ast.ShapeOf,
+    ast.ColumnOf,
+    ast.DirectionOf,
+    ast.ImagePointsOf,
+    ast.MirrorAxisOf,
+]
+
+
+def get_obj_from_arguments(
+    arg1: ast._Ast,
+    arg2: ast._Ast,
+) -> t.Optional[f.Object]:
+
+    var1 = (
+        arg1.var
+        if any(isinstance(arg1, cls) for cls in OBJ_REFERENCE_AST_CLASSES)
+        else None
+    )
+    var2 = (
+        arg2.var
+        if any(isinstance(arg2, cls) for cls in OBJ_REFERENCE_AST_CLASSES)
+        else None
+    )
+
+    # no references in the arguments
+    if var1 is None and var2 is None:
+        return None
+
+    if var1 is None:
+        return f.Object.this if var2 == "this" else f.Object.var
+
+    if var2 is None:
+        return f.Object.this if var1 == "this" else f.Object.var
+
+    if var1 != var2:
+        # TODO: not sure what to do in this case, since this isn't allowed in the EAST
+        return None
+
+    return f.Object.this if var1 == "this" else f.Object.var
+
+
+def convert_color_to_filter_ast_node(
+    color: t.Union[ast.Color, ast.ColorOf]
+) -> f.FColor:
+    if isinstance(color, ast.ColorOf):
+        # TODO: colorof(this) vs. colorof(other)? I'm not sure how to handle this
+        return f.FColor.colorof
+    else:
+        if color.value == "O":
+            return f.FColor.black
+        elif color.value == "B":
+            return f.FColor.blue
+        elif color.value == "R":
+            return f.FColor.red
+        elif color.value == "G":
+            return f.FColor.green
+        elif color.value == "Y":
+            return f.FColor.yellow
+        elif color.value == "X":
+            return f.FColor.grey
+        elif color.value == "F":
+            return f.FColor.fuchsia
+        elif color.value == "A":
+            return f.FColor.orange
+        elif color.value == "C":
+            return f.FColor.cyan
+        elif color.value == "W":
+            return f.FColor.brown
 
 
 def convert_transforms_to_executable(
-    transforms: ast.Transforms,
+    transforms: t.List[ast._Transform],
 ) -> t.List[tf.TransformASTNode]:
-    return [
-        convert_transform_to_executable(transform)
-        for transform in transforms.transforms
-    ]
+    return [convert_transform_to_executable(transform) for transform in transforms]
 
 
-def convert_transform_to_executable(transform: ast.Transform) -> tf.TransformASTNode:
+def convert_transform_to_executable(transform: ast._Transform) -> tf.TransformASTNode:
     if isinstance(transform, ast.Mirror):
         raise NotImplementedError(
             "TODO: implement mirror transform. I'm not 100% sure how MirrorAxis works"
@@ -294,9 +459,9 @@ def convert_transform_to_executable(transform: ast.Transform) -> tf.TransformAST
         )
     elif isinstance(transform, ast.UpdateColor):
         return tf.UpdateColor(color=convert_transform_to_executable(transform.color))
-    elif isinstance(transform, ast.Symmetry_Axis):
+    elif isinstance(transform, ast.SymmetryAxis):
         return convert_symmetry_axis_to_transform_ast_node(transform)
-    elif isinstance(transform, ast.Rotation_Angle):
+    elif isinstance(transform, ast.RotationAngle):
         return convert_rotation_angle_to_transform_ast_node(transform)
     elif isinstance(transform, ast.Color):
         return convert_color_to_transform_ast_node(transform)
@@ -313,7 +478,7 @@ def convert_overlap_to_transform_ast_node(overlap: bool) -> tf.Overlap:
 
 
 def convert_symmetry_axis_to_transform_ast_node(
-    symmetry_axis: ast.Symmetry_Axis,
+    symmetry_axis: ast.SymmetryAxis,
 ) -> tf.Symmetry_Axis:
     if symmetry_axis.value == "H":
         return tf.Symmetry_Axis.HORIZONTAL
@@ -332,7 +497,7 @@ def convert_symmetry_axis_to_transform_ast_node(
 
 
 def convert_rotation_angle_to_transform_ast_node(
-    rotation_angle: ast.Rotation_Angle,
+    rotation_angle: ast.RotationAngle,
 ) -> tf.Rotation_Angle:
     if rotation_angle.value == "90":
         return tf.Rotation_Angle.CCW
@@ -372,21 +537,21 @@ def convert_color_to_transform_ast_node(color: ast.Color) -> tf.Color:
 
 
 def convert_direction_to_transform_ast_node(direction: ast.Direction) -> tf.Dir:
-    if direction.value == "U":
+    if direction.value == "U" or direction.value == "up":
         return tf.Dir.UP
-    elif direction.value == "D":
+    elif direction.value == "D" or direction.value == "down":
         return tf.Dir.DOWN
-    elif direction.value == "L":
+    elif direction.value == "L" or direction.value == "left":
         return tf.Dir.LEFT
-    elif direction.value == "R":
+    elif direction.value == "R" or direction.value == "right":
         return tf.Dir.RIGHT
-    elif direction.value == "UL":
+    elif direction.value == "UL" or direction.value == "up_left":
         return tf.Dir.UP_LEFT
-    elif direction.value == "UR":
+    elif direction.value == "UR" or direction.value == "up_right":
         return tf.Dir.UP_RIGHT
-    elif direction.value == "DL":
+    elif direction.value == "DL" or direction.value == "down_left":
         return tf.Dir.DOWN_LEFT
-    elif direction.value == "DR":
+    elif direction.value == "DR" or direction.value == "down_right":
         return tf.Dir.DOWN_RIGHT
     else:
         raise ValueError(f"Direction value {direction.value} is not a valid direction.")

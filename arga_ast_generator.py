@@ -593,6 +593,32 @@ def test_file(filename, parser, xformer):
     ast = xformer.transform(t)
     pprint(ast)
 
+# GRAMMAR: t.Optional[Lark] = None
+
+
+# def __ensure_grammar() -> Lark:
+#     global GRAMMAR
+#     grammar_file = CONFIG.ROOT_DIR / "dsl" / "dsl.lark"
+#     if GRAMMAR is None:
+#         with open(grammar_file, "r") as f:
+#             arga_dsl_grammar = f.read()
+#         GRAMMAR = Lark(
+#             arga_dsl_grammar, start="start", parser="lalr", transformer=ToAst()
+#         )
+#     return GRAMMAR
+
+
+# def parse(program: str) -> ParseTree:
+#     return __ensure_grammar().parse(program)
+
+def parse(program: str):
+    parser = dsl_parser.Parser.new()
+    xformer = ast_utils.create_transformer(this_module, ToAst())
+    t = parser.lib_parse_tree(f"({program})")
+    # print(t.pretty())
+    ast = xformer.transform(t)
+    return ast 
+
 def test_gpt_gens():
     parser = dsl_parser.Parser.new()
     xformer = ast_utils.create_transformer(this_module, ToAst())
