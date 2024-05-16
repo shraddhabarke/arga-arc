@@ -55,7 +55,7 @@ class LanguageModel:
         # Save the response to a file
         if log:
             timestamp = defs.get_timestamp(micros=False)
-            log_dir = os.path.join(defs.PROJECT_ROOT, "models/logs")
+            log_dir = os.path.join(defs.PROJECT_ROOT, "models/logs/requests")
             dump = response.model_dump_json(indent=4)
             with open(os.path.join(log_dir, f"{timestamp}.json"), "w") as f:
                 f.write(dump)

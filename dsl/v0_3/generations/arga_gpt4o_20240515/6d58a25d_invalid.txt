@@ -1,0 +1,82 @@
+[
+    {
+        "response": "{\n    \"nl_description\": \"Insert the color C in all empty cells that are neighbors of a cell of color C or Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) O)\\n                (or\\n                    (neighbor_of this other)\\n                    (color_equals (color_of other) C)\\n                )\\n                (or\\n                    (neighbor_of this other)\\n                    (color_equals (color_of other) Y)\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 11 col 17\n\n                (or\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Insert an object of the same color in their left neighbor direction for each adjacent cells being empty and then update their colors to C.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) (color_of other))\\n                (neighbor_of this other)\\n                (column_equals (column_of other) (column_of this))\\n                (not (color_equals (color_of this) X))\\n            )\\n        )\\n        (apply\\n            (insert (color_of this) (img_pts_of this) source)\\n            (update_color C)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (column_equals (column_of other) (column\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the color of cells adjacent to any color to same as that color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter (and (neighbor_of this other)))\\n        (apply (update_color (color_of other)))\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 4 col 46\n\n   (filter (and (neighbor_of this other)))\n                                        ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Insert a new object at each grid location containing an object of size one of the same color as the inserted object\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (size_equals (size_of this) 1)\\n                (and\\n                    (neighbor_of this other)\\n                    (size_equals (size_of other) 1)\\n                )\\n            )\\n        )\\n        (apply\\n            (insert this (img_pts_of this) source)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 14 col 21\n\n            (insert this (img_pts_of this) source)\n                    ^\nExpected one of: \n\t* OBJECT_ID\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all the red objects toward the nearest cyan object.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter (and (color_equals (color_of this) R) (color_equals (color_of other) C) (neighbor_of this other)))\\n        (apply (move_node_max (direction_of other)))\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 4 col 89\n\ns) R) (color_equals (color_of other) C) (neighbor_of this other)))\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Add an object of color representing the one in between the neighbor objects\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) o)\\n        )\\n        (apply\\n            (move_node up)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'o' in the current parser context, at line 5 col 43\n\n          (color_equals (color_of this) o)\n                                        ^\nExpected one of: \n\t* FCOLOR\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Insert an object of color 'C' at the center of all 'W' objects\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) W)\\n        )\\n        (apply\\n            (insert 0 center center)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 8 col 23\n\n            (insert 0 center center)\n                      ^\nExpected one of: \n\t* LPAR\n\t* IMAGE_POINTS\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Fill the cells diagonally adjacent to each object of color C with color C and fill the cells directly adjacent to each object of color R with color R.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) C)\\n        )\\n        (apply\\n            (insert 0 bottom_right source)\\n            (insert 0 top_left source)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (insert 0 right source)\\n            (insert 0 left source)\\n            (insert 0 down source)\\n            (insert 0 up source)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'd' in the current parser context, at line 20 col 23\n\n            (insert 0 down source)\n                      ^\nExpected one of: \n\t* LPAR\n\t* IMAGE_POINTS\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color C toward the nearest non-C neighbor, if they are neighbors of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) C)\\n                (neighbor_of this other)\\n                (not (color_equals (color_of other) C))\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (not (color_equals (color_of other) C))\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Insert a cyan pixel adjacent to each cyan pixel in each object of cyan color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) C)\\n        )\\n        (apply\\n            (insert this (img_pts_of this) source)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 8 col 21\n\n            (insert this (img_pts_of this) source)\n                    ^\nExpected one of: \n\t* OBJECT_ID\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Add the color C to all the cells directly adjacent to objects of color C.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) X)\\n                (neighbor_of other this)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"If any part of an object is next to 'C', color that part of the object 'C'.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) C))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Clone objects to the cells that have color C if they are in the neighbor cells.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (neighbor_of this other)\\n        )\\n        (apply\\n            (insert (color_of this) (img_pts_of other) source)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 21\n\n            (insert (color_of this) (img_pts_of other) sourc\n                    ^\nExpected one of: \n\t* OBJECT_ID\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Insert a copy of the smallest object into the center of each largest object.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (size_equals (size_of this) min)\\n                (size_equals (size_of other) max)\\n            )\\n        )\\n        (apply\\n            (insert (image_points_of this) center)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 11 col 21\n\n            (insert (image_points_of this) center)\n                    ^\nExpected one of: \n\t* OBJECT_ID\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Insert a copy of the smallest objects into their neighboring largest-sized objects.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (size_equals (size_of this) min)\\n                (and\\n                    (neighbor_of this other)\\n                    (size_equals (size_of other) max)\\n                )\\n            )\\n        )\\n        (apply\\n            (insert (0) (img_pts_of this) target)\\n        )    \\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 14 col 21\n\n            (insert (0) (img_pts_of this) target)\n                    ^\nExpected one of: \n\t* OBJECT_ID\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"For each object of color, locate the nearest object of the same color and move towards it, one step at a time.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) O))\\n                (neighbor_of this other)\\n                (color_equals (color_of this) (color_of other))\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n            (noop)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) (color_of \n                ^\nExpected one of: \n\t* RPAR\n"
+    }
+]

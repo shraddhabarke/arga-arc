@@ -1,0 +1,102 @@
+[
+    {
+        "response": "{\n    \"nl_description\": \"Move all 'C' colored objects to the maximum sized 'X' objects if they are neighbors, otherwise move 'G' objects to the nearest 'C' object.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) C)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) X)\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) X)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than X and of size smaller than the maximum size towards the nearest object of color X.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (not (size_equals (size_of this) max))\\n                    (neighbor_of this other)\\n                    (color_equals (color_of other) X)\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 10 col 21\n\n                    (color_equals (color_of other) X)\n                    ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the color of the smallest object in each top half of the grid to match the color of the largest object in the same half.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (column_equals (column_of this) center)\\n                (size_equals (size_of this) min)\\n            )\\n        )\\n        (apply\\n            (update_color (color_of (other)))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 11 col 37\n\n            (update_color (color_of (other)))\n                                    ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than X, toward the object of color X, if they are neighbors of it, except for objects of color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (color_equals (color_of this) O)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) X)\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (neighbor_of this other)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than X, toward the object of color X, if they are neighbors of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (neighbor_of this this))\\n                )\\n            )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 8 col 44\n\n                 (neighbor_of this this))\n                                        ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the color of the objects near the object of color X, with the same color of the largest neighbor object except the X objects\",\n    \"code\": \"(do \\n  (rule \\n    (vars (this other)) \\n    (filter \\n      (and \\n        (not (color_equals (color_of this) X)) \\n        (and (neighbor_of this other) \\n        (color_equals (color_of other) X)))) \\n    (apply \\n      (update_color (color_of other)))) \\n  (rule \\n    (vars (this other)) \\n    (filter (and (neighbor_of this other) \\n      (not (color_equals (color_of this) X)) \\n      (color_equals (color_of other) X))) \\n    (apply \\n      (update_color (color_of (max (color_of other) (not (color_equals (color_of other) X)))))) )) \\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 15 col 7\n\n      (color_equals (color_of other) X))) \n      ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Replace all objects other than X if they are touching an X to C\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) X)\\n            )\\n        )\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) X)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects touching the left or top sides towards the center of the grid, recoloring them in the process.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (or\\n                (and (column_equals (column_of this) odd) (neighbor_of this other))\\n                (and (column_equals (column_of this) even) (neighbor_of this other))\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) R))\\n        (apply\\n            (move_node (right))\\n            (update_color C)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 19 col 25\n\n            (move_node (right))\n                        ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than X, toward the object of color X, if they are neighbors of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (neighbor_of this this.other)\\n                    (color_equals (color_of this.other) X)\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of this.other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '.' in the current parser context, at line 8 col 43\n\n                  (neighbor_of this this.other)\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color other than X next to the edge away from X horizontally.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (not (color_equals (color_of this) X))\\n        )\\n        (apply\\n            (move_node (left))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'l' in the current parser context, at line 8 col 25\n\n            (move_node (left))\n                        ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than X, toward the object of color X, if they are neighbors of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (neighbor_of this this))\\n                    (color_equals (color_of other) X)\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 8 col 44\n\n                 (neighbor_of this this))\n                                        ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move the green-colored objects towards the center of mass of the whole grid.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (move_node center)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 8 col 24\n\n            (move_node center)\n                       ^\nExpected one of: \n\t* LPAR\n\t* DIRECTION\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Transform the grid so that any object of color other than X, if it is colored and adjacent to an object of color X, is moved towards the closest object of color C.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) X)\\n            )\\n        )\\n        (apply\\n            (extend_node (direction_of other) false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) X)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color other than X to the bottom-left corner, if they are neighbors with X.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) X)\\n            )\\n        )\\n        (apply\\n            (move_node_max down_left)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) X)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the color of objects adjacent to X to match the color of the object with maximum size when moved in that direction.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (neighbor_of this other)\\n                (and\\n                    (color_equals (color_of other) X)\\n                    (not (color_equals (color_of this) X))\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color (color_of (move_node_max (direction_of other))))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 14 col 37\n\n            (update_color (color_of (move_node_max (direction_of other))))\n                                    ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects that are not already color X, that are neighbors of objects with color X, towards those objects with color X.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) X)\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) X)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than X and size 2 or greater, towards the object of X.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (column_equals (column_of this) (column_of X))\\n                    (size_equals (size_of this) 2)\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'X' in the current parser context, at line 8 col 64\n\nlumn_equals (column_of this) (column_of X))\n                                        ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than X, toward the object of color X, if they are neighbors of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (neighbor_of this this))\\n                    (color_equals (color_of other) X)\\n                )\\n            )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 8 col 44\n\n                 (neighbor_of this this))\n                                        ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than O, when they neighbor an O object.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) O))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) O)\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) O)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all non-X objects to color O when they are neighboring to the objects of color X.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) X)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) X)\n                ^\nExpected one of: \n\t* RPAR\n"
+    }
+]
