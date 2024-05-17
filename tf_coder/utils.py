@@ -54,12 +54,13 @@ IN_CONTEXT_TASK_NAMES = ["google_02", "google_10", "stackoverflow_07"]
 
 ModelName = t.Literal[
     "gpt-4",
+    "gpt-4o",
     "gpt-3.5-turbo",
     "deepseek-ai/deepseek-coder-33b-instruct",
     "codellama/CodeLlama-70b-Instruct-hf",
     "codellama/CodeLlama-13b-Instruct-hf",
 ]
-OPENAI_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo"]
+OPENAI_MODEL_NAMES = ["gpt-4", "gpt-4o", "gpt-3.5-turbo"]
 TOGETHER_MODEL_NAMES = [
     "deepseek-ai/deepseek-coder-33b-instruct",
     "codellama/CodeLlama-70b-Instruct-hf",
