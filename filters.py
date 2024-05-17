@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Union, List, Dict
 from transform import Dir
+from pprint import pprint
 
 
 class FilterTypes(Enum):
@@ -70,7 +71,7 @@ class SizeValue:
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Size":
                 _, enum_name = parts
                 for degree in Degree._all_values:
@@ -100,7 +101,7 @@ class DegreeValue:
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Degree":
                 _, enum_name = parts
                 for degree in Degree._all_values:
@@ -130,7 +131,7 @@ class HeightValue:
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Height":
                 _, enum_name = parts
                 for height in Height._all_values:
@@ -160,7 +161,7 @@ class WidthValue:
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Width":
                 _, enum_name = parts
                 for width in Width._all_values:
@@ -250,7 +251,7 @@ class ColumnValue:
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Column":
                 _, enum_name = parts
                 for column in Column._all_values:
@@ -295,7 +296,7 @@ class RowValue:
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Row":
                 _, enum_name = parts
                 for row in Row._all_values:
@@ -308,44 +309,84 @@ def setup_size_and_degree_based_on_task(task):
     task_sizes = [w for w in task.object_sizes[task.abstraction]]
     _size_additional = {f"{item}": int(item) for item in task_sizes}
     SizeEnum = Enum(
-        "SizeEnum", {"MIN": "MIN", "MAX": "MAX",
-                     "ODD": "ODD", **_size_additional, "SizeOf": "SizeOf"}
+        "SizeEnum",
+        {
+            "MIN": "MIN",
+            "MAX": "MAX",
+            "ODD": "ODD",
+            "EVEN": "EVEN",
+            **_size_additional,
+            "SizeOf": "SizeOf",
+        },
     )
 
     task_degrees = [d for d in task.object_degrees[task.abstraction]]
     _degree_additional = {f"{item}": int(item) for item in task_degrees}
     DegreeEnum = Enum(
-        "DegreeEnum", {"MIN": "MIN", "MAX": "MAX",
-                       "ODD": "ODD", **_degree_additional, "DegreeOf": "DegreeOf"}
+        "DegreeEnum",
+        {
+            "MIN": "MIN",
+            "MAX": "MAX",
+            "ODD": "ODD",
+            **_degree_additional,
+            "DegreeOf": "DegreeOf",
+        },
     )
     _degrees, _sizes, _heights, _widths, _columns, _rows = [], [], [], [], [], []
 
     task_heights = [d for d in task.object_heights[task.abstraction]]
     _height_additional = {f"{item}": int(item) for item in task_heights}
     HeightEnum = Enum(
-        "HeightEnum", {"MIN": "MIN", "MAX": "MAX",
-                       "ODD": "ODD", **_height_additional, "HeightOf": "HeightOf"}
+        "HeightEnum",
+        {
+            "MIN": "MIN",
+            "MAX": "MAX",
+            "ODD": "ODD",
+            **_height_additional,
+            "HeightOf": "HeightOf",
+        },
     )
 
     task_widths = [d for d in task.object_widths[task.abstraction]]
     _width_additional = {f"{item}": int(item) for item in task_widths}
     WidthEnum = Enum(
-        "WidthEnum", {"MIN": "MIN", "MAX": "MAX",
-                      "ODD": "ODD", **_width_additional, "WidthOf": "WidthOf"}
+        "WidthEnum",
+        {
+            "MIN": "MIN",
+            "MAX": "MAX",
+            "ODD": "ODD",
+            **_width_additional,
+            "WidthOf": "WidthOf",
+        },
     )
 
     task_columns = [d for d in task.columns[task.abstraction]]
     _column_additional = {f"{item}": int(item) for item in task_columns}
     ColumnEnum = Enum(
-        "ColumnEnum", {"CENTER": "CENTER", "EVEN": "EVEN", "ODD": "ODD", "EVEN_FROM_RIGHT": "EVEN_FROM_RIGHT",
-                       "MOD3": "MOD3", **_column_additional, "ColumnOf": "ColumnOf"}
+        "ColumnEnum",
+        {
+            "CENTER": "CENTER",
+            "EVEN": "EVEN",
+            "ODD": "ODD",
+            "EVEN_FROM_RIGHT": "EVEN_FROM_RIGHT",
+            "MOD3": "MOD3",
+            **_column_additional,
+            "ColumnOf": "ColumnOf",
+        },
     )
 
     task_rows = [d for d in task.rows[task.abstraction]]
     _row_additional = {f"{item}": int(item) for item in task_rows}
     RowEnum = Enum(
-        "RowEnum", {"MIN": "MIN", "MAX": "MAX",
-                    "ODD": "ODD", "CENTER": "CENTER", **_row_additional, "RowOf": "RowOf"}
+        "RowEnum",
+        {
+            "MIN": "MIN",
+            "MAX": "MAX",
+            "ODD": "ODD",
+            "CENTER": "CENTER",
+            **_row_additional,
+            "RowOf": "RowOf",
+        },
     )
 
     for name, member in SizeEnum.__members__.items():
@@ -373,6 +414,7 @@ def setup_size_and_degree_based_on_task(task):
     Height._enum_members = _heights
     Column._enum_members = _columns
     Row._enum_members = _rows
+
 
 class FColor(FilterASTNode, Enum):
     black = "O"
@@ -420,13 +462,14 @@ class FColor(FilterASTNode, Enum):
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "FColor":
                 _, enum_name = parts
                 for color in cls:
                     if color.value == enum_name:
                         cls._sizes[color.name] = size
                         break
+
 
 class Object(FilterASTNode, Enum):
     this = "Obj"
@@ -463,7 +506,7 @@ class Object(FilterASTNode, Enum):
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Object":
                 _, enum_name = parts
                 for obj in cls:
@@ -508,7 +551,7 @@ class Shape(FilterASTNode, Enum):
     @classmethod
     def set_sizes(cls, new_sizes):
         for key, size in new_sizes.items():
-            parts = key.split('.')
+            parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Shape":
                 _, enum_name = parts
                 for shape in cls:
@@ -551,13 +594,22 @@ class Direct_Neighbor_Of(Filters):
         else:
             task = task.reset_task()
             instance.values = [
-                {node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
-                for node in input_graph.graph.nodes()}
-                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
-        if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
+                {
+                    node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
+                    for node in input_graph.graph.nodes()
+                }
+                for input_graph in task.input_abstracted_graphs_original[
+                    task.abstraction
+                ]
+            ]
+        if all(
+            all(not value for value in node_dict.values())
+            for node_dict in instance.values
+        ):
             instance.values = []
         instance.code = f"Direct_Neighbor_Of(Obj) == X"
         return instance
+
 
 class Neighbor_Of(Filters):
     arity = 0
@@ -580,15 +632,29 @@ class Neighbor_Of(Filters):
         else:
             task = task.reset_task()
             instance.values = [
-                {node: list(set([
-                    neighbor for neighbor in input_graph.graph.nodes() if
-                    input_graph.get_relative_pos(node, neighbor) is not None
-                    and node != neighbor]
-                ))
-                    for node in input_graph.graph.nodes()}
-                for input_graph in task.input_abstracted_graphs_original[task.abstraction]]
+                {
+                    node: list(
+                        set(
+                            [
+                                neighbor
+                                for neighbor in input_graph.graph.nodes()
+                                if input_graph.get_relative_pos(node, neighbor)
+                                is not None
+                                and node != neighbor
+                            ]
+                        )
+                    )
+                    for node in input_graph.graph.nodes()
+                }
+                for input_graph in task.input_abstracted_graphs_original[
+                    task.abstraction
+                ]
+            ]
 
-        if all(all(not value for value in node_dict.values()) for node_dict in instance.values):
+        if all(
+            all(not value for value in node_dict.values())
+            for node_dict in instance.values
+        ):
             instance.values = []
         instance.code = f"Neighbor_Of(Obj) == X"
         return instance
@@ -613,8 +679,7 @@ class And(FilterASTNode):
         values2 = children[1].values
         new_instance = cls(children[0], children[1])
         intersected_values = [
-            list(set(v1).intersection(set(v2))) if set(
-                v1).intersection(set(v2)) else []
+            list(set(v1).intersection(set(v2))) if set(v1).intersection(set(v2)) else []
             for v1, v2 in zip(values1, values2)
         ]
         res_dict = []
@@ -623,38 +688,57 @@ class And(FilterASTNode):
             res_dict.append(filtered_nodes_dict)
         new_instance.values = res_dict
 
-        if "Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code or \
-            "Neighbor_Of" in children[0].code and "Direct_Neighbor_Of" in children[1].code or \
-            "Direct_Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code or \
-            "Direct_Neighbor_Of" in children[0].code and "Direct_Neighbor_Of" in children[1].code or\
-            all(not d for d in children[0].values) or all(not d for d in children[1].values):
+        if (
+            "Neighbor_Of" in children[0].code
+            and "Neighbor_Of" in children[1].code
+            or "Neighbor_Of" in children[0].code
+            and "Direct_Neighbor_Of" in children[1].code
+            or "Direct_Neighbor_Of" in children[0].code
+            and "Neighbor_Of" in children[1].code
+            or "Direct_Neighbor_Of" in children[0].code
+            and "Direct_Neighbor_Of" in children[1].code
+            or all(not d for d in children[0].values)
+            or all(not d for d in children[1].values)
+        ):
             res_dict = {}  # undefined semantics
             new_instance.values = res_dict
 
-        elif any(keyword in child.code for child in children[:2] for keyword in ['Object.this', 'Equals']):
-            #not all([set(dict1.keys()) == set(dict2.keys()) for dict1, dict2 in zip(values1, values2)]):
+        elif any(
+            keyword in child.code
+            for child in children[:2]
+            for keyword in ["Object.this", "Equals"]
+        ):
+            # not all([set(dict1.keys()) == set(dict2.keys()) for dict1, dict2 in zip(values1, values2)]):
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 # Find common objects between dict1 and dict2
                 common_keys = set(dict1.keys()) & set(dict2.keys())
-                common_dict = {key: dict1[key] + dict2[key]
-                            for key in common_keys}  # intersection of objects while preserving the relationships
+                common_dict = {
+                    key: dict1[key] + dict2[key] for key in common_keys
+                }  # intersection of objects while preserving the relationships
                 res_dict.append(common_dict)
             new_instance.values = res_dict
 
-        elif ('Object.var' in children[0].code and 'Object.var' in children[1].code) or children[1].__class__.__name__ == "Neighbor_Of" or \
-            children[1].__class__.__name__ == "Direct_Neighbor_Of" or children[0].__class__.__name__ == "Neighbor_Of" or \
-            children[0].__class__.__name__ == "Direct_Neighbor_Of":
+        elif (
+            ("Object.var" in children[0].code and "Object.var" in children[1].code)
+            or children[1].__class__.__name__ == "Neighbor_Of"
+            or children[1].__class__.__name__ == "Direct_Neighbor_Of"
+            or children[0].__class__.__name__ == "Neighbor_Of"
+            or children[0].__class__.__name__ == "Direct_Neighbor_Of"
+        ):
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 common_keys = set(dict1.keys()) & set(dict2.keys())
                 common_dict = {}
                 for key in common_keys:
-                    if list(set(dict1[key]) & set(dict2[key])): # intersection of relationships
+                    if list(
+                        set(dict1[key]) & set(dict2[key])
+                    ):  # intersection of relationships
                         common_dict[key] = list(set(dict1[key]) & set(dict2[key]))
                 res_dict.append(common_dict)
             new_instance.values = res_dict
         return new_instance
+
 
 class Or(FilterASTNode):
     arity = 2
@@ -684,34 +768,52 @@ class Or(FilterASTNode):
         new_instance = cls(children[0], children[1])
         new_instance.values = res_dict
 
-        if "Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code or \
-            "Neighbor_Of" in children[0].code and "Direct_Neighbor_Of" in children[1].code or \
-            "Direct_Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code or \
-            "Direct_Neighbor_Of" in children[0].code and "Direct_Neighbor_Of" in children[1].code or\
-            all(not d for d in children[0].values) or all(not d for d in children[1].values):
+        if (
+            "Neighbor_Of" in children[0].code
+            and "Neighbor_Of" in children[1].code
+            or "Neighbor_Of" in children[0].code
+            and "Direct_Neighbor_Of" in children[1].code
+            or "Direct_Neighbor_Of" in children[0].code
+            and "Neighbor_Of" in children[1].code
+            or "Direct_Neighbor_Of" in children[0].code
+            and "Direct_Neighbor_Of" in children[1].code
+            or all(not d for d in children[0].values)
+            or all(not d for d in children[1].values)
+        ):
             res_dict = {}  # undefined semantics
             new_instance.values = res_dict
-        elif any(keyword in child.code for child in children[:2] for keyword in ['Object.this', 'Equals']):
+        elif any(
+            keyword in child.code
+            for child in children[:2]
+            for keyword in ["Object.this", "Equals"]
+        ):
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 # union of keys between dict1 and dict2
                 union_keys = set(dict1.keys()) | set(dict2.keys())
                 union_dict = {}
-                for key in union_keys: # union of keys
+                for key in union_keys:  # union of keys
                     values1 = dict1.get(key, [])
                     values2 = dict2.get(key, [])
-                    combined_values = list(set(values1) | set(values2)) # always preserve relationships
+                    combined_values = list(
+                        set(values1) | set(values2)
+                    )  # always preserve relationships
                     union_dict[key] = combined_values
                 res_dict.append(union_dict)
-        elif ('Object.var' in children[0].code and 'Object.var' in children[1].code) or \
-            children[1].__class__.__name__ == "Neighbor_Of" or \
-            children[1].__class__.__name__ == "Direct_Neighbor_Of" or children[0].__class__.__name__ == "Neighbor_Of" or \
-            children[0].__class__.__name__ == "Direct_Neighbor_Of":
+        elif (
+            ("Object.var" in children[0].code and "Object.var" in children[1].code)
+            or children[1].__class__.__name__ == "Neighbor_Of"
+            or children[1].__class__.__name__ == "Direct_Neighbor_Of"
+            or children[0].__class__.__name__ == "Neighbor_Of"
+            or children[0].__class__.__name__ == "Direct_Neighbor_Of"
+        ):
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
                 common_keys, common_dict = set(dict1.keys()) & set(dict2.keys()), {}
                 for key in common_keys:
-                    if list(set(dict1[key]) | set(dict2[key])): # union of relationships
+                    if list(
+                        set(dict1[key]) | set(dict2[key])
+                    ):  # union of relationships
                         common_dict[key] = list(set(dict1[key]) | set(dict2[key]))
                 res_dict.append(common_dict)
             new_instance.values = res_dict
@@ -737,16 +839,23 @@ class Not(FilterASTNode):
         values = children[0].values
         new_instance = cls(children[0])
         nodes_with_data = []
-        for input_abstracted_graphs in task.input_abstracted_graphs_original[task.abstraction]:
+        for input_abstracted_graphs in task.input_abstracted_graphs_original[
+            task.abstraction
+        ]:
             local_data = []
             for node, _ in input_abstracted_graphs.graph.nodes(data=True):
                 local_data.append(node)
             nodes_with_data.append(local_data)
-        result = [[item for item in sublist1 if item not in sublist2]
-                for sublist1, sublist2 in zip(nodes_with_data, values)]
+        result = [
+            [item for item in sublist1 if item not in sublist2]
+            for sublist1, sublist2 in zip(nodes_with_data, values)
+        ]
 
-        if "Neighbor_Of" in children[0].code or \
-            "Direct_Neighbor_Of" in children[0].code or all(not d for d in children[0].values):
+        if (
+            "Neighbor_Of" in children[0].code
+            or "Direct_Neighbor_Of" in children[0].code
+            or all(not d for d in children[0].values)
+        ):
             res_dict = {}  # undefined semantics
             new_instance.values = res_dict
         elif children[0].__class__.__name__ == "Neighbor_Of":
@@ -755,31 +864,38 @@ class Not(FilterASTNode):
                 adjusted_node_dict = {}
                 for node, neighbors in node_dict.items():
                     not_neighbors = [
-                        neighbor for neighbor in nodes_with_data[graph_index] if neighbor not in neighbors]
+                        neighbor
+                        for neighbor in nodes_with_data[graph_index]
+                        if neighbor not in neighbors
+                    ]
                     # not neighbors, includes self-reference
                     adjusted_node_dict[node] = not_neighbors
                 adjusted_values.append(adjusted_node_dict)
             new_instance.code = f"Not(Neighbor_Of(Obj) == X)"
             new_instance.values = adjusted_values
-        elif any(keyword in children[0].code for keyword in ['Object.this', 'Equals']):
+        elif any(keyword in children[0].code for keyword in ["Object.this", "Equals"]):
             res_dict = []
             for i, _ in enumerate(result):
                 filtered_nodes_dict = {node: [] for node in result[i]}
                 res_dict.append(filtered_nodes_dict)
             new_instance = cls(children[0])
             new_instance.values = res_dict
-        elif 'var' in children[0].code:
+        elif "var" in children[0].code:
             adjusted_values = []
             for graph_index, node_dict in enumerate(values):
                 adjusted_node_dict = {}
                 for node, neighbors in node_dict.items():
                     not_neighbors = [
-                        neighbor for neighbor in nodes_with_data[graph_index] if neighbor not in neighbors]
+                        neighbor
+                        for neighbor in nodes_with_data[graph_index]
+                        if neighbor not in neighbors
+                    ]
                     # not neighbors, includes self-reference
                     adjusted_node_dict[node] = not_neighbors
                 adjusted_values.append(adjusted_node_dict)
             new_instance.values = adjusted_values
         return new_instance
+
 
 class Color_Equals(Filters):
     arity = 2
@@ -803,7 +919,6 @@ class Color_Equals(Filters):
             self.children = [color1, color2]
             self.size = self.default_size + color1.size + color2.size
 
-
     @classmethod
     def execute(cls, task, children):
         if children[0] == FColor.colorof and children[1] == FColor.colorof:
@@ -811,8 +926,9 @@ class Color_Equals(Filters):
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0] == FColor.colorof and not children[1] == FColor.colorof) \
-        or children[2] == Object.this:
+        if (
+            not children[0] == FColor.colorof and not children[1] == FColor.colorof
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
@@ -847,8 +963,10 @@ class Size_Equals(Filters):
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0].code == "SIZE.SizeOf" and not children[1].code == "SIZE.SizeOf") \
-        or children[2] == Object.this:
+        if (
+            not children[0].code == "SIZE.SizeOf"
+            and not children[1].code == "SIZE.SizeOf"
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
@@ -876,16 +994,22 @@ class Height_Equals(Filters):
             self.code = f"Equals({height2.code}, {height1.code})"
             self.children = [height1, height2]
 
-
     @classmethod
     def execute(cls, task, children):
-        if children[0].code == "HEIGHT.HeightOf" and children[1].code == "HEIGHT.HeightOf":
-            cls.code = f"(Height_Of({children[2].code}) == Height_Of({children[2].code}))"
+        if (
+            children[0].code == "HEIGHT.HeightOf"
+            and children[1].code == "HEIGHT.HeightOf"
+        ):
+            cls.code = (
+                f"(Height_Of({children[2].code}) == Height_Of({children[2].code}))"
+            )
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0].code == "HEIGHT.HeightOf" and not children[1].code == "HEIGHT.HeightOf") \
-        or children[2] == Object.this:
+        if (
+            not children[0].code == "HEIGHT.HeightOf"
+            and not children[1].code == "HEIGHT.HeightOf"
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
@@ -920,8 +1044,10 @@ class Width_Equals(Filters):
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0].code == "WIDTH.WidthOf" and not children[1].code == "WIDTH.WidthOf") \
-        or children[2] == Object.this:
+        if (
+            not children[0].code == "WIDTH.WidthOf"
+            and not children[1].code == "WIDTH.WidthOf"
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
@@ -951,13 +1077,20 @@ class Degree_Equals(Filters):
 
     @classmethod
     def execute(cls, task, children):
-        if children[0].code == "DEGREE.DegreeOf" and children[1].code == "DEGREE.DegreeOf":
-            cls.code = f"(Degree_Of({children[2].code}) == Degree_Of({children[2].code}))"
+        if (
+            children[0].code == "DEGREE.DegreeOf"
+            and children[1].code == "DEGREE.DegreeOf"
+        ):
+            cls.code = (
+                f"(Degree_Of({children[2].code}) == Degree_Of({children[2].code}))"
+            )
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0].code == "DEGREE.DegreeOf" and not children[1].code == "DEGREE.DegreeOf") \
-        or children[2] == Object.this:
+        if (
+            not children[0].code == "DEGREE.DegreeOf"
+            and not children[1].code == "DEGREE.DegreeOf"
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
@@ -992,8 +1125,9 @@ class Shape_Equals(Filters):
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0] == Shape.shapeof and not children[1] == Shape.shapeof) \
-        or children[2] == Object.this:
+        if (
+            not children[0] == Shape.shapeof and not children[1] == Shape.shapeof
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
@@ -1028,8 +1162,9 @@ class Row_Equals(Filters):
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0].code == "ROW.RowOf" and not children[1].code == "ROW.RowOf") \
-        or children[2] == Object.this:
+        if (
+            not children[0].code == "ROW.RowOf" and not children[1].code == "ROW.RowOf"
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
@@ -1039,8 +1174,7 @@ class Row_Equals(Filters):
 
 class Column_Equals(Filters):
     arity = 2
-    childTypes = [[
-        FilterTypes.COLUMN, FilterTypes.COLUMN, FilterTypes.OBJECT]]
+    childTypes = [[FilterTypes.COLUMN, FilterTypes.COLUMN, FilterTypes.OBJECT]]
     default_size = 1
 
     def __init__(self, col1: Row, col2: Row, obj: Object):
@@ -1060,13 +1194,20 @@ class Column_Equals(Filters):
 
     @classmethod
     def execute(cls, task, children):
-        if children[0].code == "COLUMN.ColumnOf" and children[1].code == "COLUMN.ColumnOf":
-            cls.code = f"(Column_Of({children[2].code}) == Column_Of({children[2].code}))"
+        if (
+            children[0].code == "COLUMN.ColumnOf"
+            and children[1].code == "COLUMN.ColumnOf"
+        ):
+            cls.code = (
+                f"(Column_Of({children[2].code}) == Column_Of({children[2].code}))"
+            )
             cls.values = []
             return cls
         instance = cls(*children)
-        if (not children[0].code == "COLUMN.ColumnOf" and not children[1].code == "COLUMN.ColumnOf") \
-        or children[2] == Object.this:
+        if (
+            not children[0].code == "COLUMN.ColumnOf"
+            and not children[1].code == "COLUMN.ColumnOf"
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)
