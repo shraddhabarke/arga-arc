@@ -214,7 +214,7 @@ def get_task(task_id: TASK_IDS_TYPE, abstraction: str) -> Task:
     task.get_static_object_attributes(abstraction)
     f.setup_size_and_degree_based_on_task(task)
     # TODO: the below line causes an error
-    # tf.setup_objectids(task)
+    tf.setup_objectids(task)
     return task
 
 
