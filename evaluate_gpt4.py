@@ -34,7 +34,7 @@ ALL_ABSTRACTIONS = [
 # TODO: get abstraction list for every task
 TASKS = [
     {"task_id": "08ed6ac7", "abstraction": "nbccg"},
-    {"task_id": "1e0a9b12", "abstraction": None},
+    {"task_id": "1e0a9b12", "abstraction": "nbccg"},
     {"task_id": "25ff71a9", "abstraction": "nbccg"},
     {"task_id": "3906de3d", "abstraction": "nbvcg"},
     {"task_id": "4258a5f9", "abstraction": "nbccg"},
@@ -211,6 +211,9 @@ def get_task(task_id: TASK_IDS_TYPE, abstraction: str) -> Task:
         getattr(input, Image.abstraction_ops[abstraction])()
         for input in task.train_input
     ]
+    task.output_abstracted_graphs_original[task.abstraction] = [getattr(
+        output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
+    task.get_static_inserted_objects()
     task.get_static_object_attributes(abstraction)
     f.setup_size_and_degree_based_on_task(task)
     # TODO: the below line causes an error
