@@ -37,14 +37,14 @@ LOGGER = logging.getLogger(__name__)
 
 ModelName = t.Literal[
     "gpt-4",
-    "gpt-3.5-turbo",
+    "gpt-4o" "gpt-3.5-turbo",
     "Phind/Phind-CodeLlama-34B-v2",
     "deepseek-ai/deepseek-coder-33b-instruct",
     "codellama/CodeLlama-70b-Instruct-hf",
     "codellama/CodeLlama-13b-Instruct-hf",
     "codellama/CodeLlama-7b-Instruct-hf",
 ]
-OPENAI_MODEL_NAMES = ["gpt-4", "gpt-3.5-turbo"]
+OPENAI_MODEL_NAMES = ["gpt-4", "gpt-4o", "gpt-3.5-turbo"]
 TOGETHER_MODEL_NAMES = [
     "deepseek-ai/deepseek-coder-33b-instruct",
     "Phind/Phind-CodeLlama-34B-v2",
@@ -377,7 +377,7 @@ def setup_logging(name: str):
     now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format="%(message)s",
         filename=CONFIG.ROOT_DIR
         / "sygus"
         / f"utils_{name.replace('/', '__')}_{now}.log",
@@ -768,13 +768,6 @@ class SygusBenchmark:
             completions = self.output[filename]["completions"]
             self.output[filename]["solutions"] = []
             for completion in completions:
-                try:
-                    parsed = sexp.loads(completion)
-                    self.output[filename]["solutions"].append(sexp.dumps(parsed))
-                    continue
-                except Exception:
-                    pass
-
                 extracted = extract_code(completion)
                 normalized = None
 
@@ -867,8 +860,14 @@ def extract_code(completion: str) -> t.Optional[str]:
 
     if code_block_result is not None:
         ans = code_block_result
-    else:
+        return remove_leading_close_paren(ans)
+    
+    try:
+        sexp.loads(completion)
+        ans = completion
+    except:
         ans = extract_plain_code(completion)
+        
 
     return remove_leading_close_paren(ans)
 
