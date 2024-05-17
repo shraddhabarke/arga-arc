@@ -1,0 +1,242 @@
+[
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color F one step toward the bottom-right corner object, then recolor all objects of size greater than 3 to color G, and change the color of the interior of objects of color F to color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (column_equals (column_of other) right)\\n                (column_equals (column_of other) bottom_right)\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of bottom_right))\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (size_greater (size_of this) 3)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (fill_rectangle Y false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (column_equals (column_of other) right)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all the objects of color F and the objects enclosed by them.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) G))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Expand the middle part of the objects and recolor the inner part to G and the central part to Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (insert 1 top middle)\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) C)\\n                (size_equals 1 (size_of this))\\n            )\\n        )\\n        (apply\\n            (insert 1 min source)\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'm' in the current parser context, at line 28 col 23\n\n            (insert 1 min source)\n                      ^\nExpected one of: \n\t* LPAR\n\t* IMAGE_POINTS\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend the green and cyan borders, and recolor parts of the internal objects with yellow if they are neighbors of the extended border.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) G)\\n                (color_equals (color_of this) C)\\n            )\\n        )\\n        (apply\\n            (extend_node right true)\\n            (extend_node left true)\\n            (extend_node up true)\\n            (extend_node down true)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (or\\n                    (color_equals (color_of other) G)\\n                    (color_equals (color_of other) C)\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 23 col 17\n\n                (or\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend and recolor all objects (lines of F) with a trail in the direction of neighboring line of F, with a hollow rectangle and fill the interior with color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (shape_equals (shape_of this) enclosed)\\n                (neighbor_of this other)\\n                (shape_equals (shape_of other) enclosed)\\n            )\\n        )\\n        (apply\\n            (extend_node (direction_of other) true)\\n            (hollow_rectangle G)\\n            (fill_rectangle Y false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (shape_equals (shape_of other) enclosed)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all G objects to form borders around existing objects, and extend the Y objects to the bounds defined by neighboring G objects.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) Y)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (extend_node (direction_of other) false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Expand all objects of color F with a border of color G, and then transform the neighbor pixels of the color F to color Y\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) F))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) F)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) F)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend objects towards each other to fill the spaces with a specific shape and color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (color_equals (color_of this) F)\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and \\n                (shape_equals (shape_of this) square) \\n                (shape_equals (shape_of other) enclosed)\\n            )\\n        )\\n        (apply\\n            (extend_node left false)\\n            (extend_node right false)\\n            (extend_node up false)\\n            (extend_node down false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 5 col 14\n\n            (color_equals (color_of this) F)\n             ^\nExpected one of: \n\t* APPLY\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the exterior pixels of all objects to G and the interior pixels of all hollow rectangles to Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (shape_equals (shape_of this) hollow)\\n        )\\n        (apply\\n            (fill_rectangle Y false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'h' in the current parser context, at line 12 col 43\n\n          (shape_equals (shape_of this) hollow)\n                                        ^\nExpected one of: \n\t* LPAR\n\t* SHAPE\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color F one step toward the center, then recolor them partially to color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (move_node center)\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 8 col 24\n\n            (move_node center)\n                       ^\nExpected one of: \n\t* LPAR\n\t* DIRECTION\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend all F objects left and right until boundaries or other objects are reached, then recolor them and neighboring G objects to form enclosing shapes.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (extend_node left false)\\n            (extend_node right false)\\n            (update_color Y)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) F)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 19 col 17\n\n                (color_equals (color_of other) F)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Transform enclosed regions to color G and change interior objects' color to Y\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (shape_equals (shape_of this) enclosed)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (not (shape_equals (shape_of this) enclosed))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Enclose all objects with color G and add borders of color Y to objects of color F if they are surrounded by G.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (hollow_rectangle G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (add_border Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Add a green border to non-green objects that are next to F objects and change F objects to have color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) G))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) F)\\n            )\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) F)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color F one step towards the neighboring object of color C and recolor them to either Y (if they have width 1) or G (otherwise).\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n            (update_color (if (width_equals (width_of this) 1) Y G))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Replace perimeter cells with border color G, and change color of object interior cells to Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) C)\\n                (not (neighbor_of this (fcolor G)))\\n            )\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this (fcolor G))\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 7 col 40\n\n                (not (neighbor_of this (fcolor G)))\n                                       ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color F one step toward their nearest object of color C, and recolor them based on their size and position.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the color of F objects to Y and G for certain F objects.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) F))\\n        (apply (update_color G))\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply (update_color Y))\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 13 col 17\n\n                (color_equals (color_of other) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Enclose all objects of color F into an object of color G. Additionally, if an object of color F touches the boundary of the object of color G, change its color to Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) F))\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 15 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all objects with color F. If an object with color F is neighboring another object also with color F, change the color of those neighbors to Y. Then, add a border with color G to all of them.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) F)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) Y)\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) F)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Expand blue border around objects of color F and update inner color of F to yellow if it is surrounded by blue.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) F))\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (color_equals (color_of other) G)\\n                (neighbor_of this other)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 15 col 17\n\n                (neighbor_of this other)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Expand all F colored objects by filling their neighbor cells of the same size with G, and then recolor specific parts of the objects to different colors based on the provided pairs.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this F)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'F' in the current parser context, at line 16 col 35\n\n                (neighbor_of this F)\n                                  ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color F towards the center and recolor them with G. Then, recolor parts of the objects in the upper half to Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (color_equals (color_of other) C)\\n                (neighbor_of this other)\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (neighbor_of this other)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend all objects of color F until they hit another object, and then change their color to G. Additionally, change the color of any neighbors of the extended objects to Y if they are the same initial color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (extend_node (direction_of this) false)\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (color_equals (color_of other) G)\\n                (neighbor_of this other)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 18 col 17\n\n                (neighbor_of this other)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Surround object of size 2x1 with G, and recolor inner object of color F to color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (size_equals (size_of this) (2 1))\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '2' in the current parser context, at line 5 col 42\n\n           (size_equals (size_of this) (2 1))\n                                        ^\nExpected one of: \n\t* SIZE_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Add a border of color G around all objects initially colored F, and change the objects of color F inside a particular region to color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) F))\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (or\\n                    (and\\n                        (and (neighbor_of this other) (color_equals (color_of other) G))\\n                        (not (neighbor_of this other) (and (color_equals (column_of other) (column_of this)) (color_equals (row_of other) (row_of this)))))\\n                    (and\\n                        (and (neighbor_of this other) (color_equals (color_of other) G))\\n                        (not (neighbor_of this other) (and (color_equals (column_of other) (column_of this)) (color_equals (row_of other) (row_of this))))))\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 55\n\n          (not (neighbor_of this other) (and (color_equals (column_of other) (co\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend all the objects to enclose the closest neighboring objects and recolor some parts after that.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (size_equals (size_of this) 15)\\n            )\\n        )\\n        (apply\\n            (extend_node left false)\\n            (extend_node right false)\\n            (extend_node up false)\\n            (extend_node down false)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) Y)\\n            )\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 23 col 17\n\n                (color_equals (color_of other) Y)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Insert an enclosing diagonal row and column with color G around each object and recolor F objects to Y if they are neighbors of G\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 15 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend green border around blue hollow shapes and recolor the adjacent grey cells to green\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (not (color_equals (color_of this) C))\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Add a green border to all objects. Then, add a yellow border to an adjacent row of this green border line if an object color is F.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) F)\\n            )\\n        )\\n        (apply\\n            (add_border Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 15 col 17\n\n                (color_equals (color_of other) F)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend the 'G' color border around all objects and recolor the internal isolated 'F' objects to 'Y' each time they are enclosed.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (extend_node up false)\\n            (extend_node down false)\\n            (extend_node left false)\\n            (extend_node right false)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'G' in the current parser context, at line 19 col 35\n\n                (neighbor_of this G)\n                                  ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the objects of color F to color G with a border of color G and recolor the inner F's to Y inside the border objects.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (not (and (color_equals (color_of this) (color_of this))))\\n            )\\n        )\\n        (apply\\n            (add_border G)\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 16 col 73\n\n_equals (color_of this) (color_of this))))\n                                        ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Enclose all objects of color F with an object of color G, and recolor the inner objects of color F to color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the borders of each non-C object with color G and the central parts of each F object with color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (not (color_equals (color_of this) C))\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (color_equals (color_of this) F)\\n        (apply\\n            (hollow_rectangle Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'n' in the current parser context, at line 5 col 14\n\n            (not (color_equals (color_of this) C))\n             ^\nExpected one of: \n\t* APPLY\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the borders of all objects to color G, and move objects towards the object at the center of the grid, then recolor it to color Y if they are neighbors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (neighbor_of this other)\\n                (column_equals (column_of other) \\\"center\\\")\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '\"' in the current parser context, at line 14 col 50\n\n       (column_equals (column_of other) \"center\")\n                                        ^\nExpected one of: \n\t* COLUMN\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all 'F' objects neighboring 'C' objects to form an enclosed area and recolor its enclosing area with 'G' and inner 'Y'.\",\n    \"code\": \"(do (rule (vars (this other)) (filter (and (color_equals (color_of this) F) (color_equals (color_of other) C) (neighbor_of this other))) (apply (move_node_max (direction_of other)) (update_color G) (update_color Y))))\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 1 col 111\n\ns) F) (color_equals (color_of other) C) (neighbor_of this other))) (apply (move_\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than C, toward the object of color C, if they are neighbors of it. Then, update the color of size 4 object to color Y and of color F object to color G.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) C))\\n                (neighbor_of this other)\\n                (color_equals (color_of other) C)\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (size_equals (size_of this) 4)\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all objects inside the grid borders, draw a border around the objects with color G, and update interior of the object to color Y for both maximum and minimum sized objects.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter)\\n            (size_equals (size_of this) max)\\n         )\\n        (apply\\n            (update_color G)\\n            (add_border G)\\n            (fill_rectangle Y false)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (size_equals (size_of this) min)\\n        )\\n        (apply\\n            (update_color G)\\n            (add_border G)\\n            (fill_rectangle Y false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 's' in the current parser context, at line 5 col 14\n\n            (size_equals (size_of this) max)\n             ^\nExpected one of: \n\t* APPLY\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change all cells at the edge of the grid to color G and change all cells adjacent to the edge to color G. Change the central portion of 'F' cells to color Y\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (or (and (column_equals (column_of this) min) (color_equals (color_of this) C)) (and (color_equals (color_of this) C) (size_equals (column_of this) max))))\\n        (apply (update_color G))\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (neighbor_of this G))\\n        (apply (update_color G))\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) F))\\n        (apply (update_color Y))\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'm' in the current parser context, at line 4 col 58\n\nor (and (column_equals (column_of this) min) (color_equals (color_of this) C)) (\n                                        ^\nExpected one of: \n\t* COLUMN\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend all the objects of color F towards the object of color G without overlapping. Then change the interior color to Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (extend_node (direction_of other) false)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (fill_rectangle Y false)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change all objects with color F to color G and recolor any intersection of objects with color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (color_equals (color_of other) G)\\n                (neighbor_of this other)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (neighbor_of this other)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all objects to color G, and recolor objects of color F to color Y if they are adjacent to another object of color F.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) F)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 15 col 17\n\n                (color_equals (color_of other) F)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend, recolor and move objects to create patterns with new shapes and colors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (size_equals (size_of this) 1)\\n            )\\n        )\\n        (apply\\n            (move_node (up))\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) C)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'u' in the current parser context, at line 20 col 25\n\n            (move_node (up))\n                        ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Add a border around all objects, with color G. Then, for all objects with color F and size larger than 1, change their color to Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (size_equals (size_of this) (not 1))\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'n' in the current parser context, at line 14 col 46\n\n           (size_equals (size_of this) (not 1))\n                                        ^\nExpected one of: \n\t* SIZE_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the borders of the largest enclosed objects to color G, and change color of the neighboring enclosed objects to color Y\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (shape_equals (shape_of this) enclosed)\\n                (shape_equals (shape_of other) enclosed)\\n                (neighbor_of this other)\\n                (size_equals (size_of this) max)\\n            )\\n        )\\n        (apply\\n            (add_border G)\\n            (update_color (color_of this))\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (shape_equals (shape_of this) enclosed))\\n                (neighbor_of this other)\\n                (shape_equals (shape_of other) enclosed)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (neighbor_of this other)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Expand the borders around the existing objects with color G and recolor the neighboring objects interior to color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) F)\\n        )\\n        (apply\\n            (add_border G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 17 col 17\n\n                (color_equals (color_of other) G)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all the inner objects toward the enclosing G object and recolor the maximum size objects to Y within an enclosing G object.\",\n    \"code\": \"(do (rule (vars (this other)) (filter (and (shape_equals (shape_of other) enclosed) (neighbor_of this other))) (apply (move_node_max (direction_of other)))) (rule (vars (this other)) (filter (and (size_equals (size_of this) max) (shape_equals (shape_of other) enclosed) (neighbor_of this other))) (apply (update_color Y))))\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 1 col 271\n\nshape_equals (shape_of other) enclosed) (neighbor_of this other))) (apply (updat\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Extend the objects of color F and neighboring objects of the same color, up or down, reconstruct the vertical pattern to fill gaps and to create a consistent position. Recolor the surrounding area to color G, and the inner gaps to color Y.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (and\\n                (color_equals (color_of this) F)\\n                (column_equals (column_of this) center)\\n                (neighbor_of this other)\\n            )\\n        (apply\\n            (extend_node up false)\\n            (extend_node down false)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) F)\\n                (color_equals (color_of other) G)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'a' in the current parser context, at line 5 col 14\n\n            (and\n             ^\nExpected one of: \n\t* APPLY\n"
+    }
+]

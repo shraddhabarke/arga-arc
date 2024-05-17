@@ -1,0 +1,227 @@
+[
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every second column of objects to the original color for subsequent objects in each row.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and \\n                (column_equals (column_of this) even) \\n                (or \\n                    (color_equals (color_of this) Y) \\n                    (color_equals (color_of this) C) \\n                    (color_equals (color_of this) B) \\n                    (color_equals (color_of this) A) \\n                )\\n            )\\n        )\\n        (apply\\n            (update_color Y) \\n        ) \\n    ) \\n    (rule\\n        (vars (this))\\n        (filter\\n            (and \\n                (column_equals (column_of this) odd) \\n                (or \\n                    (color_equals (color_of this) Y) \\n                    (color_equals (color_of this) C) \\n                    (color_equals (color_of this) B) \\n                    (color_equals (color_of this) A) \\n                ) \\n            ) \\n        )\\n        (apply\\n            (update_color (color_of this))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 10 col 21\n\n                    (color_equals (color_of this) B) \n                    ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every other cell in objects of the same row to O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (or (equal (column_of this) odd) (equal (column_of this) even)))\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'e' in the current parser context, at line 4 col 22\n\n        (filter (or (equal (column_of this) odd) (equal (colu\n                     ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_OR\n\t* SIZE_EQ\n\t* NEIGHBOR_OF\n\t* WIDTH_EQ\n\t* COLUMN_EQ\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* COLOR_EQ\n\t* OP_NOT\n\t* DEGREE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate cell in every second row.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or\\n                    (and\\n                        (color_equals (color_of this) Y)\\n                        (column_equals (column_of this) even)\\n                    )\\n                    (and\\n                        (color_equals (color_of this) C)\\n                        (column_equals (column_of this) even)\\n                    )\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 16 col 13\n\n            )\n            ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every second object of color Y and C with O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) C)\\n            )\\n        )\\n        (apply\\n            (update_color (if (eq (mod (idx_of this) 2) 1) O (color_of this)))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'i' in the current parser context, at line 11 col 28\n\n            (update_color (if (eq (mod (idx_of this) 2) 1) O (color\n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate cell of each object's second row to color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (or (and (color_equals (color_of this) Y) (size_equals (height_of this) 4)) (and (color_equals (color_of this) C) (size_equals (height_of this) 4))))\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'h' in the current parser context, at line 4 col 73\n\nequals (color_of this) Y) (size_equals (height_of this) 4)) (and (color_equals (\n                                        ^\nExpected one of: \n\t* SIZE_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternating cell in rows of objects 'Y' and 'C' starting from the second cell.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (or (color_equals (color_of this) Y) (color_equals (color_of this) C)))\\n        (apply\\n            (update_color (or C (update_color O (C Y))))\\n        )\\n    )\\n)\"\n}\n",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'o' in the current parser context, at line 6 col 28\n\n            (update_color (or C (update_color O (C Y))))\n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every other cell of all horizontal stripes to the original color of the stripe.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (and\\n                (or\\n                    (color_equals (color_of this) Y)\\n                    (color_equals (color_of this) C)\\n                    (color_equals (color_of this) A)\\n                )\\n                (even (column_of this))\\n            )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'a' in the current parser context, at line 5 col 14\n\n            (and\n             ^\nExpected one of: \n\t* APPLY\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Make a vertical stripe of color 'O' on every alternate cell of each even-indexed row in striped objects.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or (color_equals (color_of this) Y) (color_equals (color_of this) C) (color_equals (color_of this) B) (color_equals (color_of this) A))\\n                (or (column_equals (column_of this) even) (column_equals (column_of this) odd))\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 6 col 87\n\nis) Y) (color_equals (color_of this) C) (color_equals (color_of this) B) (color_\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change every other cell's color of rows that are all the same color, starting from the second cell from the left.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (and\\n                    (color_equals (color_of this) Y)\\n                    (neighbor_of this other)\\n                    (and\\n                        (color_equals (color_of other) Y)\\n                        (column_equals (column_of this) even)\\n                    )\\n                )\\n                (and\\n                    (color_equals (color_of this) C)\\n                    (neighbor_of this other)\\n                    (and\\n                        (color_equals (color_of other) C)\\n                        (column_equals (column_of this) even)\\n                    )\\n                )\\n                (and\\n                    (color_equals (color_of this) B)\\n                    (neighbor_of this other)\\n                    (and\\n                        (color_equals (color_of other) B)\\n                        (column_equals (column_of this) even)\\n                    )\\n                )\\n                (and\\n                    (color_equals (color_of this) A)\\n                    (neighbor_of this other)\\n                    (and\\n                        (color_equals (color_of other) A)\\n                        (column_equals (column_of this) even)\\n                    )\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 9 col 21\n\n                    (and\n                    ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor alternate vertical segments of rows of objects to color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) Y)\\n                (or\\n                    (and (row_equals (row_of this) 2)(or \\n                              (column_equals (column_of this) even)\\n                              (row_equals (row_of this) 6) ))\\n                 )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 8 col 27\n\n                    (and (row_equals (row_of this) 2)(or \n                          ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_OR\n\t* SIZE_EQ\n\t* NEIGHBOR_OF\n\t* WIDTH_EQ\n\t* COLUMN_EQ\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* COLOR_EQ\n\t* OP_NOT\n\t* DEGREE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every other column of each third row in the grids to maintain a checkerboard pattern.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or\\n                    (column_equals (column_of this) even)\\n                    (column_equals (column_of this) odd)\\n                )\\n                (or\\n                    (row_equals (row_of this) 2)\\n                    (row_equals (row_of this) 6)\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color (if (color_equals (color_of this) C) Y C))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 11 col 22\n\n                    (row_equals (row_of this) 2)\n                     ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_OR\n\t* SIZE_EQ\n\t* NEIGHBOR_OF\n\t* WIDTH_EQ\n\t* COLUMN_EQ\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* COLOR_EQ\n\t* OP_NOT\n\t* DEGREE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every second object within each row\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (size_equals (size_of this) (width_of this))\\n                (or\\n                    (size_equals (size_of this) 1)\\n                    (and\\n                        (neighbor_of this other)\\n                        (size_equals (size_of other) (width_of other))\\n                    )\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (size_equals (size_of this) 2)\\n                (neighbor_of this other)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\\n\"\n}\n",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'w' in the current parser context, at line 6 col 46\n\n           (size_equals (size_of this) (width_of this))\n                                        ^\nExpected one of: \n\t* SIZE_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor objects of even height so that every other cell in those objects alternates between the original color and color O\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter \\n            (and (height_equals (height_of this) even) \\n            (height_equals (height_of this) (height_of other)) \\n            (neighbor_of this other)))\\n        (apply\\n            (update_color O)))\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 7 col 13\n\n            (neighbor_of this other)))\n            ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate cell in all the rows of the objects to color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) C)\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) B)\\n                (color_equals (color_of this) A)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) B)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move every second object in a row to the next column, for objects colored Y in row 2 and C in row 6.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (row_equals (row_of this) 2)\\n                (color_equals (color_of this) Y)\\n                (column_equals (column_of this) (mod (column_of this) 2 0))\\n            )\\n        )\\n        (apply\\n            (move_node right)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (row_equals (row_of this) 6)\\n                (color_equals (color_of this) C)\\n                (column_equals (column_of this) (mod (column_of this) 2 0))\\n            )\\n        )\\n        (apply\\n            (move_node right)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 6 col 18\n\n                (row_equals (row_of this) 2)\n                 ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_OR\n\t* SIZE_EQ\n\t* NEIGHBOR_OF\n\t* WIDTH_EQ\n\t* COLUMN_EQ\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* COLOR_EQ\n\t* OP_NOT\n\t* DEGREE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the interior color of alternating objects in row 3 and row 7.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or\\n                    (column_equals (column_of this) even)\\n                    (column_equals (column_of this) odd)\\n                )\\n                (or\\n                    (and\\n                        (row_equals (row_of this) 2)\\n                        (color_equals (color_of this) Y)\\n                    )\\n                    (and\\n                        (row_equals (row_of this) 6)\\n                        (color_equals (color_of this) C)\\n                    )\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 12 col 26\n\n                        (row_equals (row_of this) 2)\n                         ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_OR\n\t* SIZE_EQ\n\t* NEIGHBOR_OF\n\t* WIDTH_EQ\n\t* COLUMN_EQ\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* COLOR_EQ\n\t* OP_NOT\n\t* DEGREE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the color of every second element in each full row with matching colors to the color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (or (color_equals (color_of this) Y) (color_equals (color_of this) C) (color_equals (color_of this) B) (color_equals (color_of this) A)))\\n        (apply (update_color O))\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 4 col 87\n\nis) Y) (color_equals (color_of this) C) (color_equals (color_of this) B) (color_\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternative object to color O in the second row of objects.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (and\\n            (or (color_equals (color_of this) Y) (color_equals (color_of this) B) (color_equals (color_of this) A))\\n            (or (column_equals (column_of this) even) (column_equals (column_of this) even) (column_equals (column_of this) even))))\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 5 col 83\n\nis) Y) (color_equals (color_of this) B) (color_equals (color_of this) A))\n                                        ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every even column in all rows of Y or C to alternate colors starting with the original color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) C)\\n            )\\n        )\\n        (apply\\n            (update_color (or (color_equals (color_of this) C) (or (color_equals (color_of this) Y) (update_color (or (color_equals (color_of this) C) (or (color_equals (color_of this) Y) (color_of this))))))))\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'o' in the current parser context, at line 11 col 28\n\n            (update_color (or (color_equals (color_of this) C) (or \n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the center rows of objects with the alternating colors of their own initial color and the background color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or\\n                    (row_equals (row_of this) 2)\\n                    (row_equals (row_of this) 7)\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color (if (even (column_of this)) (color_of this) O))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 7 col 22\n\n                    (row_equals (row_of this) 2)\n                     ^\nExpected one of: \n\t* OP_NOT\n\t* WIDTH_EQ\n\t* SIZE_EQ\n\t* COLOR_EQ\n\t* COLUMN_EQ\n\t* DEGREE_EQ\n\t* NEIGHBOR_OF\n\t* OP_OR\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* SHAPE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change every second cell in horizontal rows of specific color objects to color O (excluding the first cell).\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) C)\\n                (color_equals (color_of this) B)\\n                (color_equals (color_of this) A)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}\n",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) B)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate cell of objects of unique colors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (color_equals (color_of this) Y)\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (color_equals (color_of this) C)\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (color_equals (color_of this) B)\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (color_equals (color_of this) A)\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 5 col 14\n\n            (color_equals (color_of this) Y)\n             ^\nExpected one of: \n\t* APPLY\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every other cell starting from the second row of each object with an alternating pattern.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) C)\\n                (color_equals (color_of this) B)\\n                (color_equals (color_of this) A)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) B)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every second object in each row to its background color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (or \\n                    (and \\n                        (color_equals (color_of (this)) Y)\\n                        (height_equals (height_of this) 3))\\n                    (and \\n                        (color_equals (color_of (this)) C)\\n                        (height_equals (height_of this) 2)\\n                ))\\n                (column_equals (column_of this) odd)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 49\n\n                (color_equals (color_of (this)) Y)\n                                        ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate cell in horizontally even rows of objects Y and C to O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or (color_equals (color_of this) Y) (color_equals (color_of this) C))\\n                (or (and (row_equals (row_of this) even) (column_equals (column_of this) even)) (and (row_equals (row_of this) even) (column_equals (column_of this) odd)))\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 7 col 27\n\n                (or (and (row_equals (row_of this) even) (column_e\n                          ^\nExpected one of: \n\t* OP_NOT\n\t* WIDTH_EQ\n\t* SIZE_EQ\n\t* COLOR_EQ\n\t* COLUMN_EQ\n\t* DEGREE_EQ\n\t* NEIGHBOR_OF\n\t* OP_OR\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* SHAPE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate columns of the rows with objects with origin color.\",\n    \"code\": \"(library\\n    (do\\n        (rule\\n            (vars (this))\\n            (filter\\n                (shape_equals (shape_of this) enclosed)\\n            )\\n            (apply\\n                (update_color O)\\n            )\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'l' in the current parser context, at line 1 col 2\n\n(library\n ^\nExpected one of: \n\t* DO\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Color every other object (alternating rows) in a striped pattern (every other cell).\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (not (row_equals mod (row_of this) 2))\\n                (not (column_equals mod (column_of this) 2))\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 6 col 23\n\n                (not (row_equals mod (row_of this) 2))\n                      ^\nExpected one of: \n\t* OP_NOT\n\t* WIDTH_EQ\n\t* SIZE_EQ\n\t* COLOR_EQ\n\t* COLUMN_EQ\n\t* DEGREE_EQ\n\t* NEIGHBOR_OF\n\t* OP_OR\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* SHAPE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor alternating cells of objects with the colors Y and C.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (update_color (color_of this))\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and \\n                (size_equals (column_of this) odd)\\n                (color_equals (color_of this) Y)\\n            )\\n        )\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and \\n                (size_equals (column_of this) even)\\n                (color_equals (color_of this) Y)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and \\n                (size_equals (column_of this) odd)\\n                (color_equals (color_of this) C)\\n            )\\n        )\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and \\n                (size_equals (column_of this) even)\\n                (color_equals (color_of this) C)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 13 col 31\n\n                (size_equals (column_of this) odd)\n                              ^\nExpected one of: \n\t* SIZE_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the grid, so that every second column in the second row of the Y and C color objects are changed to O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or\\n                    (and\\n                        (color_equals (color_of this) Y)\\n                        (column_equals (column_of this) even)\\n                    )\\n                    (and\\n                        (color_equals (color_of this) C)\\n                        (column_equals (column_of this) even)\\n                    )\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 16 col 13\n\n            )\n            ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the second row and second last row objects in an alternating color pattern.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (column_equals (column_of this) even)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 7 col 13\n\n            )\n            ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change every alternate cell in objects of color Y and C to color O, without modifying other objects.\",\n    \"code\": \"(do \\n   (rule \\n      (vars (this))\\n      (filter (or (color_equals (color_of this) Y) (color_equals (color_of this) C)))\\n      (apply (update_color (if (equal (mod (index_of this) 2) 0) O (color_of this))))\\n  ) \\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'i' in the current parser context, at line 5 col 29\n\n      (apply (update_color (if (equal (mod (index_of this) 2) 0) O (\n                            ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change the color of every second cell in rows with color identical cells to the left and right of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (column_equals (column_of this) even)\\n                (and\\n                    (or\\n                        (color_equals (color_of this) Y)\\n                        (color_equals (color_of this) C)\\n                    )\\n                )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 12 col 17\n\n                )\n                ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate pixel of the rows of colors Y and C to O and every alternate pixel of the columns of colors B and A to O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter \\n            (and \\n                (color_equals (color_of this) Y)\\n                (column_equals (mod (column_of this) 2) 1) \\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter \\n            (and \\n                (color_equals (color_of this) C)\\n                (column_equals (mod (column_of this) 2) 1) \\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter \\n            (and \\n                (color_equals (color_of this) B)\\n                (column_equals (mod (row_of this) 2) 1) \\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter \\n            (and \\n                (color_equals (color_of this) A)\\n                (column_equals (mod (row_of this) 2) 1) \\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'm' in the current parser context, at line 7 col 33\n\n                (column_equals (mod (column_of this) 2) 1) \n                                ^\nExpected one of: \n\t* COLUMN_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate cell of each object to its own background color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (update_color (column_equals (column_of this) 1))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 6 col 28\n\n            (update_color (column_equals (column_of this) 1))\n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"For objects in row 3 and row 7, recolor every other cell to the object color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (and (or (row_equals (row_of this) 3) (row_equals (row_of this) 7)) (column_equals (mod (column_of this) 2) 1)))\\n        (apply (update_color Y))\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 4 col 27\n\n        (filter (and (or (row_equals (row_of this) 3) (row_equals \n                          ^\nExpected one of: \n\t* OP_NOT\n\t* WIDTH_EQ\n\t* SIZE_EQ\n\t* COLOR_EQ\n\t* COLUMN_EQ\n\t* DEGREE_EQ\n\t* NEIGHBOR_OF\n\t* OP_OR\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* SHAPE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all objects of color Y and C to create a striped pattern.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) C)\\n            )\\n        )\\n        (apply\\n            (update_color (if (column_equals (column_of this) even) Y O))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'i' in the current parser context, at line 11 col 28\n\n            (update_color (if (column_equals (column_of this) even)\n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every alternate cell in each row of alternating color bands for all objects to color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) C)\\n                (color_equals (color_of this) B)\\n                (color_equals (color_of this) A)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) B)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Remove alternate columns from within objects of color Y and C if they have a width > 2 and from object of color A if they have a width > 2.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and \\n                (or \\n                    (color_equals (color_of this) Y) \\n                    (color_equals (color_of this) C)\\n                    (color_equals (color_of this) A)\\n                )\\n                (width_equals (width_of this) min 2)\\n            )\\n        )\\n        (apply\\n            (move_node right) \\n            (update_color C)\\n            (move_node left) \\n            (update_color C) \\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 9 col 21\n\n                    (color_equals (color_of this) A)\n                    ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Replace every second element in each row of certain objects with O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (or\\n                (color_equals (color_of this) Y)\\n                (color_equals (color_of this) C)\\n                (color_equals (color_of this) B)\\n                (color_equals (color_of this) A)\\n            )\\n        (apply\\n            (move_node right)\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'o' in the current parser context, at line 5 col 14\n\n            (or\n             ^\nExpected one of: \n\t* APPLY\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Replace every second pixel of every even row of objects with the background color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (and\\n                    (size_equals (height_of this) even)\\n                    (column_equals (column_of this) even)\\n                )\\n                (and\\n                    (size_equals (height_of this) even)\\n                    (column_equals (column_of this) odd)\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node left)\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'h' in the current parser context, at line 7 col 35\n\n                    (size_equals (height_of this) even)\n                                  ^\nExpected one of: \n\t* SIZE_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Change alternating columns to color O for the second and last row of yellow and cyan objects, and preserve the rest.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n               (or\\n                   (and\\n                       (color_equals (color_of this) Y)\\n                       (column_equals (column_of this) even)\\n                   )\\n                   (and\\n                       (color_equals (color_of this) C)\\n                       (column_equals (column_of this) even)\\n                   )\\n               )\\n               (or\\n                   (and\\n                       (row_equals (row_of this) 1)\\n                       (color_equals (color_of this) Y)\\n                   )\\n                   (and\\n                       (row_equals (row_of this) 2)\\n                       (color_equals (color_of this) C)\\n                   )\\n               )\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 18 col 25\n\n                       (row_equals (row_of this) 1)\n                        ^\nExpected one of: \n\t* OP_NOT\n\t* WIDTH_EQ\n\t* SIZE_EQ\n\t* COLOR_EQ\n\t* COLUMN_EQ\n\t* DEGREE_EQ\n\t* NEIGHBOR_OF\n\t* OP_OR\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* SHAPE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor all objects to their original color, but make every other cell empty.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (shape_equals (shape_of this) enclosed)\\n            )\\n        )\\n        (apply\\n            (move_node right)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 14 col 13\n\n            )\n            ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every other column of objects that are either Y or C with O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (or\\n                    (color_equals (color_of this) Y)\\n                    (color_equals (color_of this) C)\\n                )\\n                (column_equals (mod (column_of this) 2) 1)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'm' in the current parser context, at line 10 col 33\n\n                (column_equals (mod (column_of this) 2) 1)\n                                ^\nExpected one of: \n\t* COLUMN_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Create a vertical striped pattern for rows with the tallest objects, where the pattern alternates between the object's color and the background color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (or\\n                (height_equals (height_of this) max)\\n            )\\n        )\\n        (apply\\n            (update_color O)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches ')' in the current parser context, at line 7 col 13\n\n            )\n            ^\nExpected one of: \n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor every other cell of objects with width of max in each row, starting with the second cell, to color O.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (width_equals (width_of this) max)\\n        )\\n        (apply\\n            (update_color (if (even column_of this) (color_of this) O))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'i' in the current parser context, at line 8 col 28\n\n            (update_color (if (even column_of this) (color_of this)\n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    }
+]
