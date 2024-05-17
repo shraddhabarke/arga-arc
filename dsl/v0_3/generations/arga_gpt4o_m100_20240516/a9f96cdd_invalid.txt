@@ -1,0 +1,142 @@
+[
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects with size 1 (except obstacles at borders) to the next object of size 1, coloring them in a sequence of G, F, C, A.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (size_equals (size_of this) 1)\\n                (neighbor_of this other)\\n                (size_equals (size_of other) 1)\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n            (update_color G)\\n            (update_color F)\\n            (update_color C)\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (size_equals (size_of other) 1)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R to a corner of the grid, and recolor them to different colors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node_max top_left)\\n            (move_node_max top_right)\\n            (move_node_max bottom_left)\\n            (move_node_max bottom_right)\\n            (update_color G)\\n            (update_color F)\\n            (update_color C)\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 8 col 28\n\n            (move_node_max top_left)\n                           ^\nExpected one of: \n\t* LPAR\n\t* DIRECTION\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R towards the nearest bottom-left cell.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node_max bottom_left)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'b' in the current parser context, at line 8 col 28\n\n            (move_node_max bottom_left)\n                           ^\nExpected one of: \n\t* LPAR\n\t* DIRECTION\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color other than O to the top left corner, and recolor them.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (not (color_equals (color_of this) O))\\n        )\\n        (apply\\n            (move_node top_left)\\n            (update_color ( (color_of this) X) )\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 8 col 24\n\n            (move_node top_left)\n                       ^\nExpected one of: \n\t* LPAR\n\t* DIRECTION\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R to any of the four corners and recolor them with predefined colors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) R))\\n        (apply\\n            (move_node (direction_of top_left))\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) G))\\n        (apply\\n            (move_node (direction_of bottom_left))\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) C))\\n        (apply\\n            (move_node (direction_of bottom_right))\\n            (update_color A)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) A))\\n        (apply\\n            (move_node (direction_of top_right))\\n            (update_color F)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 6 col 38\n\n            (move_node (direction_of top_left))\n                                     ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects one step down and change their color in the following sequence: R -> G, G -> F, F -> C, C -> A, A -> G.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n            (or\\n                (color_equals (color_of this) R)\\n                (or\\n                    (color_equals (color_of this) G)\\n                    (or\\n                        (color_equals (color_of this) F)\\n                        (or\\n                            (color_equals (color_of this) C)\\n                            (color_equals (color_of this) A)\\n                        )\\n                    )\\n                )\\n            )\\n        (apply\\n            (move_node down)\\n            (or\\n                (and\\n                    (color_equals (color_of this) R)\\n                    (update_color G)\\n                )\\n                (or\\n                    (and\\n                        (color_equals (color_of this) G)\\n                        (update_color F)\\n                    )\\n                    (or\\n                        (and\\n                            (color_equals (color_of this) F)\\n                            (update_color C)\\n                        )\\n                        (or\\n                            (and\\n                                (color_equals (color_of this) C)\\n                                (update_color A)\\n                            )\\n                            (and\\n                                (color_equals (color_of this) A)\\n                                (update_color G)\\n                            )\\n                        )\\n                    )\\n                )\\n            )\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'o' in the current parser context, at line 5 col 14\n\n            (or\n             ^\nExpected one of: \n\t* APPLY\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all the objects of size 1 towards the opposite of their original direction while maintaining their color state. If moving results in changing neighbors, no further transformation occurs.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (size_equals (size_of this) 1)\\n        )\\n        (apply\\n            (move_node (not (direction_of this)))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'n' in the current parser context, at line 8 col 25\n\n            (move_node (not (direction_of this)))\n                        ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R in a top-left column to various specific positions and recolor them to G, F, C, and A respectively.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) R)\\n                (column_equals (column_of this) left)\\n            )\\n        )\\n        (apply\\n            (move_node down)\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) R)\\n                (column_equals (column_of this) center)\\n            )\\n        )\\n        (apply\\n            (move_node right)\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node left)\\n            (update_color C)\\n            (move_node down)\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'l' in the current parser context, at line 7 col 49\n\n        (column_equals (column_of this) left)\n                                        ^\nExpected one of: \n\t* LPAR\n\t* COLUMN\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor objects of red color to green, cyan, fuchsia, or orange based on their position in the final grid.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (move_node_left)\\n            (move_node_down)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (move_node_left)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) G)\\n        )\\n        (apply\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '_' in the current parser context, at line 17 col 23\n\n            (move_node_left)\n                      ^\nExpected one of: \n\t* LPAR\n\t* DIRECTION\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R one step down, then recolor them with different colors in a specific sequence.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node down)\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (column_equals (column_of this) center)\\n            )\\n        )\\n        (apply\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) G)\\n                (not (column_equals (column_of this) center))\\n            )\\n        )\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (and\\n                (color_equals (color_of this) C)\\n                (row_equals (row_of this) bottom)\\n            )\\n        )\\n        (apply\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'r' in the current parser context, at line 41 col 18\n\n                (row_equals (row_of this) bottom)\n                 ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_OR\n\t* SIZE_EQ\n\t* NEIGHBOR_OF\n\t* WIDTH_EQ\n\t* COLUMN_EQ\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* COLOR_EQ\n\t* OP_NOT\n\t* DEGREE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move red objects to their neighboring empty cells and recolor them to different colors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (color_equals (color_of this) R)\\n                (neighbor_of this other)\\n                (color_equals (color_of other) O)\\n            )\\n        )\\n        (apply\\n            (move_node (direction_of other))\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) O))\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) C))\\n        (apply\\n            (update_color A)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) A))\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) G))\\n        (apply\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (color_equals (color_of this) F))\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) O)\n                ^\nExpected one of: \n\t* RPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R, then recolor them to the maximum possible unique color in each column.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node down)\\n            (update_color max)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'm' in the current parser context, at line 9 col 27\n\n            (update_color max)\n                          ^\nExpected one of: \n\t* LPAR\n\t* COLOR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R towards the top-left and recolor them to form a diagonal line with alternating colors G, F, and C, A.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node (up))\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node (up_left))\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node (up_left))\\n            (update_color A)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node (up_left))\\n            (update_color F)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'u' in the current parser context, at line 8 col 25\n\n            (move_node (up))\n                        ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than O one step left, and then recolor them to color determined by their order of move.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (not (color_equals (color_of this) O))\\n        )\\n        (apply\\n            (move_node left)\\n            (update_color (list G F C A))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'l' in the current parser context, at line 9 col 28\n\n            (update_color (list G F C A))\n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of size 1 to the same relative positions such that they match the objects in the respective output grids.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (size_equals (size_of this) 1)\\n        )\\n        (apply\\n            (move_node (up_left))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'u' in the current parser context, at line 8 col 25\n\n            (move_node (up_left))\n                        ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move the objects in the diagonal strip to their respective edges depending on their initial position (top-left on the left edge, top-right at the top edge, bottom-right at the right edge, bottom-left at the bottom edge) and recolor them.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (move_node_max left)\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (move_node_max top)\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (move_node_max right)\\n            (update_color A)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (move_node_max bottom)\\n            (update_color C)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 14 col 28\n\n            (move_node_max top)\n                           ^\nExpected one of: \n\t* DIRECTION\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move each object of color R to the left end of the grid, and recolor it with different colors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node left)\\n            (update_color (cond\\n                (and (color_equals (color_of this) O) true) G\\n                (and (color_equals (color_of this) F) F\\n                (and (color_equals (color_of this) A) A\\n                (and (color_equals (color_of this) C) C\\n                )\\n            )\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 9 col 28\n\n            (update_color (cond\n                           ^\nExpected one of: \n\t* COLOR_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move each non-black object to the nearest empty cell (color O) to the up-left diagonal direction if they are on a boundary cell.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) O))\\n                (or\\n                    (shape_equals (shape_of this) enclosed)\\n                    (or\\n                        (COLUMN_EQ (column_of this) 0)\\n                        (COLUMN_EQ (column_of this) 4)\\n                    )\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node up_left)\\n        )    \\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'C' in the current parser context, at line 10 col 26\n\n                        (COLUMN_EQ (column_of this) 0)\n                         ^\nExpected one of: \n\t* OP_NOT\n\t* WIDTH_EQ\n\t* SIZE_EQ\n\t* COLOR_EQ\n\t* COLUMN_EQ\n\t* DEGREE_EQ\n\t* NEIGHBOR_OF\n\t* OP_OR\n\t* OP_AND\n\t* HEIGHT_EQ\n\t* SHAPE_EQ\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R to the top-leftmost empty cells, then recolor them.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node up_left)\\n            (update_color \\\"O\\\")\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) O)\\n        )\\n        (apply\\n            (update_color G)\\n            (update_color F)\\n            (update_color C)\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '\"' in the current parser context, at line 9 col 27\n\n            (update_color \"O\")\n                          ^\nExpected one of: \n\t* COLOR\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move objects of color R to new locations maintaining their relative positions.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node_max (down))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'd' in the current parser context, at line 8 col 29\n\n            (move_node_max (down))\n                            ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor objects at the edges to specific colors in a clockwise sequence starting from the top-left corner: G, F, A, C.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (or (neighbor_of this top_left) (or (neighbor_of this top_right) (or (neighbor_of this bottom_right) (neighbor_of this bottom_left)))))\\n        (apply\\n            (update_color (color_of this))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 4 col 39\n\n        (filter (or (neighbor_of this top_left) (or (neighbor_of this top_righ\n                                      ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color different than O to form a column in the middle of the grid.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (not (color_equals (color_of this) O))\\n        )\\n        (apply\\n            (move_node column_equals center)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'c' in the current parser context, at line 8 col 24\n\n            (move_node column_equals center)\n                       ^\nExpected one of: \n\t* DIRECTION\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects with color R to different corners (up-left, up-right, down-left, and down-right) and change their colors to unique colors (G, F, C, A).\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node top_left)\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node top_right)\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node bottom_left)\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node bottom_right)\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 't' in the current parser context, at line 8 col 24\n\n            (move_node top_left)\n                       ^\nExpected one of: \n\t* DIRECTION\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move the objects of color R to the positions indicated in the output grids, while changing their color accordingly.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter (color_equals (color_of this) R))\\n        (apply\\n            (move_node_min (direction_of other))\\n            (update_color (color_of other))\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '_' in the current parser context, at line 6 col 23\n\n            (move_node_min (direction_of other))\n                      ^\nExpected one of: \n\t* DIRECTION\n\t* LPAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all non-O colored objects outwards along their column, replacing the color O. Additionally, update their color.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (not (color_equals (color_of this) O))\\n        )\\n        (apply\\n            (move_node (down))\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'd' in the current parser context, at line 8 col 25\n\n            (move_node (down))\n                        ^\nExpected one of: \n\t* DIRECTION_OF\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Recolor the first column, and the diagonals adjacent to each corner, applying successive colors: G, F, C, A\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter (column_equals (column_of this) 0))\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (and (column_equals (column_of this) 1) (neighbor_of this (column_of this))))\\n        (apply\\n            (update_color F)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (and (column_equals (column_of this) 1) (row_equals (row_of this) max)))\\n        (apply\\n            (update_color C)\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter (and (column_equals (column_of this) 2) (row_equals (row_of this) min)))\\n        (apply\\n            (update_color A)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches '(' in the current parser context, at line 11 col 75\n\ns (column_of this) 1) (neighbor_of this (column_of this))))\n                                        ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color R continuously until they hit the grid boundary, and change their color with a specified pattern: G, F, C, A.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node_max (direction_of grid_boundary))\\n        )\\n    )\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (update_color G)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'g' in the current parser context, at line 8 col 42\n\n           (move_node_max (direction_of grid_boundary))\n                                        ^\nExpected one of: \n\t* VAR\n"
+    },
+    {
+        "response": "{\n    \"nl_description\": \"Move all objects of color equal to R, to the top left position and recolor them to different colors.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (color_equals (color_of this) R)\\n        )\\n        (apply\\n            (move_node up_left)\\n            (update_color min)\\n        )\\n    )\\n)\"\n}",
+        "error_type": "parse_error",
+        "error_message": "No terminal matches 'm' in the current parser context, at line 9 col 27\n\n            (update_color min)\n                          ^\nExpected one of: \n\t* COLOR\n\t* LPAR\n"
+    }
+]
