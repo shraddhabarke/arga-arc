@@ -7,7 +7,7 @@ from enum import Enum
 from VocabMaker import VocabFactory
 from lookaheadIterator import LookaheadIterator
 from childrenIterator import ChildrenIterator
-
+from itertools import chain
 
 class TSizeEnumerator:
     def __init__(self, task: Task, vocab: VocabFactory, oeManager, filterast=None, contexts=[]):
@@ -61,7 +61,7 @@ class TSizeEnumerator:
                 childType, childrenCost, self.bank) for childType in self.rootMaker.childTypes]
             self.currentChildIteratorIndex = 0  # Keep track of which iterator is current
             self.childrenIterator = self.childrenIterators[self.currentChildIteratorIndex]
-        elif self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS] and self.rootMaker.arity == 2:
+        elif self.rootMaker.arity == 2 and self.rootMaker.childTypes == [Types.TRANSFORMS, Types.TRANSFORMS]:
             childrenCost = self.costLevel - 1
             self.childrenIterator = ChildrenIterator(
                 self.rootMaker.childTypes, childrenCost, self.bank)
@@ -71,10 +71,9 @@ class TSizeEnumerator:
 
     def changeLevel(self) -> bool:
         self.costLevel += 1
-        if self.costLevel > self.maxterminals + 2:
-            self.currIter = LookaheadIterator(iter([Transforms]))
-        else:
-            self.currIter = LookaheadIterator(iter(self.vocab.nonLeaves()))
+        #if self.costLevel > self.maxterminals + 2:
+            #self.currIter = LookaheadIterator(iter([Transforms]))
+        self.currIter = LookaheadIterator(chain(self.vocab.leaves(), self.vocab.nonLeaves(), [Transforms]))
         for p in self.currLevelProgs:
             self.updateBank(p)
         self.currLevelProgs.clear()

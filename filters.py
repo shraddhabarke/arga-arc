@@ -74,7 +74,7 @@ class SizeValue:
             parts = key.split(".")
             if len(parts) == 2 and parts[0] == "Size":
                 _, enum_name = parts
-                for degree in Degree._all_values:
+                for degree in Size._all_values:
                     if str(degree.value) == str(enum_name):
                         cls._sizes[degree.value] = size
                         break
@@ -472,8 +472,8 @@ class FColor(FilterASTNode, Enum):
 
 
 class Object(FilterASTNode, Enum):
-    this = "Obj"
-    var = "Var"
+    this = "this"
+    var = "var"
 
     def __init__(self, value=None):
         super().__init__(FilterTypes.OBJECT)
@@ -575,13 +575,12 @@ class Filters(FilterASTNode):
 
 class Direct_Neighbor_Of(Filters):
     arity = 0
-    size = 3
-    default_size = 3
-
+    default_size = 1
+    size = default_size + 2
     def __init__(self):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.size = self.default_size
+        self.size = self.default_size + 2
         self.children = []
         self.values = []
         self.childTypes = []
@@ -613,13 +612,13 @@ class Direct_Neighbor_Of(Filters):
 
 class Neighbor_Of(Filters):
     arity = 0
-    size = 3
-    default_size = 3
+    default_size = 1
+    size = default_size + 2
 
     def __init__(self):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.size = self.default_size
+        self.size = self.default_size + 2
         self.children = []
         self.values = []
         self.childTypes = []
@@ -926,9 +925,7 @@ class Color_Equals(Filters):
             cls.values = []
             return cls
         instance = cls(*children)
-        if (
-            not children[0] == FColor.colorof and not children[1] == FColor.colorof
-        ) or children[2] == Object.this:
+        if (not children[0] == FColor.colorof and not children[1] == FColor.colorof) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.var:
             values = task.var_filter_values(instance)

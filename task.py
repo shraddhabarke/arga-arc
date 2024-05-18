@@ -325,18 +325,17 @@ class Task:
         Computes a dictionary of all possible value assignments for each object
         """
         object_params_dict, object_params = defaultdict(list), []
-        if "updateColor" in transformation.code:
+        if "updateColor" in transformation.code or "addBorder" in transformation.code or "hollowRectangle" in transformation.code:
             object_params = set([input_graph.get_color(obj)
                                 for obj in input_graph.graph.nodes()])
             for node_obj in input_graph.graph.nodes():
                 for neighbor in input_graph.graph.neighbors(node_obj):
                     object_params_dict[node_obj].append(
                     (input_graph.get_color(neighbor), neighbor))
-
         elif "extendNode" in transformation.code or "moveNode" in transformation.code \
                 or "moveNodeMax" in transformation.code:
             for node_obj in input_graph.graph.nodes():
-                for node_other, _ in input_graph.graph.nodes(data=True):
+                for node_other, node_data in input_graph.graph.nodes(data=True):
                     if node_obj != node_other:
                         relative_pos = input_graph.get_relative_pos(
                             node_obj, node_other)
@@ -345,7 +344,7 @@ class Task:
                             object_params_dict[node_obj].append(
                                 (relative_pos, node_other))
 
-        elif "Flip" in transformation.code:
+        elif "flip" in transformation.code:
             for node_obj in input_graph.graph.nodes():
                 for node_other, _ in input_graph.graph.nodes(data=True):
                     if node_obj != node_other:
@@ -357,12 +356,12 @@ class Task:
                                 (target_mirror_dir, node_other))
 
         elif "Insert" in transformation.code:
-            object_params = set([input_graph.get_centroid(obj)
-                                for obj in input_graph.graph.nodes()])
             for node_obj in input_graph.graph.nodes():
                 for node_other in input_graph.graph.nodes():
                     if node_obj != node_other:
-                        object_params_dict[node_obj].append((input_graph.get_centroid(node_other), node_other))
+                        var_img_pt = input_graph.get_centroid(node_other)
+                        if var_img_pt is not None:
+                            object_params_dict[node_obj].append((var_img_pt, node_other))
 
         elif "mirror" in transformation.code:
             for node_obj in input_graph.graph.nodes():

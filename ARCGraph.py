@@ -328,7 +328,8 @@ class ARCGraph:
             "most": self.most_common_color,
             "least": self.least_common_color
         }
-        border_color = color_map[border_color]
+        if not isinstance(border_color, int):
+            border_color = color_map[border_color]
         new_node_id = self.generate_node_id(border_color)
         if self.is_multicolor:
             self.graph.add_node(
@@ -344,9 +345,10 @@ class ARCGraph:
                 color=border_color,
                 size=len(border_pixels),
             )
+
         return self
 
-    def FillRectangle(self, node, color: Color, overlap: Overlap):
+    def FillRectangle(self, node, color: Color, overlap: Overlap = False):
         """
         fill the rectangle containing the given node with the given color.
         if overlap is True, fill the rectangle even if it overlaps with other nodes.
@@ -368,7 +370,8 @@ class ARCGraph:
             "most": self.most_common_color,
             "least": self.least_common_color
         }
-        color = color_map[color]
+        if not isinstance(color, int):
+            color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
         self.graph.add_node(
@@ -568,7 +571,7 @@ class ARCGraph:
         if object_id is -1, use the pattern given by node
         """
         node_centroid = self.get_centroid(node)
-        if not isinstance(point, tuple):
+        if node_centroid is not None and (not isinstance(point, tuple)):
             if point == "TOP" or point == ImagePoints.TOP:
                 point = (0, node_centroid[1])
             elif point == "BOTTOM" or point == ImagePoints.BOTTOM:

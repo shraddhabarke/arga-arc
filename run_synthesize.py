@@ -11,16 +11,16 @@ from OEValuesManager import *
 from VocabMaker import *
 from filter_synthesis import FSizeEnumerator
 from transform_synthesis import TSizeEnumerator
-#from compute_pcfg import *
-import math
+from compute_pcfg import *
+import math, json, csv
 
 # Transform Vocab
 
 tleaf_makers = [NoOp, Color, Dir, Overlap, Rotation_Angle, RelativePosition, ImagePoints,
-                Symmetry_Axis, Mirror_Axis, ObjectId, UpdateColor, MoveNode, MoveNodeMax, AddBorder, ExtendNode, Mirror,
-                HollowRectangle, RotateNode, Flip, FillRectangle, Insert, Transforms]
+                Symmetry_Axis, Mirror_Axis, ObjectId, MoveNode, MoveNodeMax, AddBorder, ExtendNode,
+                HollowRectangle, RotateNode, Flip, FillRectangle, Insert, UpdateColor, Transforms]
 
-fleaf_makers = [Object, FColor, Degree, Height, Width, Size, Shape, Row, Column, Neighbor_Of, Direct_Neighbor_Of,
+fleaf_makers = [Object, FColor, Size, Degree, Height, Width, Shape, Row, Column, Neighbor_Of, Direct_Neighbor_Of,
                 Color_Equals, Size_Equals, Degree_Equals, Shape_Equals, Height_Equals, Row_Equals, Not, Column_Equals, And, Or]
 
 # Initializing terminal sizes!
@@ -31,7 +31,7 @@ Rotation_Angle._sizes = {overlap.name: 1 for overlap in Rotation_Angle}
 Symmetry_Axis._sizes = {overlap.name: 1 for overlap in Symmetry_Axis}
 RelativePosition._sizes = {relativepos.name: 1 for relativepos in RelativePosition}
 ImagePoints._sizes = {imagepts.name: 1 for imagepts in ImagePoints}
-ObjectId._sizes = {objid.name: 1 for objid in ObjectId._all_values}
+ObjectId._sizes = {objid.value: 1 for objid in ObjectId._all_values}
 Mirror_Axis._sizes = {axis.name: 1 for axis in Mirror_Axis}
 FColor._sizes = {color.name: 1 for color in FColor}
 Object._sizes = {obj.name: 1 for obj in Object}
@@ -43,7 +43,7 @@ Row._sizes = {row.value: 1 for row in Row._all_values}
 Height._sizes = {height.value: 1 for height in Height._all_values}
 Width._sizes = {width.value: 1 for width in Width._all_values}
 
-def get_t_probability(item, category=None):
+def get_t_probability(transform_probabilities, item, category=None):
     if category:
         return transform_probabilities[category].get(item, 0)
     else:
@@ -53,18 +53,18 @@ def get_all_t_probabilities(vocab_makers, transform_probabilities):
     all_probs = {}
     for vocab_maker in vocab_makers:
         class_name = vocab_maker.__name__
-        prob = get_t_probability(class_name, 'Transform')  # Now using 'Transform' as category
+        prob = get_t_probability(transform_probabilities, class_name, 'Transform')  # Now using 'Transform' as category
         all_probs[class_name] = prob
 
     # Handle token probabilities
-    for category in ['Color', 'Direction', 'Overlap', 'Rotation_Angle', 'Symmetry_Axis']:
+    for category in ['Color', 'Direction', 'Overlap', 'Rotation_Angle', 'Symmetry_Axis', 'ImagePoints', 'RelativePosition', 'ObjectId']:
         if category in transform_probabilities:
             for token in transform_probabilities[category]:
-                prob = get_t_probability(token, category)
+                prob = get_t_probability(transform_probabilities, token, category)
                 all_probs[f"{category}.{token}"] = prob
     return all_probs
 
-def get_f_probability(item, category=None):
+def get_f_probability(filter_probabilites, item, category=None):
     if category:
         return filter_probabilites[category].get(item, 0)
     else:
@@ -75,52 +75,42 @@ def get_all_f_probabilities(vocab_makers, filter_probabilites):
     all_probs = []
     for vocab_maker in vocab_makers:
         class_name = vocab_maker.__name__
-        prob = get_f_probability(class_name, None)
+        prob = get_f_probability(filter_probabilites, class_name, None)
         all_probs.append((class_name, prob))
 
     # Handle token probabilities
-    for category in ['Color', 'Shape', 'Degree', 'Size', 'Column', 'Row', 'Width', 'Height']:
+    for category in ['FColor', 'Shape', 'Degree', 'Size', 'Column', 'Row', 'Width', 'Height']:
         if category in filter_probabilites:
             for token in filter_probabilites[category]:
-                prob = get_f_probability(token, category)
+                prob = get_f_probability(filter_probabilites, token, category)
                 all_probs.append((f"{category}.{token}", prob))
     return all_probs
 
-debug = False #True
-if debug:
-    print("Inside debugging....")
-    """
-    t_real_costs = {'NoOp': 'inf', 'UpdateColor': 3, 'MoveNodeMax': 2, 'MoveNode': 3, 'AddBorder': 3, 'ExtendNode': 3, 
-                    'Mirror': 3, 'HollowRectangle': 3, 'RotateNode': 3, 'Flip': 3, 'FillRectangle': 3, 'Transforms': 'inf', 
-                    'Color.O': 2, 'Color.B': 3, 'Color.R': 4, 'Color.G': 5, 'Color.Y': 6, 'Color.X': 8, 'Color.F': 7, 'Color.A': 9, 
-                    'Color.C': 30, 'Color.W': 40, 
-                    'Direction.U': 50, 'Direction.D': 60, 'Direction.L': 70, 'Direction.R': 80, 'Direction.UL': 90, 
-                    'Direction.UR': 100, 'Direction.DL': 101, 'Direction.DR': 102, 
-                    'Variable.Var': 0, 'Overlap.True': 212, 'Overlap.False': 113, 
-                    'Rotation_Angle.90': 12, 'Rotation_Angle.180': 22, 'Rotation_Angle.270': 32, 
-                    'Symmetry_Axis.VERTICAL': 12, 
-                    'Symmetry_Axis.HORIZONTAL': 22, 'Symmetry_Axis.DIAGONAL_LEFT': 32, 'Symmetry_Axis.DIAGONAL_RIGHT': 42}
-    r_real_costs = {'FColor': "inf", 'Size': "inf", 'Degree': "inf", 'FilterByColor': 2, 'FilterBySize': 2, 'FilterByDegree': 3, 
-    'FilterByNeighborColor': 3, 'FilterByNeighborSize': 3, 'FilterByHeight': 3, 'FilterByShape': 2, 'FilterByNeighborDegree': 3, 
-    'Or': 2, 'And': 2, 'VarAnd': 2, 'Shape.enclosed': 100, 'Shape.square': 200, 
-    'Degree.MIN': 22, 'Degree.MAX': 23, 'Degree.ODD': 223, 
-    'Degree.1': 2333, 'Degree.2': 22223, 'Size.MIN': 3, 'Size.MAX': 3, 'Size.ODD': 3, 'Size.2': 3, 'Size.3': 3, 'Size.4': 3, 'Size.6': 3, 
-    'Size.7': 3, 'Size.8': 3}
-    """
-
+def compute_costs(taskNumber):
     from compute_pcfg import compute_transform_costs, compute_filter_costs
-    transform_probabilities = compute_transform_costs()
-    filter_probabilites = compute_filter_costs()
-    t_vocabMakers = [NoOp, UpdateColor, MoveNodeMax, MoveNode, AddBorder, ExtendNode, Mirror, HollowRectangle, RotateNode, Flip, FillRectangle, Transforms]
-    f_vocabMakers = [FColor, Degree, Height, Width, Size, Shape, Row, Column, Neighbor_Of, Direct_Neighbor_Of,
-                Color_Equals, Size_Equals] #Degree_Equals, Shape_Equals, Height_Equals, Row_Equals, Column_Equals,
-                #Neighbor_Color, Neighbor_Size, Neighbor_Degree, Not, And, Or]
+    transform_probabilities = compute_transform_costs(taskNumber)
+    filter_probabilites = compute_filter_costs(taskNumber)
+    #print("transform_probabilities:", transform_probabilities)
+    #print("filter_probabilites:", filter_probabilites)
+
+    t_vocabMakers = [NoOp, MoveNode, MoveNodeMax, AddBorder, ExtendNode, Mirror,
+                HollowRectangle, RotateNode, Flip, FillRectangle, Insert, UpdateColor, Transforms]
+    f_vocabMakers = [Object, FColor, Size, Degree, Height, Width, Shape, Row, Column, Neighbor_Of, Direct_Neighbor_Of,
+                Color_Equals, Size_Equals, Degree_Equals, Shape_Equals, Height_Equals, Row_Equals, Not, Column_Equals, And, Or]
     transform_values = get_all_t_probabilities(t_vocabMakers, transform_probabilities)
     filter_values = get_all_f_probabilities(f_vocabMakers, filter_probabilites)
     print("transform_values", transform_values)
     print("filter_values:", filter_values)
     # Computing Real Costs
     f_real_costs, t_real_costs = {}, {}
+    for trans, probability in transform_values.items():
+        num = -math.log(probability)
+        t_real_costs[trans] = int(math.ceil(num)) if (num - int(num) > 0.5) else int(math.floor(num))
+    for trans, probability in filter_values:
+        num = -math.log(probability) if probability > 0 else 1
+        f_real_costs[trans] = int(math.ceil(num)) if (num - int(num) > 0.5) else int(math.floor(num))
+    print("t_real_costs", t_real_costs)
+    print("f_real_costs:", f_real_costs)
     Color.set_sizes(t_real_costs)
     Dir.set_sizes(t_real_costs)
     Overlap.set_sizes(t_real_costs)
@@ -138,15 +128,10 @@ if debug:
     HeightValue.set_sizes(f_real_costs)
     SizeValue.set_sizes(f_real_costs)
     WidthValue.set_sizes(f_real_costs)
-    for trans, probability in transform_values.items():
-        t_real_costs[trans] = math.ceil(-math.log(probability)) if probability > 0 else float('inf')
-    for trans, probability in filter_values:
-        f_real_costs[trans] = math.ceil(-math.log(probability)) if probability > 0 else float('inf')
-    print("t_real_costs", t_real_costs)
-    print("f_real_costs:", f_real_costs)
     for vocab_maker in t_vocabMakers:
         if vocab_maker.__name__ in t_real_costs:
             vocab_maker.default_size = t_real_costs[vocab_maker.__name__]
+    f_real_costs['Direct_Neighbor_Of'] = f_real_costs['Neighbor_Of']
 
 def filter_compare(results, subset):
     if len(results) != len(subset):
@@ -166,6 +151,7 @@ def filter_compare(results, subset):
     return True
 
 def run_synthesis(taskNumber, abstraction):
+    #compute_costs(taskNumber)
     task = Task("ARC/data/training/" + taskNumber + ".json")
     task.abstraction = abstraction
     task.input_abstracted_graphs_original[task.abstraction] = [getattr(
@@ -227,14 +213,11 @@ def run_synthesis(taskNumber, abstraction):
         filter_vocab = VocabFactory.create(fleaf_makers)
         enumerator = FSizeEnumerator(task, filter_vocab, ValuesManager())
         i = 0
-        print("Subset:", subset)
         while enumerator.hasNext():
             program = enumerator.next()
             i += 1
             results = program.values
             #print(f"Filter-Program: {program.code}: {program.size, results}")
-            #print("result:", results)
-            #print("subset:", subset)
             filter_compare(results, subset)
             if filter_compare(results, subset):
                 return program.code
@@ -242,9 +225,7 @@ def run_synthesis(taskNumber, abstraction):
     correct_transforms = set()
     while enumerator.hasNext():
         program = enumerator.next()
-        #print("enumerator:", program.code, program.size)
-        #if program.spec:
-            #print("spec:", program.values_apply)
+        print("enumerator:", program.code, program.size)
         if program.values:  # Check if program.values is not empty
             if isinstance(program.values[0], list):
                 progvalues = program.values[0]
@@ -361,7 +342,7 @@ def run_synthesis(taskNumber, abstraction):
                     else:
                         if "Var" not in program:
                             input_nodes = find_input_nodes(input_graphs, correct_nodes_per_transform[program])
-                            print("program:", program, input_nodes)
+                            #print("program:", program, input_nodes)
                             subset = [{tup: [] for tup in subset} for subset in input_nodes]
                         else:
                             if len(task.all_specs) == 1:
@@ -392,39 +373,47 @@ evals = {"29c11459": "nbccg"}
 # 4093f84a -- [filterbySize(Size.1) -> updateColor(gray), moveNodeMax(Variable)]
 # ExtendNode -->  dbc1a6ce, 7ddcd7ec, 25d487eb
 # moveNode by height --> 5521c0d9
-# {"6f8cd79b": "sp"}
 evals = {"dbc1a6ce": "nbccg"}
 evals = {"7ddcd7ec": "nbccg"} # todo -- blue print for extendNode
 evals = {"88a10436": "mcccg"}
-#evals = {"3618c87e": "nbccg"}
-#
 evals = {"67a423a3": "nbccg"}
 evals = {"ded97339": "nbccg"}
 evals = {"63613498": "nbccg"}
 evals = {"3618c87e": "nbccg"}
-# todo
-evals = {"25d487eb": "lrg"}
-
 evals = {"4258a5f9": "nbccg"}
 evals = {"3906de3d": "nbvcg"}
 evals = {"f8a8fe49": "nbccg"}
-#evals = {"ae3edfdc": "nbccg"}
-evals = {"4258a5f9": "nbccg"}
-
 evals = {"2c608aff": "ccgbr"}
 evals = {"91714a58": "lrg"}
-evals = {"d43fd935": "nbccg"}
-evals = {"ddf7fa4f": "nbccg"}
-evals = {"ddf7fa4f": "nbccg"}
 evals = {"63613498": "nbccg"}
-for task, abstraction in evals.items():
-    start_time = time.time()
-    print("taskNumber:", task)
-    transformations, filters = run_synthesis(task, abstraction)
-    print("transformations:", transformations)
-    print("filters:", filters)
-    print(f"Problem {task}: --- {(time.time() - start_time)} seconds ---")
+evals = {"f8a8fe49": "nbccg"}
+evals = {"25d487eb": "lrg"}
+evals = {"6c434453": "nbccg"}
+evals = {"ddf7fa4f": "nbccg"}
 
+allevals = {"bb43febb": "nbccg", "4258a5f9": "nbccg", "b27ca6d3": "nbccg", "d037b0a7": "nbccg", "dc1df850": "nbccg", "4347f46a": "nbccg",
+            "3aa6fb7a": "nbccg", "6d75e8bb": "nbccg", "913fb3ed": "nbccg", "50cb2852": "nbccg", "44d8ac46": "nbccg", "694f12f3": "nbccg",
+            "868de0fa": "nbccg", "60b61512": "nbccg", "e8593010": "ccg", "7f4411dc": "lrg"
+            }
+results = {}
+start_time = time.time()
+print(run_synthesis("ddf7fa4f", "nbccg"))
+execution = (time.time() - start_time)
+print(execution)
+"""
+with open("unguided_arc.csv", 'w', newline='') as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(['Task Number', 'Abstraction', 'Transformations', 'Filters', 'Time'])
+    for task, abstraction in allevals.items():
+        start_time = time.time()
+        print("taskNumber:", task)
+        transformations, filters = run_synthesis(task, abstraction)
+        print("transformations:", transformations)
+        print("filters:", filters)
+        execution = (time.time() - start_time)
+        print(f"Problem {task}: --- {execution} seconds ---")
+        writer.writerow([task, abstraction, transformations, filters, execution])   
+"""
 class TestEvaluation(unittest.TestCase):
     def all_problems(self):
         print("==================================================AUGMENTATION PROBLEMS==================================================")
