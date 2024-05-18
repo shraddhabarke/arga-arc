@@ -1030,7 +1030,10 @@ class Height_Equals(Filters):
         self.nodeType = FilterTypes.FILTERS
         self.size = self.default_size + height1.size + height2.size + 1
         self.childTypes = [FilterTypes.HEIGHT, FilterTypes.HEIGHT, FilterTypes.OBJECT]
-        if height2.code == "HEIGHT.HeightOf":
+        if height1.code == "HEIGHT.HeightOf" and height2.code == "HEIGHT.HeightOf":
+            self.size = self.default_size + height1.size + height2.size + 2
+            self.children = [height1, height2]
+        elif height2.code == "HEIGHT.HeightOf":
             self.code = f"Height_Of({obj.code}) == {height1.code}"
             self.children = [height1]
         elif height1.code == "HEIGHT.HeightOf":
@@ -1094,7 +1097,10 @@ class Width_Equals(Filters):
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.WIDTH, FilterTypes.WIDTH, FilterTypes.OBJECT]
         self.size = self.default_size + width1.size + width2.size + 1
-        if width2.code == "WIDTH.WidthOf":
+        if width1.code == "WIDTH.WidthOf" and width2.code == "WIDTH.WidthOf":
+            self.size = self.default_size + width1.size + width2.size + 2
+            self.children = [width1, width2]
+        elif width2.code == "WIDTH.WidthOf":
             self.code = f"Width_Of({obj.code}) == {width1.code}"
             self.children = [width1]
         elif width1.code == "WIDTH.WidthOf":
@@ -1155,7 +1161,10 @@ class Degree_Equals(Filters):
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.DEGREE, FilterTypes.DEGREE, FilterTypes.OBJECT]
         self.size = self.default_size + degree1.size + degree2.size + 1
-        if degree2.code == "Degree.DegreeOf":
+        if degree1.code == "DEGREE.DegreeOf" and degree2.code == "DEGREE.DegreeOf":
+            self.size = self.default_size + degree1.size + degree2.size + 2
+            self.children = [degree1, degree2]
+        elif degree2.code == "Degree.DegreeOf":
             self.code = f"Degree_Of({obj.code}) == {degree1.code}"
             self.children = [degree1]
         elif degree1.code == "Degree.DegreeOf":
@@ -1220,7 +1229,10 @@ class Shape_Equals(Filters):
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.SHAPE, FilterTypes.SHAPE, FilterTypes.OBJECT]
         self.size = self.default_size + shape1.size + shape2.size + 1
-        if shape2 == Shape.shapeof:
+        if shape1.code == "SHAPE.ShapeOf" and shape2.code == "SHAPE.ShapeOf":
+            self.size = self.default_size + shape1.size + shape2.size + 2
+            self.children = [shape1, shape2]
+        elif shape2 == Shape.shapeof:
             self.code = f"Shape_Of({obj.code}) == {shape1.code}"
             self.children = [shape1]
         elif shape1 == Shape.shapeof:
@@ -1257,7 +1269,10 @@ class Row_Equals(Filters):
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.ROW, FilterTypes.ROW, FilterTypes.OBJECT]
         self.size = self.default_size + row1.size + row2.size + 1
-        if row2.code == "ROW.RowOf":
+        if row1.code == "ROW.RowOf" and row2.code == "ROW.RowOf":
+            self.size = self.default_size + row1.size + row2.size + 2
+            self.children = [row1, row2]
+        elif row2.code == "ROW.RowOf":
             self.code = f"Row_Of({obj.code}) == {row1.code}"
             self.children = [row1]
         elif row1.code == "ROW.RowOf":
@@ -1318,7 +1333,10 @@ class Column_Equals(Filters):
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.COLUMN, FilterTypes.COLUMN, FilterTypes.OBJECT]
         self.size = self.default_size + col1.size + col2.size + 1
-        if col2.code == "COLUMN.ColumnOf":
+        if col1.code == "COLUMN.ColumnOf" and col2.code == "COLUMN.ColumnOf":
+            self.size = self.default_size + col1.size + col2.size + 2
+            self.children = [col1, col2]
+        elif col2.code == "COLUMN.ColumnOf":
             self.code = f"Column_Of({obj.code}) == {col1.code}"
             self.children = [col1]
         elif col1.code == "COLUMN.ColumnOf":
