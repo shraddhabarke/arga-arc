@@ -288,6 +288,9 @@ def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
             obj=get_obj_from_arguments(_filter.color1, _filter.color2),
         )
     elif isinstance(_filter, ast.Size_Equals):
+        print("1:", _filter.size1)
+        print("2:", _filter.size2)
+
         return f.Size_Equals(
             size1=convert_filter_to_executable(_filter.size1),
             size2=convert_filter_to_executable(_filter.size2),
@@ -332,12 +335,12 @@ def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
         # TODO: I'm assuming this is because we always wanna say that this is the neighbor of var?
         return f.Neighbor_Of()
     # these exist in the EAST, but not in the AST
-    # elif isinstance(_filter, ast.Width_Equals):
-    #     return f.Width_Equals(
-    #         width1=convert_filter_to_executable(_filter.width1),
-    #         width2=convert_filter_to_executable(_filter.width2),
-    #         obj=get_obj_from_arguments(_filter.width1, _filter.width2),
-    #     )
+    elif isinstance(_filter, ast.Width_Equals):
+        return f.Width_Equals(
+             width1=convert_filter_to_executable(_filter.width1),
+             width2=convert_filter_to_executable(_filter.width2),
+             obj=get_obj_from_arguments(_filter.width1, _filter.width2),
+         )
     # elif isinstance(_filter, ast.Row_Equals):
     #     return f.Row_Equals(
     #         row1=convert_filter_to_executable(_filter.row1),
@@ -636,16 +639,16 @@ def get_obj_from_arguments(
         return None
 
     if var1 is None:
-        return f.Object.this if var2 == "this" else f.Object.var
+        return f.Object.this if var2 == "this" else f.Object.other
 
     if var2 is None:
-        return f.Object.this if var1 == "this" else f.Object.var
+        return f.Object.this if var1 == "this" else f.Object.other
 
     if var1 != var2:
         # TODO: not sure what to do in this case, since this isn't allowed in the EAST
         return None
 
-    return f.Object.this if var1 == "this" else f.Object.var
+    return f.Object.this if var1 == "this" else f.Object.other
 
 
 # endregion FILTER

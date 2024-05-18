@@ -462,7 +462,6 @@ class ObjectId(TransformASTNode):
 
 
 def setup_objectids(task):
-    print("task.abstraction:", task.abstraction)
     print(task.static_objects_for_insertion)
     task_ids = [id for id in range(len(task.static_objects_for_insertion[task.abstraction]))] + [
         -1]
@@ -818,7 +817,6 @@ class Insert(Transforms):
     default_size = 1
 
     def __init__(self, object_id: ObjectId, image_points: ImagePoints, relative_pos: RelativePosition):
-        print("here no???????????????", object_id, image_points, relative_pos)
         super().__init__()
         self.nodeType = Types.TRANSFORMS
         self.children = [object_id, image_points, relative_pos]
@@ -832,7 +830,6 @@ class Insert(Transforms):
     @classmethod
     def apply(cls, task, children, filter):
         instance = cls(children[0], children[1], children[2])
-        print("instance:", children[0], children[1], children[2])
         if "Var" not in children[1].code:
             values = task.transform_values(filter, instance)
         elif "Var" in children[1].code:
