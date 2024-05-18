@@ -896,14 +896,19 @@ for i in range(1000):
     array = tf.math""",
                 """def transform(in1, in2):
     return tf.sparse.reorder(tf.sparse.from_dense(tf.scatter_nd(tf.expand_dims(in2, 1), in1, [3, 5])))""",
+                """def transform(in1):
+    return tf.scatter_nd(in1[:, None], tf.ones(tf.shape(in1)[0], tf.int32), [tf.shape(in1)[0], 9])""",
+                """def transform(in1):
+    return tf.scatter_nd(in1[:, None], tf.ones(tf.shape(in1)[0], tf.int32), (tf.shape(in1)[0], 9))""",
             ]:
                 ans["num_runtime_error"] += 1
                 continue
 
             try:
                 # print("### total so far: " + str(ans["total"]))
-                # print("### running completion")
-                # print('"""' + normalized_completion.strip() + '"""')
+                if log_runtime_errors:
+                    print("### running completion")
+                    print('"""' + normalized_completion.strip() + '"""')
                 try:
                     blockPrint()
                     exec(normalized_completion)
