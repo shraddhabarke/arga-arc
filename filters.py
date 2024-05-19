@@ -947,6 +947,7 @@ class Color_Equals(Filters):
                     task.abstraction
                 ]
             ]
+            instance.size = instance.default_size + children[0].size + children[1].size + 2
             return instance
         if (not children[0] == FColor.colorof and not children[1] == FColor.colorof) or children[2] == Object.this:
             values = task.filter_values(instance)
@@ -965,19 +966,21 @@ class Size_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.SIZE, FilterTypes.SIZE, FilterTypes.OBJECT]
-        self.size = self.default_size + size1.size + size2.size + 1
         if size1.code == "SIZE.SizeOf" and size2.code == "SIZE.SizeOf":
             self.size = self.default_size + size1.size + size2.size + 2
             self.children = [size1, size2]
         elif size2.code == "SIZE.SizeOf":
             self.code = f"Size_Of({obj.code}) == {size1.code}"
             self.children = [size1]
+            self.size = self.default_size + size1.size + size2.size + 1
         elif size1.code == "SIZE.SizeOf":
             self.code = f"Size_Of({obj.code}) == {size2.code}"
             self.children = [size2]
+            self.size = self.default_size + size1.size + size2.size + 1
         else:
             self.code = f"Equals({size2.code}, {size1.code})"
             self.children = [size1, size2]
+            self.size = self.default_size + size1.size + size2.size
 
     @classmethod
     def execute(cls, task, children):
@@ -1007,7 +1010,7 @@ class Size_Equals(Filters):
                     task.abstraction
                 ]
             ]
-            #cls.size = cls.default_size + children[0].size + children[1].size + 2
+            cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         if (
             not children[0].code == "SIZE.SizeOf"
@@ -1028,7 +1031,6 @@ class Height_Equals(Filters):
     def __init__(self, height1: Height, height2: Height, obj: Object):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.size = self.default_size + height1.size + height2.size + 1
         self.childTypes = [FilterTypes.HEIGHT, FilterTypes.HEIGHT, FilterTypes.OBJECT]
         if height1.code == "HEIGHT.HeightOf" and height2.code == "HEIGHT.HeightOf":
             self.size = self.default_size + height1.size + height2.size + 2
@@ -1036,12 +1038,15 @@ class Height_Equals(Filters):
         elif height2.code == "HEIGHT.HeightOf":
             self.code = f"Height_Of({obj.code}) == {height1.code}"
             self.children = [height1]
+            self.size = self.default_size + height1.size + height2.size + 1
         elif height1.code == "HEIGHT.HeightOf":
             self.code = f"Height_Of({obj.code}) == {height2.code}"
             self.children = [height2]
+            self.size = self.default_size + height1.size + height2.size + 1
         else:
             self.code = f"Equals({height2.code}, {height1.code})"
             self.children = [height1, height2]
+            self.size = self.default_size + height1.size + height2.size
 
     @classmethod
     def execute(cls, task, children):
@@ -1096,19 +1101,21 @@ class Width_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.WIDTH, FilterTypes.WIDTH, FilterTypes.OBJECT]
-        self.size = self.default_size + width1.size + width2.size + 1
         if width1.code == "WIDTH.WidthOf" and width2.code == "WIDTH.WidthOf":
             self.size = self.default_size + width1.size + width2.size + 2
             self.children = [width1, width2]
         elif width2.code == "WIDTH.WidthOf":
             self.code = f"Width_Of({obj.code}) == {width1.code}"
             self.children = [width1]
+            self.size = self.default_size + width1.size + width2.size + 1
         elif width1.code == "WIDTH.WidthOf":
             self.code = f"Width_Of({obj.code}) == {width2.code}"
             self.children = [width2]
+            self.size = self.default_size + width1.size + width2.size + 1
         else:
             self.code = f"Equals({width2.code}, {width1.code})"
             self.children = [width1, width2]
+            self.size = self.default_size + width1.size + width2.size
 
     @classmethod
     def execute(cls, task, children):
@@ -1160,19 +1167,21 @@ class Degree_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.DEGREE, FilterTypes.DEGREE, FilterTypes.OBJECT]
-        self.size = self.default_size + degree1.size + degree2.size + 1
         if degree1.code == "DEGREE.DegreeOf" and degree2.code == "DEGREE.DegreeOf":
             self.size = self.default_size + degree1.size + degree2.size + 2
             self.children = [degree1, degree2]
         elif degree2.code == "Degree.DegreeOf":
             self.code = f"Degree_Of({obj.code}) == {degree1.code}"
             self.children = [degree1]
+            self.size = self.default_size + degree1.size + degree2.size + 1
         elif degree1.code == "Degree.DegreeOf":
             self.code = f"Degree_Of({obj.code}) == {degree2.code}"
             self.children = [degree2]
+            self.size = self.default_size + degree1.size + degree2.size + 1
         else:
             self.code = f"Equals({degree2.code}, {degree1.code})"
             self.children = [degree1, degree2]
+            self.size = self.default_size + degree1.size + degree2.size
 
     @classmethod
     def execute(cls, task, children):
@@ -1205,7 +1214,6 @@ class Degree_Equals(Filters):
                 ]
             ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
-            cls.values = []
             return cls
         instance = cls(*children)
         if (
@@ -1228,25 +1236,51 @@ class Shape_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.SHAPE, FilterTypes.SHAPE, FilterTypes.OBJECT]
-        self.size = self.default_size + shape1.size + shape2.size + 1
         if shape1.code == "SHAPE.ShapeOf" and shape2.code == "SHAPE.ShapeOf":
             self.size = self.default_size + shape1.size + shape2.size + 2
             self.children = [shape1, shape2]
         elif shape2 == Shape.shapeof:
             self.code = f"Shape_Of({obj.code}) == {shape1.code}"
             self.children = [shape1]
+            self.size = self.default_size + shape1.size + shape2.size + 1
         elif shape1 == Shape.shapeof:
             self.code = f"Shape_Of({obj.code}) == {shape2.code}"
             self.children = [shape2]
+            self.size = self.default_size + shape1.size + shape2.size + 1
         else:
             self.code = f"Equals({shape2.code}, {shape1.code})"
             self.children = [shape1, shape2]
+            self.size = self.default_size + shape1.size + shape2.size
 
     @classmethod
     def execute(cls, task, children):
         if children[0] == Shape.shapeof and children[1] == Shape.shapeof:
-            cls.code = f"(Shape_Of({children[2].code}) == Shape_Of({children[2].code}))"
-            cls.values = []
+            if children[2].code == 'Object.this':
+                cls.code = f"Shape_Of({children[2].code}) == Shape_Of({children[2].code})"
+                cls.values = [
+                {
+                    node1: [node2 for node2 in input_graph.graph.nodes() if 
+                            node1 == node2]
+                    for node1 in input_graph.graph.nodes()
+                }
+                for input_graph in task.input_abstracted_graphs_original[
+                    task.abstraction
+                ]
+            ]
+            elif children[2].code == 'Object.other':
+                cls.code = f"Shape_Of(Object.this) == Shape_Of({children[2].code})"
+                cls.values = [
+                {
+                    node1: [node2 for node2 in input_graph.graph.nodes() if 
+                            node1 != node2 and (input_graph.is_enclosed(node1) == input_graph.is_enclosed(node2)) or 
+                            (input_graph.is_square(node1) == input_graph.is_square(node2))]
+                    for node1 in input_graph.graph.nodes()
+                }
+                for input_graph in task.input_abstracted_graphs_original[
+                    task.abstraction
+                ]
+            ]
+            cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
         if (
@@ -1268,19 +1302,21 @@ class Row_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.ROW, FilterTypes.ROW, FilterTypes.OBJECT]
-        self.size = self.default_size + row1.size + row2.size + 1
         if row1.code == "ROW.RowOf" and row2.code == "ROW.RowOf":
             self.size = self.default_size + row1.size + row2.size + 2
             self.children = [row1, row2]
         elif row2.code == "ROW.RowOf":
             self.code = f"Row_Of({obj.code}) == {row1.code}"
             self.children = [row1]
+            self.size = self.default_size + row1.size + row2.size + 1
         elif row1.code == "ROW.RowOf":
             self.code = f"Row_Of({obj.code}) == {row2.code}"
             self.children = [row2]
+            self.size = self.default_size + row1.size + row2.size + 1
         else:
             self.code = f"Equals({row2.code}, {row1.code})"
             self.children = [row1, row2]
+            self.size = self.default_size + row1.size + row2.size
 
     @classmethod
     def execute(cls, task, children):
@@ -1311,6 +1347,7 @@ class Row_Equals(Filters):
                     task.abstraction
                 ]
             ]
+            cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
         if (
@@ -1332,19 +1369,21 @@ class Column_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.COLUMN, FilterTypes.COLUMN, FilterTypes.OBJECT]
-        self.size = self.default_size + col1.size + col2.size + 1
         if col1.code == "COLUMN.ColumnOf" and col2.code == "COLUMN.ColumnOf":
             self.size = self.default_size + col1.size + col2.size + 2
             self.children = [col1, col2]
         elif col2.code == "COLUMN.ColumnOf":
             self.code = f"Column_Of({obj.code}) == {col1.code}"
             self.children = [col1]
+            self.size = self.default_size + col1.size + col2.size + 1
         elif col1.code == "COLUMN.ColumnOf":
             self.code = f"Column_Of({obj.code}) == {col2.code}"
             self.children = [col2]
+            self.size = self.default_size + col1.size + col2.size + 1
         else:
             self.code = f"Equals({col2.code}, {col1.code})"
             self.children = [col1, col2]
+            self.size = self.default_size + col1.size + col2.size
 
     @classmethod
     def execute(cls, task, children):
@@ -1378,6 +1417,7 @@ class Column_Equals(Filters):
                     task.abstraction
                 ]
             ]
+            cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
         if (

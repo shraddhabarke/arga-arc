@@ -791,7 +791,6 @@ class ARCGraph:
         """
         if not isinstance(node, Tuple): # object
             return shape == node
-        
         if shape == Shape.enclosed or shape == "enclosed":
             nodes = self.graph.nodes(data=True)[node]['nodes']
             all_nodes = []
@@ -852,7 +851,6 @@ class ARCGraph:
             if any(point in edge_points for point in missing_points):
                 return False  # Missing points are at the edge
             return is_square_formed_by_points(list(missing_points))
-
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
         """
@@ -1124,6 +1122,67 @@ class ARCGraph:
                 else:
                     return Dir.RIGHT
         return None
+
+    def is_square(self, node):
+        nodes = self.graph.nodes(data=True)[node]['nodes']
+        if not nodes:
+            return False
+        min_x = min(nodes, key=lambda x: x[0])[0]
+        max_x = max(nodes, key=lambda x: x[0])[0]
+        min_y = min(nodes, key=lambda x: x[1])[1]
+        max_y = max(nodes, key=lambda x: x[1])[1]
+        def is_square_formed_by_points(points):
+            if not points:  # Check if the points list is empty
+                return False
+            if len(points) == 1:
+                return True
+            x_coords = [p[0] for p in points]
+            y_coords = [p[1] for p in points]
+            min_x, max_x = min(x_coords), max(x_coords)
+            min_y, max_y = min(y_coords), max(y_coords)
+            width = max_x - min_x + 1
+            height = max_y - min_y + 1
+            # Check if the dimensions form a square and if the number of points matches the area of the square
+            if width == height and len(points) == width * height:
+                return True
+            return False
+        all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+        missing_points = set(all_points) - set(nodes)
+        edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+        if any(point in edge_points for point in missing_points):
+            return False  # Missing points are at the edge
+        return is_square_formed_by_points(list(missing_points))
+
+    def is_enclosed(self, node):
+        nodes = self.graph.nodes(data=True)[node]['nodes']
+        all_nodes = []
+        for node in self.graph.nodes():
+            all_nodes.extend(self.graph.nodes(data=True)[node]['nodes'])
+        if not nodes:
+            return False
+        min_x = min(nodes, key=lambda x: x[0])[0]
+        max_x = max(nodes, key=lambda x: x[0])[0]
+        min_y = min(nodes, key=lambda x: x[1])[1]
+        max_y = max(nodes, key=lambda x: x[1])[1]
+        all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+        nodes_set = set(nodes)
+        missing_points = all_points - nodes_set
+
+        # Remove edge points from missing set
+        edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | \
+                {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+        missing_points = missing_points - edge_points
+        missing_points = set([point for point in missing_points if point in all_nodes])
+        if not missing_points:
+            return False  # No internal missing points means the shape is fully filled
+
+        combined_set = missing_points | nodes_set
+        for point in missing_points:
+            x, y = point
+            neighbors = {(x-1, y), (x+1, y), (x, y-1), (x, y+1)}
+            if not all(neighbor in combined_set for neighbor in neighbors):
+                return False  # Found a missing point not fully surrounded by nodes/missing points
+        return True
 
     def get_mirror_axis(self, node1, node2):
         """
