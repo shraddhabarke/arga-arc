@@ -1,7 +1,7 @@
 import arga_ast_generator as ast
 from task import Task
 import transform as tf
-import filters as f
+import filters_eval as f
 import typing as t
 from enum import Enum
 import click
@@ -72,6 +72,8 @@ TASKS = [
     {"task_id": "ae3edfdc", "abstraction": "nbccg"},
 ]
 
+TASKS = [{"task_id": "ddf7fa4f", "abstraction": "nbccg"}]
+
 TASK_IDS = [task["task_id"] for task in TASKS]
 TASK_ABSTRACTIONS = [task["abstraction"] for task in TASKS]
 
@@ -101,7 +103,7 @@ def cli():
     type=click.Path(exists=True),
     # default="dsl/v0_3/generations/gpt4o_20240514",
     # default="dsl/v0_3/generations/arga_gpt4o_20240515",
-    default="dsl/v0_3/generations/arga_gpt4o_m100_20240516",
+    default="dsl/v0_3/generations/arga_gpt4o_m100_20240516/",
 )
 def parse(task_id, path):
     if len(task_id) == 0:
@@ -147,7 +149,7 @@ def parse(task_id, path):
     "--path",
     "-p",
     type=click.Path(exists=True),
-    default="dsl/v0_3/generations/gpt4o_20240514",
+    default="dsl/v0_3/generations/arga_gpt4o_m100_20240516/",
 )
 def evaluate(task_id, path):
     if len(task_id) == 0:
@@ -158,6 +160,7 @@ def evaluate(task_id, path):
         abstraction = task["abstraction"] if task["abstraction"] else "nbccg"
         try:
             programs = parse_programs(task_id, abstraction, path)
+            #print(programs)
             num_correct = num_correct_programs(task_id, abstraction, programs)
         except Exception as e:
             print(f"{task_id}: {e}")
@@ -216,6 +219,8 @@ def get_task(task_id: TASK_IDS_TYPE, abstraction: str) -> Task:
     task.get_static_inserted_objects()
     task.get_static_object_attributes(abstraction)
     f.setup_size_and_degree_based_on_task(task)
+    test_input = task.test_input[0]
+    task.test_abstracted_graph = [getattr(test_input, Image.abstraction_ops[task.abstraction])()]
     # TODO: the below line causes an error
     tf.setup_objectids(task)
     return task
@@ -227,6 +232,7 @@ def num_correct_programs(
     task = get_task(task_id, abstraction)
     num_correct = 0
     for idx, program in enumerate(programs):
+        print(program, "\n\n")
         executable_program = convert_ast_to_executable(program)
         test_results = task.test_program(executable_program, abstraction)
         if test_results:
@@ -288,9 +294,6 @@ def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
             obj=get_obj_from_arguments(_filter.color1, _filter.color2),
         )
     elif isinstance(_filter, ast.Size_Equals):
-        print("1:", _filter.size1)
-        print("2:", _filter.size2)
-
         return f.Size_Equals(
             size1=convert_filter_to_executable(_filter.size1),
             size2=convert_filter_to_executable(_filter.size2),
@@ -306,6 +309,7 @@ def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
         return f.Degree_Equals(
             degree1=convert_filter_to_executable(_filter.degree1),
             degree2=convert_filter_to_executable(_filter.degree2),
+            obj=get_obj_from_arguments(_filter.degree1, _filter.degree2),
         )
     elif isinstance(_filter, ast.Shape_Equals):
         return f.Shape_Equals(

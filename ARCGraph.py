@@ -1234,6 +1234,23 @@ class ARCGraph:
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
 
+    def apply_transform(self, filter: FilterASTNode, transformation: TransformASTNode):
+        """
+        perform a full operation on the abstracted graph
+        1. apply filters to get a list of nodes to transform
+        2. apply param binding to the filtered nodes to retrieve parameters for the transformation
+        3. apply transformation to the nodes
+        """
+        transformed_nodes = {}
+        for node, info in self.graph.nodes(data=True):
+            transformed_nodes[node] = [
+                    child.value for child in transformation.children
+                ]
+        for node, params in transformed_nodes.items():
+            self.apply_transform_inner(node, transformation, params)
+        # update the edges in the abstracted graph to reflect the changes
+        self.update_abstracted_graph(list(transformed_nodes.keys()))
+
     def var_apply_all(
         self, parameters: dict, filter: FilterASTNode, transformation: TransformASTNode
     ):
@@ -1246,6 +1263,24 @@ class ARCGraph:
                 self.apply_transform_inner(node, transformation, params)
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
+
+    def var_eval(
+        self, parameters: dict, filter: FilterASTNode, transformation: TransformASTNode
+    ):
+        if parameters == [] or parameters == {}:
+            pass
+        else:
+            if isinstance(parameters, list):
+                parameters = parameters[0]
+            transformed_nodes = {}
+            for node in self.graph.nodes():
+                if node in list(parameters.keys()):
+                    transformed_nodes[node] = parameters[node]
+            for node, params in transformed_nodes.items():
+                if params and len(params) == 1:
+                    self.apply_transform_inner(node, transformation, params)
+        # update the edges in the abstracted graph to reflect the changes
+            self.update_abstracted_graph(list(transformed_nodes.keys()))
 
     def apply_transform_inner(
         self, node, transformation: TransformASTNode, args: List[TransformASTNode]
@@ -1488,3 +1523,24 @@ class ARCGraph:
             else:
                 fig.savefig(self.save_dir + "/" + self.name)
         plt.close()
+
+    def apply_solution(self, apply_call, abstraction, save_images=False):
+        """
+        apply solution abstraction and apply_call to test image
+        """
+        self.abstraction = abstraction
+        self.input_abstracted_graphs_original[abstraction] = [getattr(input, Image.abstraction_ops[abstraction])() for
+                                                            input in self.train_input]
+        self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
+                                                            output in self.train_output]
+        self.get_static_inserted_objects()
+        test_input = self.test_input[0]
+        abstracted_graph = getattr(test_input, Image.abstraction_ops[abstraction])()
+        for call in apply_call:
+            abstracted_graph.apply(**call)
+        reconstructed = test_input.undo_abstraction(abstracted_graph)
+        if save_images:
+            test_input.arc_graph.plot(save_fig=True)
+            reconstructed.plot(save_fig=True)
+            self.test_output[0].arc_graph.plot(save_fig=True)
+        return reconstructed
