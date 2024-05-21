@@ -13,6 +13,7 @@ import traceback
 from datetime import datetime
 import re
 import itertools
+from pprint import pprint
 
 from utils import TASK_IDS, TASK_IDS_TYPE
 from config import CONFIG
@@ -32,94 +33,6 @@ ALL_ABSTRACTIONS = [
     "nbccgm",
     "sp",
 ]
-
-# TODO: get abstraction list for every task
-TASKS = [
-    {"task_id": "08ed6ac7", "abstraction": "nbccg"},
-    {"task_id": "1e0a9b12", "abstraction": "nbccg"},
-    {"task_id": "25ff71a9", "abstraction": "nbccg"},
-    {"task_id": "3906de3d", "abstraction": "nbvcg"},
-    {"task_id": "4258a5f9", "abstraction": "nbccg"},
-    {"task_id": "50cb2852", "abstraction": "nbccg"},
-    {"task_id": "543a7ed5", "abstraction": "mcccg"},
-    {"task_id": "6455b5f5", "abstraction": "ccg"},
-    {"task_id": "67385a82", "abstraction": "nbccg"},
-    {"task_id": "694f12f3", "abstraction": "nbccg"},
-    {"task_id": "6e82a1ae", "abstraction": "nbccg"},
-    {"task_id": "7f4411dc", "abstraction": "lrg"},
-    {"task_id": "a79310a0", "abstraction": "nbccg"},
-    {"task_id": "aedd82e4", "abstraction": "nbccg"},
-    {"task_id": "b1948b0a", "abstraction": "nbccg"},
-    {"task_id": "b27ca6d3", "abstraction": "nbccg"},
-    {"task_id": "bb43febb", "abstraction": "nbccg"},
-    {"task_id": "c8f0f002", "abstraction": "nbccg"},
-    {"task_id": "d2abd087", "abstraction": "nbccg"},
-    {"task_id": "dc1df850", "abstraction": "nbccg"},
-    {"task_id": "ea32f347", "abstraction": "nbccg"},
-    {"task_id": "6d75e8bb", "abstraction": "nbccg"},
-    {"task_id": "00d62c1b", "abstraction": "ccgbr"},
-    {"task_id": "9565186b", "abstraction": "nbccg"},
-    {"task_id": "810b9b61", "abstraction": "ccgbr"},
-    {"task_id": "a5313dff", "abstraction": "ccgbr"},
-    {"task_id": "aabf363d", "abstraction": "nbccg"},
-    {"task_id": "d5d6de2d", "abstraction": "ccg"},
-    {"task_id": "67a3c6ac", "abstraction": "na"},
-    {"task_id": "3c9b0459", "abstraction": "na"},
-    {"task_id": "9dfd6313", "abstraction": "na"},
-    {"task_id": "ed36ccf7", "abstraction": "na"},
-    {"task_id": "ddf7fa4f", "abstraction": "nbccg"},
-    {"task_id": "05f2a901", "abstraction": "nbccg"},
-    {"task_id": "d43fd935", "abstraction": "nbccg"},
-    {"task_id": "f8a8fe49", "abstraction": "nbccg"},
-    {"task_id": "ae3edfdc", "abstraction": "nbccg"},
-]
-
-TASKS = [{"task_id": "ddf7fa4f", "abstraction": "nbccg"}]
-
-TASK_IDS = [task["task_id"] for task in TASKS]
-TASK_ABSTRACTIONS = [task["abstraction"] for task in TASKS]
-# TASKS = [
-#     {"task_id": "08ed6ac7", "abstraction": "nbccg"},
-#     {"task_id": "1e0a9b12", "abstraction": "nbccg"},
-#     {"task_id": "25ff71a9", "abstraction": "nbccg"},
-#     {"task_id": "3906de3d", "abstraction": "nbvcg"},
-#     {"task_id": "4258a5f9", "abstraction": "nbccg"},
-#     {"task_id": "50cb2852", "abstraction": "nbccg"},
-#     {"task_id": "543a7ed5", "abstraction": "mcccg"},
-#     {"task_id": "6455b5f5", "abstraction": "ccg"},
-#     {"task_id": "67385a82", "abstraction": "nbccg"},
-#     {"task_id": "694f12f3", "abstraction": "nbccg"},
-#     {"task_id": "6e82a1ae", "abstraction": "nbccg"},
-#     {"task_id": "7f4411dc", "abstraction": "lrg"},
-#     {"task_id": "a79310a0", "abstraction": "nbccg"},
-#     {"task_id": "aedd82e4", "abstraction": "nbccg"},
-#     {"task_id": "b1948b0a", "abstraction": "nbccg"},
-#     {"task_id": "b27ca6d3", "abstraction": "nbccg"},
-#     {"task_id": "bb43febb", "abstraction": "nbccg"},
-#     {"task_id": "c8f0f002", "abstraction": "nbccg"},
-#     {"task_id": "d2abd087", "abstraction": "nbccg"},
-#     {"task_id": "dc1df850", "abstraction": "nbccg"},
-#     {"task_id": "ea32f347", "abstraction": "nbccg"},
-#     {"task_id": "6d75e8bb", "abstraction": "nbccg"},
-#     {"task_id": "00d62c1b", "abstraction": "ccgbr"},
-#     {"task_id": "9565186b", "abstraction": "nbccg"},
-#     {"task_id": "810b9b61", "abstraction": "ccgbr"},
-#     {"task_id": "a5313dff", "abstraction": "ccgbr"},
-#     {"task_id": "aabf363d", "abstraction": "nbccg"},
-#     {"task_id": "d5d6de2d", "abstraction": "ccg"},
-#     {"task_id": "67a3c6ac", "abstraction": "na"},
-#     {"task_id": "3c9b0459", "abstraction": "na"},
-#     {"task_id": "9dfd6313", "abstraction": "na"},
-#     {"task_id": "ed36ccf7", "abstraction": "na"},
-#     {"task_id": "ddf7fa4f", "abstraction": "nbccg"},
-#     {"task_id": "05f2a901", "abstraction": "nbccg"},
-#     {"task_id": "d43fd935", "abstraction": "nbccg"},
-#     {"task_id": "f8a8fe49", "abstraction": "nbccg"},
-#     {"task_id": "ae3edfdc", "abstraction": "nbccg"},
-# ]
-
-# TASK_IDS = [task["task_id"] for task in TASKS]
-# TASK_ABSTRACTIONS = [task["abstraction"] for task in TASKS]
 
 # region CLI
 
@@ -159,7 +72,7 @@ def cli():
 
 
 @cli.command()
-@click.option("--task-id", "-t", type=click.Choice(TASK_IDS), multiple=True)
+@click.option("--task-id", "-t", type=str, multiple=True)
 @click.option(
     "--path",
     "-p",
@@ -229,32 +142,86 @@ def parse(task_id, path, log_asts, log_easts):
 
 
 @cli.command()
-@click.option("--task-id", "-t", type=click.Choice(TASK_IDS), multiple=True)
+@click.option("--task-id", "-t", type=str, multiple=True)
 @click.option(
     "--path",
     "-p",
     type=click.Path(exists=True),
     default="dsl/v0_3/generations/arga_gpt4o_m100_20240516/",
 )
-def evaluate(task_id, path):
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Log debug info",
+)
+def evaluate(task_id, path, verbose):
     all_task_ids = get_task_ids(Path(path))
     if any(t not in all_task_ids for t in task_id):
         raise ValueError(f"Invalid task id {task_id} is not in task ids for {path}")
 
     if len(task_id) == 0:
-        task_id = TASK_IDS
+        task_id = all_task_ids
 
+    task_results: t.Dict[str, bool] = {}
     for cur_task_id, abstraction in tqdm(
         list(itertools.product(all_task_ids, ALL_ABSTRACTIONS))
     ):
+        if cur_task_id in task_results:
+            continue
+        if cur_task_id not in task_id:
+            continue
+
         try:
             programs = parse_programs(cur_task_id, abstraction, path)
-            num_correct = num_correct_programs(cur_task_id, abstraction, programs)
         except Exception as e:
-            print(f"{cur_task_id}: {e}")
+            print(f"error parsing {cur_task_id} {abstraction}: {e}")
+            traceback.print_stack()
             continue
-        # TODO: aggregate accross abstractions, save for all tasks
-        print(f"{cur_task_id}: correct/total {num_correct}/{len(programs)}")
+
+        task = get_task(cur_task_id, abstraction)
+        for _, program in enumerate(programs):
+            try:
+                executable_program = convert_ast_to_executable(program)
+            except Exception as e:
+                print(
+                    f"error making a program executable in {cur_task_id} {abstraction}: {e}"
+                )
+                print()
+                print(program)
+                print()
+                traceback.print_exc()
+                print()
+                print()
+                continue
+
+            try:
+                test_results = task.test_program(executable_program, abstraction)
+                if test_results:
+                    task_results[cur_task_id] = True
+                    break
+            except Exception as e:
+                print(f"error evaluating a program in {cur_task_id} {abstraction}: {e}")
+                print()
+                print(program)
+                print()
+                pprint(executable_program)
+                print()
+                traceback.print_exc()
+                print()
+                print()
+                continue
+        if cur_task_id not in task_results:
+            task_results[cur_task_id] = False
+        print(f"finished {cur_task_id} {abstraction}")
+
+    print("# results")
+    for task_id, result in task_results.items():
+        print(f"{task_id}: {result}")
+
+    print("## overall")
+    num_correct = sum(task_results.values())
+    print(f"num correct: {num_correct}")
 
 
 def tqdm_print(*args, **kwargs):
@@ -311,7 +278,9 @@ def get_task(task_id: TASK_IDS_TYPE, abstraction: str) -> Task:
     task.get_static_object_attributes(abstraction)
     f.setup_size_and_degree_based_on_task(task)
     test_input = task.test_input[0]
-    task.test_abstracted_graph = [getattr(test_input, Image.abstraction_ops[task.abstraction])()]
+    task.test_abstracted_graph = [
+        getattr(test_input, Image.abstraction_ops[task.abstraction])()
+    ]
     # TODO: the below line causes an error
     tf.setup_objectids(task)
     return task
