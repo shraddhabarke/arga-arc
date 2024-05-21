@@ -582,6 +582,7 @@ class Direct_Neighbor_Of(Filters):
         self.nodeType = FilterTypes.FILTERS
         self.size = self.default_size + 2
         self.children = []
+        self.code = "Direct_Neighbor_Of(Obj) == X"
         self.values = []
         self.childTypes = []
 
@@ -621,6 +622,7 @@ class Neighbor_Of(Filters):
         self.size = self.default_size + 2
         self.children = []
         self.values = []
+        self.code = "Neighbor_Of(Obj) == X"
         self.childTypes = []
 
     @classmethod
@@ -814,7 +816,7 @@ class Or(FilterASTNode):
                     )  # always preserve relationships
                     union_dict[key] = combined_values
                 res_dict.append(union_dict)
-        new_instance.values = res_dict
+            new_instance.values = res_dict
         return new_instance
 
 
@@ -899,7 +901,7 @@ class Color_Equals(Filters):
     childTypes = [[FilterTypes.COLOR, FilterTypes.COLOR, FilterTypes.OBJECT]]
     default_size = 1
 
-    def __init__(self, color1: FColor, color2: FColor, obj: Object):
+    def __init__(self, color1: FColor, color2: FColor = None, obj: Object = None):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.COLOR, FilterTypes.COLOR, FilterTypes.OBJECT]
@@ -1236,7 +1238,7 @@ class Shape_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.SHAPE, FilterTypes.SHAPE, FilterTypes.OBJECT]
-        if shape1.code == "SHAPE.ShapeOf" and shape2.code == "SHAPE.ShapeOf":
+        if shape1 == Shape.shapeof and shape2 == Shape.shapeof:
             self.size = self.default_size + shape1.size + shape2.size + 2
             self.children = [shape1, shape2]
         elif shape2 == Shape.shapeof:

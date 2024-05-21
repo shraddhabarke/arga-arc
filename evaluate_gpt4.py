@@ -160,7 +160,6 @@ def evaluate(task_id, path):
         abstraction = task["abstraction"] if task["abstraction"] else "nbccg"
         try:
             programs = parse_programs(task_id, abstraction, path)
-            #print(programs)
             num_correct = num_correct_programs(task_id, abstraction, programs)
         except Exception as e:
             print(f"{task_id}: {e}")
@@ -232,7 +231,6 @@ def num_correct_programs(
     task = get_task(task_id, abstraction)
     num_correct = 0
     for idx, program in enumerate(programs):
-        print(program, "\n\n")
         executable_program = convert_ast_to_executable(program)
         test_results = task.test_program(executable_program, abstraction)
         if test_results:
