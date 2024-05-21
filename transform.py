@@ -462,7 +462,6 @@ class ObjectId(TransformASTNode):
 
 
 def setup_objectids(task):
-    print(task.static_objects_for_insertion)
     task_ids = [id for id in range(len(task.static_objects_for_insertion[task.abstraction]))] + [
         -1]
     _id_additional = {f'{item}': int(item) for item in task_ids}

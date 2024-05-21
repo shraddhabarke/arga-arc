@@ -328,6 +328,7 @@ def setup_size_and_degree_based_on_task(task):
             "MIN": "MIN",
             "MAX": "MAX",
             "ODD": "ODD",
+            "EVEN": "EVEN",
             **_degree_additional,
             "DegreeOf": "DegreeOf",
         },
@@ -342,6 +343,7 @@ def setup_size_and_degree_based_on_task(task):
             "MIN": "MIN",
             "MAX": "MAX",
             "ODD": "ODD",
+            "EVEN": "EVEN",
             **_height_additional,
             "HeightOf": "HeightOf",
         },
@@ -355,6 +357,7 @@ def setup_size_and_degree_based_on_task(task):
             "MIN": "MIN",
             "MAX": "MAX",
             "ODD": "ODD",
+            "EVEN": "EVEN",
             **_width_additional,
             "WidthOf": "WidthOf",
         },
@@ -577,6 +580,7 @@ class Direct_Neighbor_Of(Filters):
     arity = 0
     default_size = 1
     size = default_size + 2
+
     def __init__(self):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
@@ -690,14 +694,19 @@ class And(FilterASTNode):
         new_instance.values = res_dict
 
         if (
-            ("Neighbor_Of" in children[0].code
-            and "Neighbor_Of" in children[1].code)
-            or ("Neighbor_Of" in children[0].code
-            and "Direct_Neighbor_Of" in children[1].code)
-            or ("Direct_Neighbor_Of" in children[0].code
-            and "Neighbor_Of" in children[1].code)
-            or ("Direct_Neighbor_Of" in children[0].code
-            and "Direct_Neighbor_Of" in children[1].code)
+            ("Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code)
+            or (
+                "Neighbor_Of" in children[0].code
+                and "Direct_Neighbor_Of" in children[1].code
+            )
+            or (
+                "Direct_Neighbor_Of" in children[0].code
+                and "Neighbor_Of" in children[1].code
+            )
+            or (
+                "Direct_Neighbor_Of" in children[0].code
+                and "Direct_Neighbor_Of" in children[1].code
+            )
             or all(not d for d in children[0].values)
             or all(not d for d in children[1].values)
         ):
@@ -768,14 +777,19 @@ class Or(FilterASTNode):
         new_instance.values = res_dict
 
         if (
-            ("Neighbor_Of" in children[0].code
-            and "Neighbor_Of" in children[1].code)
-            or ("Neighbor_Of" in children[0].code
-            and "Direct_Neighbor_Of" in children[1].code)
-            or ("Direct_Neighbor_Of" in children[0].code
-            and "Neighbor_Of" in children[1].code)
-            or ("Direct_Neighbor_Of" in children[0].code
-            and "Direct_Neighbor_Of" in children[1].code)
+            ("Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code)
+            or (
+                "Neighbor_Of" in children[0].code
+                and "Direct_Neighbor_Of" in children[1].code
+            )
+            or (
+                "Direct_Neighbor_Of" in children[0].code
+                and "Neighbor_Of" in children[1].code
+            )
+            or (
+                "Direct_Neighbor_Of" in children[0].code
+                and "Direct_Neighbor_Of" in children[1].code
+            )
             or all(not d for d in children[0].values)
             or all(not d for d in children[1].values)
         ):
@@ -925,33 +939,49 @@ class Color_Equals(Filters):
     def execute(cls, task, children):
         instance = cls(*children)
         if children[0] == FColor.colorof and children[1] == FColor.colorof:
-            if children[2].code == 'Object.this':
-                instance.code = f"Color_Of({children[2].code}) == Color_Of({children[2].code})"
+            if children[2].code == "Object.this":
+                instance.code = (
+                    f"Color_Of({children[2].code}) == Color_Of({children[2].code})"
+                )
                 instance.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2 and input_graph.graph.nodes[node1]["color"] == input_graph.graph.nodes[node2]["color"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                            and input_graph.graph.nodes[node1]["color"]
+                            == input_graph.graph.nodes[node2]["color"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 instance.code = f"Color_Of(Object.this) == Color_Of({children[2].code})"
                 instance.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and input_graph.graph.nodes[node1]["color"] == input_graph.graph.nodes[node2]["color"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and input_graph.graph.nodes[node1]["color"]
+                            == input_graph.graph.nodes[node2]["color"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            instance.size = instance.default_size + children[0].size + children[1].size + 2
+            instance.size = (
+                instance.default_size + children[0].size + children[1].size + 2
+            )
             return instance
-        if (not children[0] == FColor.colorof and not children[1] == FColor.colorof) or children[2] == Object.this:
+        if (
+            not children[0] == FColor.colorof and not children[1] == FColor.colorof
+        ) or children[2] == Object.this:
             values = task.filter_values(instance)
         elif children[2] == Object.other:
             values = task.var_filter_values(instance)
@@ -988,30 +1018,40 @@ class Size_Equals(Filters):
     def execute(cls, task, children):
         instance = cls(*children)
         if children[0].code == "SIZE.SizeOf" and children[1].code == "SIZE.SizeOf":
-            if children[2].code == 'Object.this':
+            if children[2].code == "Object.this":
                 cls.code = f"Size_Of({children[2].code}) == Size_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2 and input_graph.graph.nodes[node1]["size"] == input_graph.graph.nodes[node2]["size"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                            and input_graph.graph.nodes[node1]["size"]
+                            == input_graph.graph.nodes[node2]["size"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 cls.code = f"Size_Of(Object.this) == Size_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and input_graph.graph.nodes[node1]["size"] == input_graph.graph.nodes[node2]["size"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and input_graph.graph.nodes[node1]["size"]
+                            == input_graph.graph.nodes[node2]["size"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         if (
@@ -1056,30 +1096,42 @@ class Height_Equals(Filters):
             children[0].code == "HEIGHT.HeightOf"
             and children[1].code == "HEIGHT.HeightOf"
         ):
-            if children[2].code == 'Object.this':
-                cls.code = f"Height_Of({children[2].code}) == Height_Of({children[2].code})"
+            if children[2].code == "Object.this":
+                cls.code = (
+                    f"Height_Of({children[2].code}) == Height_Of({children[2].code})"
+                )
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2 and input_graph.graph.nodes[node1]["height"] == input_graph.graph.nodes[node2]["height"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                            and input_graph.graph.nodes[node1]["height"]
+                            == input_graph.graph.nodes[node2]["height"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 cls.code = f"Height_Of(Object.this) == Height_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and input_graph.graph.nodes[node1]["height"] == input_graph.graph.nodes[node2]["height"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and input_graph.graph.nodes[node1]["height"]
+                            == input_graph.graph.nodes[node2]["height"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
@@ -1122,30 +1174,42 @@ class Width_Equals(Filters):
     @classmethod
     def execute(cls, task, children):
         if children[0].code == "WIDTH.WidthOf" and children[1].code == "WIDTH.WidthOf":
-            if children[2].code == 'Object.this':
-                cls.code = f"Width_Of({children[2].code}) == Width_Of({children[2].code})"
+            if children[2].code == "Object.this":
+                cls.code = (
+                    f"Width_Of({children[2].code}) == Width_Of({children[2].code})"
+                )
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2 and input_graph.graph.nodes[node1]["width"] == input_graph.graph.nodes[node2]["width"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                            and input_graph.graph.nodes[node1]["width"]
+                            == input_graph.graph.nodes[node2]["width"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 cls.code = f"Width_Of(Object.this) == Width_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and input_graph.graph.nodes[node1]["width"] == input_graph.graph.nodes[node2]["width"]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and input_graph.graph.nodes[node1]["width"]
+                            == input_graph.graph.nodes[node2]["width"]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
@@ -1191,30 +1255,42 @@ class Degree_Equals(Filters):
             children[0].code == "DEGREE.DegreeOf"
             and children[1].code == "DEGREE.DegreeOf"
         ):
-            if children[2].code == 'Object.this':
-                cls.code = f"Degree_Of({children[2].code}) == Degree_Of({children[2].code})"
+            if children[2].code == "Object.this":
+                cls.code = (
+                    f"Degree_Of({children[2].code}) == Degree_Of({children[2].code})"
+                )
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2 and input_graph.graph.degree[node1] == input_graph.graph.degree[node2]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                            and input_graph.graph.degree[node1]
+                            == input_graph.graph.degree[node2]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 cls.code = f"Degree_Of(Object.this) == Degree_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and input_graph.graph.degree[node1] == input_graph.graph.degree[node2]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and input_graph.graph.degree[node1]
+                            == input_graph.graph.degree[node2]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
@@ -1238,7 +1314,7 @@ class Shape_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.SHAPE, FilterTypes.SHAPE, FilterTypes.OBJECT]
-        if shape1 == Shape.shapeof and shape2 == Shape.shapeof:
+        if shape1.code == "Shape.shapeof" and shape2.code == "Shape.shapeof":
             self.size = self.default_size + shape1.size + shape2.size + 2
             self.children = [shape1, shape2]
         elif shape2 == Shape.shapeof:
@@ -1257,31 +1333,46 @@ class Shape_Equals(Filters):
     @classmethod
     def execute(cls, task, children):
         if children[0] == Shape.shapeof and children[1] == Shape.shapeof:
-            if children[2].code == 'Object.this':
-                cls.code = f"Shape_Of({children[2].code}) == Shape_Of({children[2].code})"
+            if children[2].code == "Object.this":
+                cls.code = (
+                    f"Shape_Of({children[2].code}) == Shape_Of({children[2].code})"
+                )
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 cls.code = f"Shape_Of(Object.this) == Shape_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and (input_graph.is_enclosed(node1) == input_graph.is_enclosed(node2)) or 
-                            (input_graph.is_square(node1) == input_graph.is_square(node2))]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and (
+                                input_graph.is_enclosed(node1)
+                                == input_graph.is_enclosed(node2)
+                            )
+                            or (
+                                input_graph.is_square(node1)
+                                == input_graph.is_square(node2)
+                            )
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
@@ -1323,32 +1414,52 @@ class Row_Equals(Filters):
     @classmethod
     def execute(cls, task, children):
         if children[0].code == "ROW.RowOf" and children[1].code == "ROW.RowOf":
-            if children[2].code == 'Object.this':
+            if children[2].code == "Object.this":
                 cls.code = f"Row_Of({children[2].code}) == Row_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2 and [col[0] for col in input_graph.graph.nodes[node1]["nodes"]] == 
-                            [col[0] for col in input_graph.graph.nodes[node2]["nodes"]]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                            and [
+                                col[0]
+                                for col in input_graph.graph.nodes[node1]["nodes"]
+                            ]
+                            == [
+                                col[0]
+                                for col in input_graph.graph.nodes[node2]["nodes"]
+                            ]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 cls.code = f"Row_Of(Object.this) == Row_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and [col[0] for col in input_graph.graph.nodes[node1]["nodes"]] == 
-                            [col[0] for col in input_graph.graph.nodes[node2]["nodes"]]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and [
+                                col[0]
+                                for col in input_graph.graph.nodes[node1]["nodes"]
+                            ]
+                            == [
+                                col[0]
+                                for col in input_graph.graph.nodes[node2]["nodes"]
+                            ]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
@@ -1393,32 +1504,54 @@ class Column_Equals(Filters):
             children[0].code == "COLUMN.ColumnOf"
             and children[1].code == "COLUMN.ColumnOf"
         ):
-            if children[2].code == 'Object.this':
-                cls.code = f"Column_Of({children[2].code}) == Column_Of({children[2].code})"
+            if children[2].code == "Object.this":
+                cls.code = (
+                    f"Column_Of({children[2].code}) == Column_Of({children[2].code})"
+                )
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 == node2 and [col[1] for col in input_graph.graph.nodes[node1]["nodes"]] == 
-                            [col[1] for col in input_graph.graph.nodes[node2]["nodes"]]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 == node2
+                            and [
+                                col[1]
+                                for col in input_graph.graph.nodes[node1]["nodes"]
+                            ]
+                            == [
+                                col[1]
+                                for col in input_graph.graph.nodes[node2]["nodes"]
+                            ]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
-            elif children[2].code == 'Object.other':
+            elif children[2].code == "Object.other":
                 cls.code = f"Column_Of(Object.this) == Column_Of({children[2].code})"
                 cls.values = [
-                {
-                    node1: [node2 for node2 in input_graph.graph.nodes() if 
-                            node1 != node2 and [col[1] for col in input_graph.graph.nodes[node1]["nodes"]] == 
-                            [col[1] for col in input_graph.graph.nodes[node2]["nodes"]]]
-                    for node1 in input_graph.graph.nodes()
-                }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
+                    {
+                        node1: [
+                            node2
+                            for node2 in input_graph.graph.nodes()
+                            if node1 != node2
+                            and [
+                                col[1]
+                                for col in input_graph.graph.nodes[node1]["nodes"]
+                            ]
+                            == [
+                                col[1]
+                                for col in input_graph.graph.nodes[node2]["nodes"]
+                            ]
+                        ]
+                        for node1 in input_graph.graph.nodes()
+                    }
+                    for input_graph in task.input_abstracted_graphs_original[
+                        task.abstraction
+                    ]
                 ]
-            ]
             cls.size = cls.default_size + children[0].size + children[1].size + 2
             return cls
         instance = cls(*children)
