@@ -172,6 +172,8 @@ def evaluate(task_id, path, verbose):
         if cur_task_id not in task_id:
             continue
 
+        task = get_task(cur_task_id, abstraction)
+        setup_enum_sizes()
         try:
             programs = parse_programs(cur_task_id, abstraction, path)
         except Exception as e:
@@ -179,7 +181,6 @@ def evaluate(task_id, path, verbose):
             traceback.print_stack()
             continue
 
-        task = get_task(cur_task_id, abstraction)
         for _, program in enumerate(programs):
             try:
                 executable_program = convert_ast_to_executable(program)
@@ -309,7 +310,7 @@ def setup_enum_sizes():
         relativepos.name: 1 for relativepos in tf.RelativePosition
     }
     tf.ImagePoints._sizes = {imagepts.name: 1 for imagepts in tf.ImagePoints}
-    tf.ObjectId._sizes = {objid.name: 1 for objid in tf.ObjectId._all_values}
+    tf.ObjectId._sizes = {objid.value : 1 for objid in tf.ObjectId._all_values}
     tf.Mirror_Axis._sizes = {axis.name: 1 for axis in tf.Mirror_Axis}
     f.FColor._sizes = {color.name: 1 for color in f.FColor}
     f.Object._sizes = {obj.name: 1 for obj in f.Object}
