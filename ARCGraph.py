@@ -66,7 +66,11 @@ class ARCGraph:
             "least": self.least_common_color
         }
         if self.is_multicolor:
-            if not isinstance(color, int):
+            if isinstance(color, Tuple):
+                self.graph.nodes[node]["color"] = [self.get_color(color)] * sum(
+                    len(data["nodes"]) for node, data in self.graph.nodes(data=True)
+                )
+            elif not isinstance(color, int):
                 self.graph.nodes[node]["color"] = [color_map[color]] * sum(
                     len(data["nodes"]) for node, data in self.graph.nodes(data=True)
                 )
@@ -75,7 +79,7 @@ class ARCGraph:
                     len(data["nodes"]) for node, data in self.graph.nodes(data=True)
                 )
         else:
-            if not isinstance(color, Tuple):
+            if isinstance(color, Tuple):
                 self.graph.nodes[node]["color"] = self.get_color(color)
             elif not isinstance(color, int):
                 self.graph.nodes[node]["color"] = color_map[color]
@@ -454,7 +458,9 @@ class ARCGraph:
                     len(data["nodes"]) for node, data in self.graph.nodes(data=True)
                 )
         else:
-            if not isinstance(color, int):
+            if isinstance(color, Tuple):
+                color = self.get_color(color)
+            elif not isinstance(color, int):
                 color = color_map[color]
 
         for subnode in self.graph.nodes[node]["nodes"]:
@@ -634,7 +640,6 @@ class ARCGraph:
         return true if node has given color.
         if exclude, return true if node does not have given color.
         """
-        #print("color:", color1, color2)
         color_map = {
             "most": self.most_common_color,
             "least": self.least_common_color,
