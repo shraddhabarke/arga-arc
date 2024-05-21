@@ -75,7 +75,9 @@ class ARCGraph:
                     len(data["nodes"]) for node, data in self.graph.nodes(data=True)
                 )
         else:
-            if not isinstance(color, int):
+            if not isinstance(color, Tuple):
+                self.graph.nodes[node]["color"] = self.get_color(color)
+            elif not isinstance(color, int):
                 self.graph.nodes[node]["color"] = color_map[color]
             else:
                 self.graph.nodes[node]["color"] = color
@@ -328,7 +330,9 @@ class ARCGraph:
             "most": self.most_common_color,
             "least": self.least_common_color
         }
-        if not isinstance(border_color, int):
+        if isinstance(border_color, Tuple):
+            border_color = self.get_color(border_color)
+        elif not isinstance(border_color, int):
             border_color = color_map[border_color]
         new_node_id = self.generate_node_id(border_color)
         if self.is_multicolor:
@@ -353,7 +357,6 @@ class ARCGraph:
         fill the rectangle containing the given node with the given color.
         if overlap is True, fill the rectangle even if it overlaps with other nodes.
         """
-
         if color == "same":
             color = self.graph.nodes[node]["color"]
         color_map = {
@@ -370,7 +373,9 @@ class ARCGraph:
             "most": self.most_common_color,
             "least": self.least_common_color
         }
-        if not isinstance(color, int):
+        if isinstance(color, Tuple):
+            color = self.get_color(color)
+        elif not isinstance(color, int):
             color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
@@ -629,6 +634,7 @@ class ARCGraph:
         return true if node has given color.
         if exclude, return true if node does not have given color.
         """
+        #print("color:", color1, color2)
         color_map = {
             "most": self.most_common_color,
             "least": self.least_common_color,
