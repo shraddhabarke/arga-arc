@@ -66,7 +66,11 @@ class ARCGraph:
             "least": self.least_common_color
         }
         if self.is_multicolor:
-            if not isinstance(color, int):
+            if isinstance(color, Tuple):
+                self.graph.nodes[node]["color"] = [self.get_color(color)] * sum(
+                    len(data["nodes"]) for node, data in self.graph.nodes(data=True)
+                )
+            elif not isinstance(color, int):
                 self.graph.nodes[node]["color"] = [color_map[color]] * sum(
                     len(data["nodes"]) for node, data in self.graph.nodes(data=True)
                 )
@@ -75,7 +79,9 @@ class ARCGraph:
                     len(data["nodes"]) for node, data in self.graph.nodes(data=True)
                 )
         else:
-            if not isinstance(color, int):
+            if isinstance(color, Tuple):
+                self.graph.nodes[node]["color"] = self.get_color(color)
+            elif not isinstance(color, int):
                 self.graph.nodes[node]["color"] = color_map[color]
             else:
                 self.graph.nodes[node]["color"] = color
@@ -328,7 +334,10 @@ class ARCGraph:
             "most": self.most_common_color,
             "least": self.least_common_color
         }
-        border_color = color_map[border_color]
+        if isinstance(border_color, Tuple):
+            border_color = self.get_color(border_color)
+        elif not isinstance(border_color, int):
+            border_color = color_map[border_color]
         new_node_id = self.generate_node_id(border_color)
         if self.is_multicolor:
             self.graph.add_node(
@@ -344,14 +353,14 @@ class ARCGraph:
                 color=border_color,
                 size=len(border_pixels),
             )
+
         return self
 
-    def FillRectangle(self, node, color: Color, overlap: Overlap):
+    def FillRectangle(self, node, color: Color, overlap: Overlap = False):
         """
         fill the rectangle containing the given node with the given color.
         if overlap is True, fill the rectangle even if it overlaps with other nodes.
         """
-
         if color == "same":
             color = self.graph.nodes[node]["color"]
         color_map = {
@@ -368,7 +377,10 @@ class ARCGraph:
             "most": self.most_common_color,
             "least": self.least_common_color
         }
-        color = color_map[color]
+        if isinstance(color, Tuple):
+            color = self.get_color(color)
+        elif not isinstance(color, int):
+            color = color_map[color]
         all_x = [sub_node[1] for sub_node in self.graph.nodes[node]["nodes"]]
         all_y = [sub_node[0] for sub_node in self.graph.nodes[node]["nodes"]]
         self.graph.add_node(
@@ -446,7 +458,9 @@ class ARCGraph:
                     len(data["nodes"]) for node, data in self.graph.nodes(data=True)
                 )
         else:
-            if not isinstance(color, int):
+            if isinstance(color, Tuple):
+                color = self.get_color(color)
+            elif not isinstance(color, int):
                 color = color_map[color]
 
         for subnode in self.graph.nodes[node]["nodes"]:
@@ -568,7 +582,7 @@ class ARCGraph:
         if object_id is -1, use the pattern given by node
         """
         node_centroid = self.get_centroid(node)
-        if not isinstance(point, tuple):
+        if node_centroid is not None and (not isinstance(point, tuple)):
             if point == "TOP" or point == ImagePoints.TOP:
                 point = (0, node_centroid[1])
             elif point == "BOTTOM" or point == ImagePoints.BOTTOM:
@@ -788,7 +802,6 @@ class ARCGraph:
         """
         if not isinstance(node, Tuple): # object
             return shape == node
-        
         if shape == Shape.enclosed or shape == "enclosed":
             nodes = self.graph.nodes(data=True)[node]['nodes']
             all_nodes = []
@@ -849,7 +862,6 @@ class ARCGraph:
             if any(point in edge_points for point in missing_points):
                 return False  # Missing points are at the edge
             return is_square_formed_by_points(list(missing_points))
-
     # ------------------------------------- utils ------------------------------------------
     def get_attribute_max(self, attribute_name):
         """
@@ -1122,6 +1134,67 @@ class ARCGraph:
                     return Dir.RIGHT
         return None
 
+    def is_square(self, node):
+        nodes = self.graph.nodes(data=True)[node]['nodes']
+        if not nodes:
+            return False
+        min_x = min(nodes, key=lambda x: x[0])[0]
+        max_x = max(nodes, key=lambda x: x[0])[0]
+        min_y = min(nodes, key=lambda x: x[1])[1]
+        max_y = max(nodes, key=lambda x: x[1])[1]
+        def is_square_formed_by_points(points):
+            if not points:  # Check if the points list is empty
+                return False
+            if len(points) == 1:
+                return True
+            x_coords = [p[0] for p in points]
+            y_coords = [p[1] for p in points]
+            min_x, max_x = min(x_coords), max(x_coords)
+            min_y, max_y = min(y_coords), max(y_coords)
+            width = max_x - min_x + 1
+            height = max_y - min_y + 1
+            # Check if the dimensions form a square and if the number of points matches the area of the square
+            if width == height and len(points) == width * height:
+                return True
+            return False
+        all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+        missing_points = set(all_points) - set(nodes)
+        edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+        if any(point in edge_points for point in missing_points):
+            return False  # Missing points are at the edge
+        return is_square_formed_by_points(list(missing_points))
+
+    def is_enclosed(self, node):
+        nodes = self.graph.nodes(data=True)[node]['nodes']
+        all_nodes = []
+        for node in self.graph.nodes():
+            all_nodes.extend(self.graph.nodes(data=True)[node]['nodes'])
+        if not nodes:
+            return False
+        min_x = min(nodes, key=lambda x: x[0])[0]
+        max_x = max(nodes, key=lambda x: x[0])[0]
+        min_y = min(nodes, key=lambda x: x[1])[1]
+        max_y = max(nodes, key=lambda x: x[1])[1]
+        all_points = {(x, y) for x in range(min_x, max_x + 1) for y in range(min_y, max_y + 1)}
+        nodes_set = set(nodes)
+        missing_points = all_points - nodes_set
+
+        # Remove edge points from missing set
+        edge_points = {(x, y) for x in [min_x, max_x] for y in range(min_y, max_y + 1)} | \
+                {(x, y) for y in [min_y, max_y] for x in range(min_x, max_x + 1)}
+        missing_points = missing_points - edge_points
+        missing_points = set([point for point in missing_points if point in all_nodes])
+        if not missing_points:
+            return False  # No internal missing points means the shape is fully filled
+
+        combined_set = missing_points | nodes_set
+        for point in missing_points:
+            x, y = point
+            neighbors = {(x-1, y), (x+1, y), (x, y-1), (x, y+1)}
+            if not all(neighbor in combined_set for neighbor in neighbors):
+                return False  # Found a missing point not fully surrounded by nodes/missing points
+        return True
+
     def get_mirror_axis(self, node1, node2):
         """
         get the axis to mirror node1 with given node2
@@ -1172,6 +1245,23 @@ class ARCGraph:
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
 
+    def apply_transform(self, filter: FilterASTNode, transformation: TransformASTNode):
+        """
+        perform a full operation on the abstracted graph
+        1. apply filters to get a list of nodes to transform
+        2. apply param binding to the filtered nodes to retrieve parameters for the transformation
+        3. apply transformation to the nodes
+        """
+        transformed_nodes = {}
+        for node, info in self.graph.nodes(data=True):
+            transformed_nodes[node] = [
+                    child.value for child in transformation.children
+                ]
+        for node, params in transformed_nodes.items():
+            self.apply_transform_inner(node, transformation, params)
+        # update the edges in the abstracted graph to reflect the changes
+        self.update_abstracted_graph(list(transformed_nodes.keys()))
+
     def var_apply_all(
         self, parameters: dict, filter: FilterASTNode, transformation: TransformASTNode
     ):
@@ -1184,6 +1274,24 @@ class ARCGraph:
                 self.apply_transform_inner(node, transformation, params)
         # update the edges in the abstracted graph to reflect the changes
         self.update_abstracted_graph(list(transformed_nodes.keys()))
+
+    def var_eval(
+        self, parameters: dict, filter: FilterASTNode, transformation: TransformASTNode
+    ):
+        if parameters == [] or parameters == {}:
+            pass
+        else:
+            if isinstance(parameters, list):
+                parameters = parameters[0]
+            transformed_nodes = {}
+            for node in self.graph.nodes():
+                if node in list(parameters.keys()):
+                    transformed_nodes[node] = parameters[node]
+            for node, params in transformed_nodes.items():
+                if params and len(params) == 1:
+                    self.apply_transform_inner(node, transformation, params)
+        # update the edges in the abstracted graph to reflect the changes
+            self.update_abstracted_graph(list(transformed_nodes.keys()))
 
     def apply_transform_inner(
         self, node, transformation: TransformASTNode, args: List[TransformASTNode]
@@ -1426,3 +1534,24 @@ class ARCGraph:
             else:
                 fig.savefig(self.save_dir + "/" + self.name)
         plt.close()
+
+    def apply_solution(self, apply_call, abstraction, save_images=False):
+        """
+        apply solution abstraction and apply_call to test image
+        """
+        self.abstraction = abstraction
+        self.input_abstracted_graphs_original[abstraction] = [getattr(input, Image.abstraction_ops[abstraction])() for
+                                                            input in self.train_input]
+        self.output_abstracted_graphs_original[abstraction] = [getattr(output, Image.abstraction_ops[abstraction])() for
+                                                            output in self.train_output]
+        self.get_static_inserted_objects()
+        test_input = self.test_input[0]
+        abstracted_graph = getattr(test_input, Image.abstraction_ops[abstraction])()
+        for call in apply_call:
+            abstracted_graph.apply(**call)
+        reconstructed = test_input.undo_abstraction(abstracted_graph)
+        if save_images:
+            test_input.arc_graph.plot(save_fig=True)
+            reconstructed.plot(save_fig=True)
+            self.test_output[0].arc_graph.plot(save_fig=True)
+        return reconstructed

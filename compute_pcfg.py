@@ -12,16 +12,16 @@ with open("dsl/v0_3/dsl.lark", "r") as f:
 
 parser = dsl_parser.Parser.new()
 xformer = ast_utils.create_transformer(this_module, ToAst())
-gens_dir = "dsl/v0_3/generations/gpt-3.5_ic_n30_20240509/"
+gens_dir = "dsl/v0_3/generations/gpt4o_20240514/"
 
 # get the AST program from the generations directory
 def test_file(filename, parser, xformer):
     with open(filename, "r") as f:
         lib = "(" + f.read() + ")"
-    print(f"Testing {filename}...")
+    ##print(f"Testing {filename}...")
     t = parser.lib_parse_tree(lib)
     ast = xformer.transform(t)
-    #pprint(ast)
+    pprint(ast)
     return ast
 
 Color._sizes = {color.name: 1 for color in Color}
@@ -56,7 +56,7 @@ def processtask(taskNumber):
     setup_objectids(task)
     vocabMakers = [ObjectId, FColor, Degree, Height, Width, Size, Shape, Row, Column, 
                 Neighbor_Of, Color_Equals, Size_Equals, Degree_Equals, Shape_Equals, Height_Equals,
-                Column_Equals, Neighbor_Color, Neighbor_Size, Neighbor_Degree, Not, 
+                Column_Equals, Not, 
                 And, Or]
     vocab = VocabFactory.create(vocabMakers)
     for leaf in list(vocab.leaves()):
@@ -74,8 +74,9 @@ def processtask(taskNumber):
             row_values.append(str(leaf.value))
         elif isinstance(leaf, ObjectIdValue) and not isinstance(leaf, enum.Enum):
             object_ids.append(str(leaf.value))
-    file_path = f"output.txt"
+    file_path = f"dsl/v0_3/generations/gpt4o_20240514/{taskNumber}_valid_programs.txt"
     ast_program = test_file(file_path, parser, xformer)
+    #print(ast_program)
     return ast_program
 
 ##--------------------- Computing transform probabilities ---------------------------------------------------------
@@ -149,17 +150,17 @@ def t_extract_rules_from_ast(node, rules_count, token_rules_count, current_trans
         for field_name, value in node.__dataclass_fields__.items():
             field_value = getattr(node, field_name)
             if str(field_value).startswith('DirectionOf'):
-                token_rules_count[('Direction', str("VarDirection").lower())] += 1
+                token_rules_count[('Direction', ("VarDirection"))] += 1
             elif field_name == "color" and str(field_value).startswith('ColorOf'):
-                token_rules_count[('Color', str("VarColor").lower())] += 1
+                token_rules_count[('Color', str("VarColor"))] += 1
             elif str(field_value).startswith('ImagePointsOf'):
                 token_rules_count[('ImagePoints', str("VarImagePoints").lower())] += 1
             elif str(field_value).startswith('MirrorAxisOf'):
                 token_rules_count[('Mirror_Axis', str("VarMirror").lower())] += 1
             elif not str(field_value).startswith('Var') and \
                 (isinstance(field_value, str) or isinstance(field_value, bool) or isinstance(field_value, int)) and current_transform:
-                token_rules_count[(class_name, str(field_value).lower())] += 1
-                print(f"Counting Token: {(class_name, field_value)}")  # Debug print
+                token_rules_count[(class_name, str(field_value))] += 1
+                ##print(f"Counting Token: {(class_name, field_value)}")  # Debug #print
             else:
                 t_extract_rules_from_ast(field_value, rules_count, token_rules_count, current_transform)
         if class_name in transform_operations:
@@ -178,13 +179,13 @@ def compute_probabilities(rules_count, token_rules_count, token_type_counts):
         else:
             division = f"{count} / {total}"
             probabilities[rule] = count / total
-        print(f"Rule: {rule}, Count: {count}, Division: {division}, Probability: {probabilities[rule]}")
+        ##print(f"Rule: {rule}, Count: {count}, Division: {division}, Probability: {probabilities[rule]}")
 
     for ((token_type, token_value)), count in token_rules_count.items():
         total_tokens_of_type = token_type_counts[token_type]
         division = f"{count} / {total_tokens_of_type}"
         probabilities[(token_type, token_value)] = count / total_tokens_of_type
-        print(f"Token: {(token_type, token_value)}, Count: {count}, Division: {division}, Total Tokens of Type: {total_tokens_of_type}, Probability: {probabilities[(token_type, token_value)]}")
+        ##print(f"Token: {(token_type, token_value)}, Count: {count}, Division: {division}, Total Tokens of Type: {total_tokens_of_type}, Probability: {probabilities[(token_type, token_value)]}")
     return probabilities
 
 def laplace_smoothing_transforms(computed_probabilities, alpha=1):
@@ -198,7 +199,7 @@ def laplace_smoothing_transforms(computed_probabilities, alpha=1):
         smoothed_count = computed_count + alpha
         total_smoothed_count = total_transforms + alpha * total_transform_rules
         smoothed_probabilities['Transform'][rule] = round(smoothed_count / total_smoothed_count, 2)
-        print(f"Transform Rule: {rule}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities['Transform'][rule]}")
+        ##print(f"Transform Rule: {rule}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities['Transform'][rule]}")
 
     for category, rules in init_transform_pcfg.items():
         if category == 'Transform':
@@ -210,7 +211,7 @@ def laplace_smoothing_transforms(computed_probabilities, alpha=1):
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_tokens_of_type + alpha * total_category_rules
             smoothed_probabilities[category][str(rule)] = round(smoothed_count / total_smoothed_count, 2)
-            print(f"Transform Category: {category}, Rule: {str(rule)}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
+            ##print(f"Transform Category: {category}, Rule: {str(rule)}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
     return smoothed_probabilities
 
 def compute_transform_costs(taskNumber):
@@ -219,16 +220,16 @@ def compute_transform_costs(taskNumber):
     t_extract_rules_from_ast(ast_program, transform_rules_count, t_token_rules_count)
     transform_rules_count['Transforms'] = increment_transforms(ast_program)
     print("token_rules_count:", t_token_rules_count) # Count of non-terminals
+    print("transform_rules_count:", transform_rules_count)
     for ((token_type, _)), count in t_token_rules_count.items():
         t_token_type_counts[token_type] += count
     print("t_token_type_counts:", t_token_type_counts)
     t_probabilities = compute_probabilities(transform_rules_count, t_token_rules_count, t_token_type_counts)
-    print("pre-smoothing-t_probabilities:", t_probabilities)
+    ##print("pre-smoothing-t_probabilities:", t_probabilities)
     t_smoothed_probabilities = laplace_smoothing_transforms(t_probabilities, alpha=1)
-    print("smoothed_probs:", t_smoothed_probabilities)
+    ##print("smoothed_probs:", t_smoothed_probabilities)
     return t_smoothed_probabilities
 
-taskNumber = "6855a6e4"
 #compute_transform_costs(taskNumber)
 
 ##--------------------- Computing filter probabilities ---------------------------------------------------------
@@ -248,9 +249,6 @@ filter_rules = {
         'Degree_Equals',
         'Height_Equals',
         'Shape_Equals',
-        'Neighbor_Size',
-        'Neighbor_Degree',
-        'Neighbor_Color',
         "Column_Equals",
         'Row_Equals',
         'Width_Equals',
@@ -309,11 +307,11 @@ def f_extract_rules_from_ast(node, rules_count, token_rules_count, current_filte
     elif isinstance(node, str) and current_filter:
         token_rules_count[(current_filter, node)] += 1
 
-def laplace_smoothing_for_filters(computed_probabilities, alpha=1):
+def laplace_smoothing_for_filters(computed_probabilities, alpha=2):
     smoothed_probabilities = defaultdict(dict)
     # Handle filters and their sub-rules
     init_filter_pcfg = initialize_uniform_pcfg(filter_rules)
-    print("computed_probabilities:", computed_probabilities)
+    ##print("computed_probabilities:", computed_probabilities)
     for category, rules in init_filter_pcfg.items():
         if category in ['FColor', 'Size', 'Degree', 'Shape', 'Row', 'Column', 'Height', 'Width']:  # Skip token categories
             continue
@@ -324,8 +322,8 @@ def laplace_smoothing_for_filters(computed_probabilities, alpha=1):
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_category_counts + alpha * total_category_rules
             smoothed_probabilities[category][rule] = round(smoothed_count / total_smoothed_count, 2)
-            print(f"P('{rule}' in '{category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[category][rule]:.2f}")
-            print(f"Filter: {rule}, Category: {category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
+            ##print(f"P('{rule}' in '{category}') = {smoothed_count}/{total_smoothed_count} = {smoothed_probabilities[category][rule]:.2f}")
+            ##print(f"Filter: {rule}, Category: {category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[category][rule]}")
 
     for token_category, token_values in init_filter_pcfg.items(): # todo: FColor
         if token_category not in ['FColor', 'Size', 'Degree', 'Shape', 'Row', 'Column', 'Height', 'Width']:
@@ -339,21 +337,24 @@ def laplace_smoothing_for_filters(computed_probabilities, alpha=1):
             smoothed_count = computed_count + alpha
             total_smoothed_count = total_tokens_of_type + alpha * total_token_rules
             smoothed_probabilities[token_category][token_value] = round(smoothed_count / total_smoothed_count, 2)
-            print(f"FToken: {token_value}, Category: {token_category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[token_category][token_value]:.2f}")
+            ##print(f"FToken: {token_value}, Category: {token_category}, Computed Count: {computed_count}, Smoothed Count: {smoothed_count}, Total Smoothed Count: {total_smoothed_count}, Smoothed Probability: {smoothed_probabilities[token_category][token_value]:.2f}")
     return smoothed_probabilities
     
 def compute_filter_costs(taskNumber):
     ast_program = processtask(taskNumber)
-    print("ast:", ast_program)
+    ##print("ast:", ast_program)
     filter_rules_count, f_token_rules_count, f_token_type_counts = defaultdict(int), defaultdict(int), defaultdict(int)
     f_extract_rules_from_ast(ast_program, filter_rules_count, f_token_rules_count)
+    print("filter_rules_count:", filter_rules_count)
+    print("f_token_type_counts:", f_token_type_counts)
+
     print("token_rules_count:", f_token_rules_count) # Count of non-terminals
     for ((token_type, _)), count in f_token_rules_count.items():
         f_token_type_counts[token_type] += count
     f_probabilities = compute_probabilities(filter_rules_count, f_token_rules_count, f_token_type_counts)
     f_smoothed_probabilities = laplace_smoothing_for_filters(f_probabilities, alpha=1)
-    print("smoothed_probs:", f_smoothed_probabilities)
+    ##print("smoothed_probs:", f_smoothed_probabilities)
     return f_smoothed_probabilities
 
-compute_filter_costs("05f2a901")
-print(filter_rules)
+#print(compute_transform_costs("ae3edfdc"))
+##print(compute_filter_costs("ae3edfdc"))

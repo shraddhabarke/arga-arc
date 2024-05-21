@@ -835,3 +835,7 @@ class Insert(Transforms):
             values = task.var_transform_values(filter, instance)
         instance.values = values
         return instance
+
+    def custom_copy(self):
+        copied_node = Insert(*self.children)
+        return copied_node

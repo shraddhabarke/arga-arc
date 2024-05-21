@@ -386,6 +386,7 @@ def setup_size_and_degree_based_on_task(task):
             "MIN": "MIN",
             "MAX": "MAX",
             "ODD": "ODD",
+            "EVEN": "EVEN",
             "CENTER": "CENTER",
             **_row_additional,
             "RowOf": "RowOf",
@@ -591,28 +592,21 @@ class Direct_Neighbor_Of(Filters):
         self.childTypes = []
 
     @classmethod
-    def execute(cls, task, children=None):
-        instance = cls()
+    def execute(cls, task, filter):
         if task.abstraction == "na":
-            instance.values = []
+            values = []
         else:
             task = task.reset_task()
-            instance.values = [
+            values = [
                 {
                     node: [neighbor for neighbor in input_graph.graph.neighbors(node)]
                     for node in input_graph.graph.nodes()
                 }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
-                ]
+                for input_graph in task.test_abstracted_graph
             ]
-        if all(
-            all(not value for value in node_dict.values())
-            for node_dict in instance.values
-        ):
-            instance.values = []
-        instance.code = f"Direct_Neighbor_Of(Obj) == X"
-        return instance
+        if all(all(not value for value in node_dict.values()) for node_dict in values):
+            values = []
+        return values
 
 
 class Neighbor_Of(Filters):
@@ -630,13 +624,13 @@ class Neighbor_Of(Filters):
         self.childTypes = []
 
     @classmethod
-    def execute(cls, task, children=None):
+    def execute(cls, task, filter):
         instance = cls()
         if task.abstraction == "na":
-            instance.values = []
+            values = []
         else:
             task = task.reset_task()
-            instance.values = [
+            values = [
                 {
                     node: list(
                         set(
@@ -651,18 +645,15 @@ class Neighbor_Of(Filters):
                     )
                     for node in input_graph.graph.nodes()
                 }
-                for input_graph in task.input_abstracted_graphs_original[
-                    task.abstraction
-                ]
+                for input_graph in task.test_abstracted_graph
             ]
 
         if all(
             all(not value for value in node_dict.values())
             for node_dict in instance.values
         ):
-            instance.values = []
-        instance.code = f"Neighbor_Of(Obj) == X"
-        return instance
+            values = []
+        return values
 
 
 class And(FilterASTNode):
@@ -679,10 +670,9 @@ class And(FilterASTNode):
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
     @classmethod
-    def execute(cls, task, children):
-        values1 = children[0].values
-        values2 = children[1].values
-        new_instance = cls(children[0], children[1])
+    def execute(cls, task, filter):
+        values1 = task.get_values(filter.children[0])
+        values2 = task.get_values(filter.children[1])
         intersected_values = [
             list(set(v1).intersection(set(v2))) if set(v1).intersection(set(v2)) else []
             for v1, v2 in zip(values1, values2)
@@ -691,33 +681,39 @@ class And(FilterASTNode):
         for i, _ in enumerate(intersected_values):
             filtered_nodes_dict = {node: [] for node in intersected_values[i]}
             res_dict.append(filtered_nodes_dict)
-        new_instance.values = res_dict
+        final_values = res_dict
 
         if (
-            ("Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code)
-            or (
-                "Neighbor_Of" in children[0].code
-                and "Direct_Neighbor_Of" in children[1].code
+            (
+                "Neighbor_Of" in filter.children[0].code
+                and "Neighbor_Of" in filter.children[1].code
             )
             or (
-                "Direct_Neighbor_Of" in children[0].code
-                and "Neighbor_Of" in children[1].code
+                "Neighbor_Of" in filter.children[0].code
+                and "Direct_Neighbor_Of" in filter.children[1].code
             )
             or (
-                "Direct_Neighbor_Of" in children[0].code
-                and "Direct_Neighbor_Of" in children[1].code
+                "Direct_Neighbor_Of" in filter.children[0].code
+                and "Neighbor_Of" in filter.children[1].code
             )
-            or all(not d for d in children[0].values)
-            or all(not d for d in children[1].values)
+            or (
+                "Direct_Neighbor_Of" in filter.children[0].code
+                and "Direct_Neighbor_Of" in filter.children[1].code
+            )
+            or all(not d for d in values1)
+            or all(not d for d in values2)
         ):
             res_dict = {}  # undefined semantics
-            new_instance.values = res_dict
+            final_values = res_dict
         elif (
-            ("Object.other" in children[0].code and "Object.other" in children[1].code)
-            or children[1].__class__.__name__ == "Neighbor_Of"
-            or children[1].__class__.__name__ == "Direct_Neighbor_Of"
-            or children[0].__class__.__name__ == "Neighbor_Of"
-            or children[0].__class__.__name__ == "Direct_Neighbor_Of"
+            (
+                "Object.other" in filter.children[0].code
+                and "Object.other" in filter.children[1].code
+            )
+            or filter.children[1].code == "Neighbor_Of"
+            or filter.children[1].code == "Direct_Neighbor_Of"
+            or filter.children[0].code == "Neighbor_Of"
+            or filter.children[0].code == "Direct_Neighbor_Of"
         ):
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
@@ -729,11 +725,11 @@ class And(FilterASTNode):
                     ):  # intersection of relationships
                         common_dict[key] = list(set(dict1[key]) & set(dict2[key]))
                 res_dict.append(common_dict)
-            new_instance.values = res_dict
+            final_values = res_dict
 
         elif any(
             keyword in child.code
-            for child in children[:2]
+            for child in filter.children[:2]
             for keyword in ["Object.this", "Equals"]
         ):
             res_dict = []
@@ -744,8 +740,8 @@ class And(FilterASTNode):
                     key: dict1[key] + dict2[key] for key in common_keys
                 }  # intersection of objects while preserving the relationships
                 res_dict.append(common_dict)
-            new_instance.values = res_dict
-        return new_instance
+            final_values = res_dict
+        return final_values
 
 
 class Or(FilterASTNode):
@@ -762,9 +758,9 @@ class Or(FilterASTNode):
         self.childTypes = [FilterTypes.FILTERS, FilterTypes.FILTERS]
 
     @classmethod
-    def execute(cls, task, children):
-        values1 = children[0].values
-        values2 = children[1].values
+    def execute(cls, task, filter):
+        values1 = task.get_values(filter.children[0])
+        values2 = task.get_values(filter.children[1])
         unioned_values = [
             list(set(v1).union(set(v2))) for v1, v2 in zip(values1, values2)
         ]
@@ -772,35 +768,39 @@ class Or(FilterASTNode):
         for i, _ in enumerate(unioned_values):
             filtered_nodes_dict = {node: [] for node in unioned_values[i]}
             res_dict.append(filtered_nodes_dict)
-
-        new_instance = cls(children[0], children[1])
-        new_instance.values = res_dict
+        final_values = res_dict
 
         if (
-            ("Neighbor_Of" in children[0].code and "Neighbor_Of" in children[1].code)
-            or (
-                "Neighbor_Of" in children[0].code
-                and "Direct_Neighbor_Of" in children[1].code
+            (
+                "Neighbor_Of" in filter.children[0].code
+                and "Neighbor_Of" in filter.children[1].code
             )
             or (
-                "Direct_Neighbor_Of" in children[0].code
-                and "Neighbor_Of" in children[1].code
+                "Neighbor_Of" in filter.children[0].code
+                and "Direct_Neighbor_Of" in filter.children[1].code
             )
             or (
-                "Direct_Neighbor_Of" in children[0].code
-                and "Direct_Neighbor_Of" in children[1].code
+                "Direct_Neighbor_Of" in filter.children[0].code
+                and "Neighbor_Of" in filter.children[1].code
             )
-            or all(not d for d in children[0].values)
-            or all(not d for d in children[1].values)
+            or (
+                "Direct_Neighbor_Of" in filter.children[0].code
+                and "Direct_Neighbor_Of" in filter.children[1].code
+            )
+            or all(not d for d in values1)
+            or all(not d for d in values2)
         ):
             res_dict = {}  # undefined semantics
-            new_instance.values = res_dict
+            final_values = res_dict
         elif (
-            ("Object.other" in children[0].code and "Object.other" in children[1].code)
-            or children[1].__class__.__name__ == "Neighbor_Of"
-            or children[1].__class__.__name__ == "Direct_Neighbor_Of"
-            or children[0].__class__.__name__ == "Neighbor_Of"
-            or children[0].__class__.__name__ == "Direct_Neighbor_Of"
+            (
+                "Object.other" in filter.children[0].code
+                and "Object.other" in filter.children[1].code
+            )
+            or filter.children[1].code == "Neighbor_Of"
+            or filter.children[1].code == "Direct_Neighbor_Of"
+            or filter.children[0].code == "Neighbor_Of"
+            or filter.children[0].code == "Direct_Neighbor_Of"
         ):
             res_dict = []
             for dict1, dict2 in zip(values1, values2):
@@ -811,10 +811,10 @@ class Or(FilterASTNode):
                     ):  # union of relationships
                         common_dict[key] = list(set(dict1[key]) | set(dict2[key]))
                 res_dict.append(common_dict)
-            new_instance.values = res_dict
+            final_values = res_dict
         elif any(
             keyword in child.code
-            for child in children[:2]
+            for child in filter.children[:2]
             for keyword in ["Object.this", "Equals"]
         ):
             res_dict = []
@@ -830,8 +830,8 @@ class Or(FilterASTNode):
                     )  # always preserve relationships
                     union_dict[key] = combined_values
                 res_dict.append(union_dict)
-            new_instance.values = res_dict
-        return new_instance
+            final_values = res_dict
+        return final_values
 
 
 class Not(FilterASTNode):
@@ -848,13 +848,10 @@ class Not(FilterASTNode):
         self.childTypes = [FilterTypes.FILTERS]
 
     @classmethod
-    def execute(cls, task, children):
-        values = children[0].values
-        new_instance = cls(children[0])
+    def execute(cls, task, filter):
+        values = task.get_values(filter.children[0])
         nodes_with_data = []
-        for input_abstracted_graphs in task.input_abstracted_graphs_original[
-            task.abstraction
-        ]:
+        for input_abstracted_graphs in task.test_abstracted_graph:
             local_data = []
             for node, _ in input_abstracted_graphs.graph.nodes(data=True):
                 local_data.append(node)
@@ -863,15 +860,14 @@ class Not(FilterASTNode):
             [item for item in sublist1 if item not in sublist2]
             for sublist1, sublist2 in zip(nodes_with_data, values)
         ]
-
         if (
-            "Neighbor_Of" in children[0].code
-            or "Direct_Neighbor_Of" in children[0].code
-            or all(not d for d in children[0].values)
+            "Neighbor_Of" in filter.children[0].code
+            or "Direct_Neighbor_Of" in filter.children[0].code
+            or all(not d for d in values)
         ):
             res_dict = {}  # undefined semantics
-            new_instance.values = res_dict
-        elif children[0].__class__.__name__ == "Neighbor_Of":
+            final_values = res_dict
+        elif filter.children[0].code == "Neighbor_Of(Obj) == X":
             adjusted_values = []
             for graph_index, node_dict in enumerate(values):
                 adjusted_node_dict = {}
@@ -884,9 +880,8 @@ class Not(FilterASTNode):
                     # not neighbors, includes self-reference
                     adjusted_node_dict[node] = not_neighbors
                 adjusted_values.append(adjusted_node_dict)
-            new_instance.code = f"Not(Neighbor_Of(Obj) == X)"
-            new_instance.values = adjusted_values
-        if "other" in children[0].code:
+            final_values = adjusted_values
+        if "other" in filter.children[0].code:
             adjusted_values = []
             for graph_index, node_dict in enumerate(values):
                 adjusted_node_dict = {}
@@ -899,15 +894,16 @@ class Not(FilterASTNode):
                     # not neighbors, includes self-reference
                     adjusted_node_dict[node] = not_neighbors
                 adjusted_values.append(adjusted_node_dict)
-            new_instance.values = adjusted_values
-        elif any(keyword in children[0].code for keyword in ["Object.this", "Equals"]):
+            final_values = adjusted_values
+        elif any(
+            keyword in filter.children[0].code for keyword in ["Object.this", "Equals"]
+        ):
             res_dict = []
             for i, _ in enumerate(result):
                 filtered_nodes_dict = {node: [] for node in result[i]}
                 res_dict.append(filtered_nodes_dict)
-            new_instance = cls(children[0])
-            new_instance.values = res_dict
-        return new_instance
+            final_values = res_dict
+        return final_values
 
 
 class Color_Equals(Filters):
@@ -915,35 +911,28 @@ class Color_Equals(Filters):
     childTypes = [[FilterTypes.COLOR, FilterTypes.COLOR, FilterTypes.OBJECT]]
     default_size = 1
 
-    def __init__(self, color1: FColor, color2: FColor = None, obj: Object = None):
+    def __init__(self, color1: FColor, color2: FColor, obj: Object):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
-        self.childTypes = [FilterTypes.COLOR, FilterTypes.COLOR, FilterTypes.OBJECT]
+        self.childTypes = [FilterTypes.COLOR, FilterTypes.COLOR]
         if color1 == FColor.colorof and color2 == FColor.colorof:
-            self.size = self.default_size + color1.size + color2.size + 2
             self.children = [color1, color2]
+            self.code = f"Color_Of(Object.this) == Color_Of(Object.other)"
         elif color2 == FColor.colorof:
             self.code = f"Color_Of({obj.code}) == {color1.code}"
             self.children = [color1]
-            self.size = self.default_size + color1.size + color2.size + 1
         elif color1 == FColor.colorof:
             self.code = f"Color_Of({obj.code}) == {color2.code}"
             self.children = [color2]
-            self.size = self.default_size + color1.size + color2.size + 1
         else:
             self.code = f"Equals({color2.code}, {color1.code})"
             self.children = [color1, color2]
-            self.size = self.default_size + color1.size + color2.size
 
     @classmethod
-    def execute(cls, task, children):
-        instance = cls(*children)
-        if children[0] == FColor.colorof and children[1] == FColor.colorof:
-            if children[2].code == "Object.this":
-                instance.code = (
-                    f"Color_Of({children[2].code}) == Color_Of({children[2].code})"
-                )
-                instance.values = [
+    def execute(self, task, filter):
+        if len(filter.children) == 2:
+            if "Object.this" in filter.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -954,13 +943,10 @@ class Color_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                instance.code = f"Color_Of(Object.this) == Color_Of({children[2].code})"
-                instance.values = [
+            if "Object.other" in filter.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -971,22 +957,13 @@ class Color_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            instance.size = (
-                instance.default_size + children[0].size + children[1].size + 2
-            )
-            return instance
-        if (
-            not children[0] == FColor.colorof and not children[1] == FColor.colorof
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+        elif "Object.this" in filter.code:
+            values = task.eval_filter_values(filter)
+        elif "Object.other" in filter.code:
+            values = task.eval_var_filter_values(filter)
+        return values
 
 
 class Size_Equals(Filters):
@@ -1001,6 +978,7 @@ class Size_Equals(Filters):
         if size1.code == "SIZE.SizeOf" and size2.code == "SIZE.SizeOf":
             self.size = self.default_size + size1.size + size2.size + 2
             self.children = [size1, size2]
+            self.code = f"Size_Of(Object.this) == Size_Of(Object.other)"
         elif size2.code == "SIZE.SizeOf":
             self.code = f"Size_Of({obj.code}) == {size1.code}"
             self.children = [size1]
@@ -1015,12 +993,10 @@ class Size_Equals(Filters):
             self.size = self.default_size + size1.size + size2.size
 
     @classmethod
-    def execute(cls, task, children):
-        instance = cls(*children)
-        if children[0].code == "SIZE.SizeOf" and children[1].code == "SIZE.SizeOf":
-            if children[2].code == "Object.this":
-                cls.code = f"Size_Of({children[2].code}) == Size_Of({children[2].code})"
-                cls.values = [
+    def execute(cls, task, filters):
+        if len(filters.children) == 2:
+            if "Object.this" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1031,13 +1007,10 @@ class Size_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                cls.code = f"Size_Of(Object.this) == Size_Of({children[2].code})"
-                cls.values = [
+            elif "Object.other" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1048,21 +1021,14 @@ class Size_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            cls.size = cls.default_size + children[0].size + children[1].size + 2
-            return cls
-        if (
-            not children[0].code == "SIZE.SizeOf"
-            and not children[1].code == "SIZE.SizeOf"
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+            return values
+        elif len(filters.children) == 1 and "Object.this" in filters.code:
+            values = task.eval_filter_values(filters)
+        elif len(filters.children) == 1 and "Object.other" in filters.code:
+            values = task.eval_var_filter_values(filters)
+        return values
 
 
 class Height_Equals(Filters):
@@ -1077,6 +1043,7 @@ class Height_Equals(Filters):
         if height1.code == "HEIGHT.HeightOf" and height2.code == "HEIGHT.HeightOf":
             self.size = self.default_size + height1.size + height2.size + 2
             self.children = [height1, height2]
+            self.code = f"Height_Of(Object.this) == Height_Of(Object.other)"
         elif height2.code == "HEIGHT.HeightOf":
             self.code = f"Height_Of({obj.code}) == {height1.code}"
             self.children = [height1]
@@ -1091,16 +1058,10 @@ class Height_Equals(Filters):
             self.size = self.default_size + height1.size + height2.size
 
     @classmethod
-    def execute(cls, task, children):
-        if (
-            children[0].code == "HEIGHT.HeightOf"
-            and children[1].code == "HEIGHT.HeightOf"
-        ):
-            if children[2].code == "Object.this":
-                cls.code = (
-                    f"Height_Of({children[2].code}) == Height_Of({children[2].code})"
-                )
-                cls.values = [
+    def execute(cls, task, filters):
+        if len(filters.children) == 2:
+            if "Object.this" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1111,12 +1072,9 @@ class Height_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                cls.code = f"Height_Of(Object.this) == Height_Of({children[2].code})"
+            elif "Object.other" in filters.code:
                 cls.values = [
                     {
                         node1: [
@@ -1132,18 +1090,12 @@ class Height_Equals(Filters):
                         task.abstraction
                     ]
                 ]
-            cls.size = cls.default_size + children[0].size + children[1].size + 2
-            return cls
-        instance = cls(*children)
-        if (
-            not children[0].code == "HEIGHT.HeightOf"
-            and not children[1].code == "HEIGHT.HeightOf"
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+            return values
+        elif len(filters.children) == 1 and "Object.this" in filters.code:
+            values = task.eval_filter_values(filters)
+        elif len(filters.children) == 1 and "Object.other" in filters.code:
+            values = task.eval_var_filter_values(filters)
+        return values
 
 
 class Width_Equals(Filters):
@@ -1158,6 +1110,7 @@ class Width_Equals(Filters):
         if width1.code == "WIDTH.WidthOf" and width2.code == "WIDTH.WidthOf":
             self.size = self.default_size + width1.size + width2.size + 2
             self.children = [width1, width2]
+            self.code = f"Width_Of(Object.this) == Width_Of(Object.other)"
         elif width2.code == "WIDTH.WidthOf":
             self.code = f"Width_Of({obj.code}) == {width1.code}"
             self.children = [width1]
@@ -1172,13 +1125,10 @@ class Width_Equals(Filters):
             self.size = self.default_size + width1.size + width2.size
 
     @classmethod
-    def execute(cls, task, children):
-        if children[0].code == "WIDTH.WidthOf" and children[1].code == "WIDTH.WidthOf":
-            if children[2].code == "Object.this":
-                cls.code = (
-                    f"Width_Of({children[2].code}) == Width_Of({children[2].code})"
-                )
-                cls.values = [
+    def execute(cls, task, filters):
+        if len(filters.children) == 2:
+            if "Object.this" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1189,13 +1139,10 @@ class Width_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                cls.code = f"Width_Of(Object.this) == Width_Of({children[2].code})"
-                cls.values = [
+            elif "Object.other" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1206,22 +1153,14 @@ class Width_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            cls.size = cls.default_size + children[0].size + children[1].size + 2
-            return cls
-        instance = cls(*children)
-        if (
-            not children[0].code == "WIDTH.WidthOf"
-            and not children[1].code == "WIDTH.WidthOf"
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+            return values
+        elif len(filters.children) == 1 and "Object.this" in filters.code:
+            values = task.eval_filter_values(filters)
+        elif len(filters.children) == 1 and "Object.other" in filters.code:
+            values = task.eval_var_filter_values(filters)
+        return values
 
 
 class Degree_Equals(Filters):
@@ -1236,6 +1175,7 @@ class Degree_Equals(Filters):
         if degree1.code == "DEGREE.DegreeOf" and degree2.code == "DEGREE.DegreeOf":
             self.size = self.default_size + degree1.size + degree2.size + 2
             self.children = [degree1, degree2]
+            self.code = f"Degree_Of(Object.this) == Degree_Of(Object.other)"
         elif degree2.code == "Degree.DegreeOf":
             self.code = f"Degree_Of({obj.code}) == {degree1.code}"
             self.children = [degree1]
@@ -1250,16 +1190,11 @@ class Degree_Equals(Filters):
             self.size = self.default_size + degree1.size + degree2.size
 
     @classmethod
-    def execute(cls, task, children):
-        if (
-            children[0].code == "DEGREE.DegreeOf"
-            and children[1].code == "DEGREE.DegreeOf"
-        ):
-            if children[2].code == "Object.this":
-                cls.code = (
-                    f"Degree_Of({children[2].code}) == Degree_Of({children[2].code})"
-                )
-                cls.values = [
+    def execute(cls, task, filters):
+        if len(filters.children) == 2:
+            values = []
+            if "Object.this" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1270,13 +1205,10 @@ class Degree_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                cls.code = f"Degree_Of(Object.this) == Degree_Of({children[2].code})"
-                cls.values = [
+            elif "Object.other" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1287,22 +1219,14 @@ class Degree_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            cls.size = cls.default_size + children[0].size + children[1].size + 2
-            return cls
-        instance = cls(*children)
-        if (
-            not children[0].code == "DEGREE.DegreeOf"
-            and not children[1].code == "DEGREE.DegreeOf"
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+            return values
+        elif len(filters.children) == 1 and "Object.this" in filters.code:
+            values = task.eval_filter_values(filters)
+        elif len(filters.children) == 1 and "Object.other" in filters.code:
+            values = task.eval_var_filter_values(filters)
+        return values
 
 
 class Shape_Equals(Filters):
@@ -1314,9 +1238,10 @@ class Shape_Equals(Filters):
         super().__init__()
         self.nodeType = FilterTypes.FILTERS
         self.childTypes = [FilterTypes.SHAPE, FilterTypes.SHAPE, FilterTypes.OBJECT]
-        if shape1.code == "Shape.shapeof" and shape2.code == "Shape.shapeof":
+        if shape1 == Shape.shapeof and shape2 == Shape.shapeof:
             self.size = self.default_size + shape1.size + shape2.size + 2
             self.children = [shape1, shape2]
+            self.code = f"Shape_Of(Object.this) == Shape_Of(Object.other)"
         elif shape2 == Shape.shapeof:
             self.code = f"Shape_Of({obj.code}) == {shape1.code}"
             self.children = [shape1]
@@ -1331,13 +1256,10 @@ class Shape_Equals(Filters):
             self.size = self.default_size + shape1.size + shape2.size
 
     @classmethod
-    def execute(cls, task, children):
-        if children[0] == Shape.shapeof and children[1] == Shape.shapeof:
-            if children[2].code == "Object.this":
-                cls.code = (
-                    f"Shape_Of({children[2].code}) == Shape_Of({children[2].code})"
-                )
-                cls.values = [
+    def execute(cls, task, filters):
+        if len(filters.children) == 2:
+            if "Object.this" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1346,13 +1268,10 @@ class Shape_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                cls.code = f"Shape_Of(Object.this) == Shape_Of({children[2].code})"
-                cls.values = [
+            elif "Object.other" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1369,21 +1288,14 @@ class Shape_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            cls.size = cls.default_size + children[0].size + children[1].size + 2
-            return cls
-        instance = cls(*children)
-        if (
-            not children[0] == Shape.shapeof and not children[1] == Shape.shapeof
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+            return values
+        elif len(filters.children) == 1 and "Object.this" in filters.code:
+            values = task.eval_filter_values(filters)
+        elif len(filters.children) == 1 and "Object.other" in filters.code:
+            values = task.eval_var_filter_values(filters)
+        return values
 
 
 class Row_Equals(Filters):
@@ -1398,6 +1310,7 @@ class Row_Equals(Filters):
         if row1.code == "ROW.RowOf" and row2.code == "ROW.RowOf":
             self.size = self.default_size + row1.size + row2.size + 2
             self.children = [row1, row2]
+            self.code = f"Row_Of(Object.this) == Row_Of(Object.other)"
         elif row2.code == "ROW.RowOf":
             self.code = f"Row_Of({obj.code}) == {row1.code}"
             self.children = [row1]
@@ -1412,11 +1325,10 @@ class Row_Equals(Filters):
             self.size = self.default_size + row1.size + row2.size
 
     @classmethod
-    def execute(cls, task, children):
-        if children[0].code == "ROW.RowOf" and children[1].code == "ROW.RowOf":
-            if children[2].code == "Object.this":
-                cls.code = f"Row_Of({children[2].code}) == Row_Of({children[2].code})"
-                cls.values = [
+    def execute(cls, task, filters):
+        if len(filters.children) == 2:
+            if "Object.this" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1433,13 +1345,10 @@ class Row_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                cls.code = f"Row_Of(Object.this) == Row_Of({children[2].code})"
-                cls.values = [
+            elif "Object.other" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1456,21 +1365,14 @@ class Row_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            cls.size = cls.default_size + children[0].size + children[1].size + 2
-            return cls
-        instance = cls(*children)
-        if (
-            not children[0].code == "ROW.RowOf" and not children[1].code == "ROW.RowOf"
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+            return values
+        elif len(filters.children) == 1 and "Object.this" in filters.code:
+            values = task.eval_filter_values(filters)
+        elif len(filters.children) == 1 and "Object.other" in filters.code:
+            values = task.eval_var_filter_values(filters)
+        return values
 
 
 class Column_Equals(Filters):
@@ -1485,6 +1387,7 @@ class Column_Equals(Filters):
         if col1.code == "COLUMN.ColumnOf" and col2.code == "COLUMN.ColumnOf":
             self.size = self.default_size + col1.size + col2.size + 2
             self.children = [col1, col2]
+            self.code = f"Column_Of(Object.this) == Column_Of(Object.other)"
         elif col2.code == "COLUMN.ColumnOf":
             self.code = f"Column_Of({obj.code}) == {col1.code}"
             self.children = [col1]
@@ -1499,16 +1402,10 @@ class Column_Equals(Filters):
             self.size = self.default_size + col1.size + col2.size
 
     @classmethod
-    def execute(cls, task, children):
-        if (
-            children[0].code == "COLUMN.ColumnOf"
-            and children[1].code == "COLUMN.ColumnOf"
-        ):
-            if children[2].code == "Object.this":
-                cls.code = (
-                    f"Column_Of({children[2].code}) == Column_Of({children[2].code})"
-                )
-                cls.values = [
+    def execute(cls, task, filters):
+        if len(filters.children) == 2:
+            if "Object.this" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1525,13 +1422,10 @@ class Column_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            elif children[2].code == "Object.other":
-                cls.code = f"Column_Of(Object.this) == Column_Of({children[2].code})"
-                cls.values = [
+            elif "Object.other" in filters.code:
+                values = [
                     {
                         node1: [
                             node2
@@ -1548,19 +1442,10 @@ class Column_Equals(Filters):
                         ]
                         for node1 in input_graph.graph.nodes()
                     }
-                    for input_graph in task.input_abstracted_graphs_original[
-                        task.abstraction
-                    ]
+                    for input_graph in task.test_abstracted_graph
                 ]
-            cls.size = cls.default_size + children[0].size + children[1].size + 2
-            return cls
-        instance = cls(*children)
-        if (
-            not children[0].code == "COLUMN.ColumnOf"
-            and not children[1].code == "COLUMN.ColumnOf"
-        ) or children[2] == Object.this:
-            values = task.filter_values(instance)
-        elif children[2] == Object.other:
-            values = task.var_filter_values(instance)
-        instance.values = values
-        return instance
+        elif len(filters.children) == 1 and "Object.this" in filters.code:
+            values = task.eval_filter_values(filters)
+        elif len(filters.children) == 1 and "Object.other" in filters.code:
+            values = task.eval_var_filter_values(filters)
+        return values

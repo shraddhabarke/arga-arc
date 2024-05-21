@@ -619,6 +619,7 @@ class Task:
     completions: t.List[str] = field(default_factory=list)
     normalized_completions: t.List[str] = field(default_factory=list)
     tf_operators: t.Dict[str, int] = field(default_factory=dict)
+    lex_tf_operators: t.Dict[str, int] = field(default_factory=dict)
     coverage_percentage: float = 0.0
     total_covered: int = 0
     total_in_target: int = 0
@@ -650,6 +651,8 @@ class Task:
             ans.normalized_completions = task_json["normalized_completions"]
         if "tf_operators" in task_json:
             ans.tf_operators = task_json["tf_operators"]
+        if "lex_tf_operators" in task_json:
+            ans.lex_tf_operators = task_json["lex_tf_operators"]
         if "coverage_percentage" in task_json:
             ans.coverage_percentage = task_json["coverage_percentage"]
         if "total_covered" in task_json:
@@ -677,6 +680,7 @@ class Task:
             "completions": self.completions,
             "normalized_completions": self.normalized_completions,
             "tf_operators": self.tf_operators,
+            "lex_tf_operators": self.lex_tf_operators,
             "coverage_percentage": self.coverage_percentage,
             "total_covered": self.total_covered,
             "total_in_target": self.total_in_target,
@@ -755,6 +759,23 @@ class Task:
         self.coverage_percentage = coverage_dict["coverage_percentage"]
         self.total_covered = coverage_dict["total_covered"]
         self.total_in_target = coverage_dict["total_in_target"]
+
+        for i, completion in enumerate(self.completions):
+            if self.__asts[i] is not None:
+                continue
+
+            tokens = self.__tokens[i]
+            if tokens is None:
+                continue
+
+            completion_operators = count_operators_lexed(tokens)
+
+            for operator, count in completion_operators.items():
+                if operator in self.lex_tf_operators:
+                    self.lex_tf_operators[operator] += count
+                else:
+                    self.lex_tf_operators[operator] = count
+
         return coverage_dict
 
     def compute_asts(self):

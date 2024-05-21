@@ -100,7 +100,7 @@ class ProbCosts:
             return memo[key]
         valid_combinations = []
         for i, cost in enumerate(childrenCosts):
-            if cost <= childrenCost:
+            if isinstance(cost, int) and cost <= childrenCost:
                 subcombinations = ProbCosts.getCosts(childrenCost - cost, childrenCosts, childrenArity - 1, memo)
                 for subcombo in subcombinations:
                     valid_combinations.append([cost] + subcombo)

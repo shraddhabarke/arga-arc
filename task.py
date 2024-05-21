@@ -3,6 +3,9 @@ import copy
 from inspect import signature
 from itertools import product
 import typing as t
+import importlib
+fmodule_name = "filters_eval"
+fmodule = importlib.import_module(fmodule_name)
 
 from image import Image
 from ARCGraph import ARCGraph
@@ -143,7 +146,13 @@ class Task:
                 self.object_widths[abstraction].add(width)
             self.rows[abstraction].update(set([node[0] for node in abs_graph.graph.nodes()]))
             self.columns[abstraction].update(set([node[1] for node in abs_graph.graph.nodes()]))
-        
+    
+    def get_values(self, filter):
+        func_name = filter.__class__.__name__
+        func = getattr(fmodule, func_name)
+        prog = func.execute(self, filter)
+        return prog
+
     def evaluate_program(
         self,
         program: t.List[t.Tuple[FilterASTNode, t.List[TransformASTNode]]],
@@ -156,11 +165,17 @@ class Task:
             test_abstracted_graph: ARCGraph = getattr(
                 test_input, Image.abstraction_ops[abstraction]
             )()
-            for filter, transformations in program:
+            for filters, transformations in program:
                 for transformation in transformations:
-                    test_abstracted_graph.apply_all(filter, transformation)
+                    if filters is None or ("Neighbor_Of" not in filters.code and 'other' not in filters.code):
+                        test_abstracted_graph.apply_all(filters, transformation)
+                    else:
+                        value = self.get_values(filters)
+                        if 'Variable' not in transformation.code:
+                            test_abstracted_graph.apply_transform(filters, transformation)
+                        else:
+                            test_abstracted_graph.var_eval(value, filters, transformation)
             reconstructed = test_input.undo_abstraction(test_abstracted_graph)
-
             transformed_inputs.append(reconstructed)
         return transformed_inputs
 
@@ -314,8 +329,42 @@ class Task:
                 if input_abstracted_graph.apply_filters(node[0], filter):
                     filtered_nodes_i.append(node[0])
             filtered_nodes.append(filtered_nodes_i)
-
         for input_abstracted_graph, filtered_node in zip(self.input_abstracted_graphs_original[self.abstraction], filtered_nodes):
+            filtered_nodes_dict = {key[0]: filtered_node for key in input_abstracted_graph.graph.nodes(data=True)}
+            filtered_nodes_dict_list.append(filtered_nodes_dict)
+        return filtered_nodes_dict_list
+
+    def eval_filter_values(self, filter: FilterASTNode): # returns the objects that satisfy the filter
+        filtered_nodes, filtered_nodes_dict_list = [], []
+        test_input = self.test_input[0]
+        self.test_abstracted_graph = [getattr(test_input, Image.abstraction_ops[self.abstraction])()]
+        for input_abstracted_graph in self.test_abstracted_graph:
+            filtered_nodes_i = []
+            for node in input_abstracted_graph.graph.nodes(data=True):
+                if input_abstracted_graph.apply_filters(node[0], filter):
+                    filtered_nodes_i.append(node[0])
+            filtered_nodes.append(filtered_nodes_i)
+        
+        for i, _ in enumerate(filtered_nodes):
+            filtered_nodes_dict = {node: [] for node in filtered_nodes[i]}
+            filtered_nodes_dict_list.append(filtered_nodes_dict)
+        
+        if self.current_spec: # todo
+            return filtered_nodes_dict_list
+        else:
+            return filtered_nodes_dict_list
+
+    def eval_var_filter_values(self, filter: FilterASTNode): # returns the objects that satisfy the filter
+        filtered_nodes, filtered_nodes_dict_list = [], []
+        test_input = self.test_input[0]
+        self.test_abstracted_graph = [getattr(test_input, Image.abstraction_ops[self.abstraction])()]
+        for input_abstracted_graph in self.test_abstracted_graph:
+            filtered_nodes_i = []
+            for node in input_abstracted_graph.graph.nodes(data=True):
+                if input_abstracted_graph.apply_filters(node[0], filter):
+                    filtered_nodes_i.append(node[0])
+            filtered_nodes.append(filtered_nodes_i)
+        for input_abstracted_graph, filtered_node in zip(self.test_abstracted_graph, filtered_nodes):
             filtered_nodes_dict = {key[0]: filtered_node for key in input_abstracted_graph.graph.nodes(data=True)}
             filtered_nodes_dict_list.append(filtered_nodes_dict)
         return filtered_nodes_dict_list
@@ -325,18 +374,17 @@ class Task:
         Computes a dictionary of all possible value assignments for each object
         """
         object_params_dict, object_params = defaultdict(list), []
-        if "updateColor" in transformation.code:
+        if "updateColor" in transformation.code or "addBorder" in transformation.code or "hollowRectangle" in transformation.code:
             object_params = set([input_graph.get_color(obj)
                                 for obj in input_graph.graph.nodes()])
             for node_obj in input_graph.graph.nodes():
                 for neighbor in input_graph.graph.neighbors(node_obj):
                     object_params_dict[node_obj].append(
                     (input_graph.get_color(neighbor), neighbor))
-
         elif "extendNode" in transformation.code or "moveNode" in transformation.code \
                 or "moveNodeMax" in transformation.code:
             for node_obj in input_graph.graph.nodes():
-                for node_other, _ in input_graph.graph.nodes(data=True):
+                for node_other, node_data in input_graph.graph.nodes(data=True):
                     if node_obj != node_other:
                         relative_pos = input_graph.get_relative_pos(
                             node_obj, node_other)
@@ -345,7 +393,7 @@ class Task:
                             object_params_dict[node_obj].append(
                                 (relative_pos, node_other))
 
-        elif "Flip" in transformation.code:
+        elif "flip" in transformation.code:
             for node_obj in input_graph.graph.nodes():
                 for node_other, _ in input_graph.graph.nodes(data=True):
                     if node_obj != node_other:
@@ -357,12 +405,12 @@ class Task:
                                 (target_mirror_dir, node_other))
 
         elif "Insert" in transformation.code:
-            object_params = set([input_graph.get_centroid(obj)
-                                for obj in input_graph.graph.nodes()])
             for node_obj in input_graph.graph.nodes():
                 for node_other in input_graph.graph.nodes():
                     if node_obj != node_other:
-                        object_params_dict[node_obj].append((input_graph.get_centroid(node_other), node_other))
+                        var_img_pt = input_graph.get_centroid(node_other)
+                        if var_img_pt is not None:
+                            object_params_dict[node_obj].append((var_img_pt, node_other))
 
         elif "mirror" in transformation.code:
             for node_obj in input_graph.graph.nodes():
@@ -459,4 +507,6 @@ class Task:
             getattr(input, Image.abstraction_ops[self.abstraction])()
             for input in self.train_input
         ]
+        test_input = self.test_input[0]
+        self.test_abstracted_graph = [getattr(test_input, Image.abstraction_ops[self.abstraction])()]
         return self

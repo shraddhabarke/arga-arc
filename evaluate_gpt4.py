@@ -1,7 +1,7 @@
 import arga_ast_generator as ast
 from task import Task
 import transform as tf
-import filters as f
+import filters_eval as f
 import typing as t
 from enum import Enum
 import click
@@ -11,6 +11,9 @@ import builtins
 from pathlib import Path
 import traceback
 from datetime import datetime
+import re
+import itertools
+from pprint import pprint
 
 from utils import TASK_IDS, TASK_IDS_TYPE
 from config import CONFIG
@@ -31,51 +34,26 @@ ALL_ABSTRACTIONS = [
     "sp",
 ]
 
-# TODO: get abstraction list for every task
-TASKS = [
-    {"task_id": "08ed6ac7", "abstraction": "nbccg"},
-    {"task_id": "1e0a9b12", "abstraction": "nbccg"},
-    {"task_id": "25ff71a9", "abstraction": "nbccg"},
-    {"task_id": "3906de3d", "abstraction": "nbvcg"},
-    {"task_id": "4258a5f9", "abstraction": "nbccg"},
-    {"task_id": "50cb2852", "abstraction": "nbccg"},
-    {"task_id": "543a7ed5", "abstraction": "mcccg"},
-    {"task_id": "6455b5f5", "abstraction": "ccg"},
-    {"task_id": "67385a82", "abstraction": "nbccg"},
-    {"task_id": "694f12f3", "abstraction": "nbccg"},
-    {"task_id": "6e82a1ae", "abstraction": "nbccg"},
-    {"task_id": "7f4411dc", "abstraction": "lrg"},
-    {"task_id": "a79310a0", "abstraction": "nbccg"},
-    {"task_id": "aedd82e4", "abstraction": "nbccg"},
-    {"task_id": "b1948b0a", "abstraction": "nbccg"},
-    {"task_id": "b27ca6d3", "abstraction": "nbccg"},
-    {"task_id": "bb43febb", "abstraction": "nbccg"},
-    {"task_id": "c8f0f002", "abstraction": "nbccg"},
-    {"task_id": "d2abd087", "abstraction": "nbccg"},
-    {"task_id": "dc1df850", "abstraction": "nbccg"},
-    {"task_id": "ea32f347", "abstraction": "nbccg"},
-    {"task_id": "6d75e8bb", "abstraction": "nbccg"},
-    {"task_id": "00d62c1b", "abstraction": "ccgbr"},
-    {"task_id": "9565186b", "abstraction": "nbccg"},
-    {"task_id": "810b9b61", "abstraction": "ccgbr"},
-    {"task_id": "a5313dff", "abstraction": "ccgbr"},
-    {"task_id": "aabf363d", "abstraction": "nbccg"},
-    {"task_id": "d5d6de2d", "abstraction": "ccg"},
-    {"task_id": "67a3c6ac", "abstraction": "na"},
-    {"task_id": "3c9b0459", "abstraction": "na"},
-    {"task_id": "9dfd6313", "abstraction": "na"},
-    {"task_id": "ed36ccf7", "abstraction": "na"},
-    {"task_id": "ddf7fa4f", "abstraction": "nbccg"},
-    {"task_id": "05f2a901", "abstraction": "nbccg"},
-    {"task_id": "d43fd935", "abstraction": "nbccg"},
-    {"task_id": "f8a8fe49", "abstraction": "nbccg"},
-    {"task_id": "ae3edfdc", "abstraction": "nbccg"},
-]
-
-TASK_IDS = [task["task_id"] for task in TASKS]
-TASK_ABSTRACTIONS = [task["abstraction"] for task in TASKS]
-
 # region CLI
+
+VALID_REGEX = r"^([0-9a-f]+)_valid$"
+INVALID_REGEX = r"^([0-9a-f]+)_invalid$"
+VALID_PROGRAMS_REGEX = r"^([0-9a-f]+)_valid_programs$"
+
+
+def get_task_ids(directory: Path) -> t.List[str]:
+    ans = []
+    for path in directory.glob("*.txt"):
+        filename = path.stem
+
+        for regex in [VALID_REGEX, INVALID_REGEX, VALID_PROGRAMS_REGEX]:
+            match = re.match(regex, filename)
+            if match is not None:
+                task_id = match.group(1)
+                ans.append(task_id)
+                break
+
+    return sorted(list(set(ans)))
 
 
 def main():
@@ -94,36 +72,51 @@ def cli():
 
 
 @cli.command()
-@click.option("--task-id", "-t", type=click.Choice(TASK_IDS), multiple=True)
+@click.option("--task-id", "-t", type=str, multiple=True)
 @click.option(
     "--path",
     "-p",
     type=click.Path(exists=True),
     # default="dsl/v0_3/generations/gpt4o_20240514",
     # default="dsl/v0_3/generations/arga_gpt4o_20240515",
-    default="dsl/v0_3/generations/arga_gpt4o_m100_20240516",
+    default="dsl/v0_3/generations/arga_gpt4o_m100_20240516/",
 )
-def parse(task_id, path):
-    if len(task_id) == 0:
-        task_id = TASK_IDS
+@click.option(
+    "--log-asts",
+    "-la",
+    is_flag=True,
+    help="Log the ASTs of the programs",
+)
+@click.option(
+    "--log-easts",
+    "-le",
+    is_flag=True,
+    help="Log the EASTs of the programs",
+)
+def parse(task_id, path, log_asts, log_easts):
+    all_task_ids = get_task_ids(Path(path))
+    if any(t not in all_task_ids for t in task_id):
+        raise ValueError(f"Invalid task id {task_id} is not in task ids for {path}")
 
-    for task in tqdm(TASKS):
-        if task["task_id"] not in task_id:
-            continue
-        task_id = task["task_id"]
-        abstraction = task["abstraction"] if task["abstraction"] else "nbccg"
-        get_task(task_id, abstraction)
+    if len(task_id) == 0:
+        task_id = all_task_ids
+
+    for cur_task_id, abstraction in tqdm(
+        list(itertools.product(task_id, ALL_ABSTRACTIONS))
+    ):
+        get_task(cur_task_id, abstraction)
 
         try:
-            programs = parse_programs(task_id, abstraction, path)
-            print(f"{task_id}: parsed {len(programs)}")
-            for program in programs:
-                print(program)
+            programs = parse_programs(cur_task_id, abstraction, path)
+            print(f"# {cur_task_id} {abstraction}: parsed {len(programs)}")
+            if log_asts:
+                for program in programs:
+                    print(program)
+                    print()
                 print()
-            print()
-            print()
+                print()
         except Exception as e:
-            print(f"error parsing {task_id}: {e}")
+            print(f"error parsing {cur_task_id}: {e}")
             traceback.print_exc()
 
         executable_programs = []
@@ -131,7 +124,70 @@ def parse(task_id, path):
             try:
                 executable_programs.append(convert_ast_to_executable(program))
             except Exception as e:
-                print(f"error making a program executable in {task_id}: {e}")
+                print(f"error making a program executable in {cur_task_id}: {e}")
+                print()
+                print(program)
+                print()
+                traceback.print_exc()
+                print()
+                print()
+                continue
+        if log_easts:
+            print(f"## {cur_task_id} {abstraction}: EASTs")
+            for program in executable_programs:
+                print(program)
+                print()
+            print()
+            print()
+
+
+@cli.command()
+@click.option("--task-id", "-t", type=str, multiple=True)
+@click.option(
+    "--path",
+    "-p",
+    type=click.Path(exists=True),
+    default="dsl/v0_3/generations/arga_gpt4o_m100_20240516/",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Log debug info",
+)
+def evaluate(task_id, path, verbose):
+    all_task_ids = get_task_ids(Path(path))
+    if any(t not in all_task_ids for t in task_id):
+        raise ValueError(f"Invalid task id {task_id} is not in task ids for {path}")
+
+    if len(task_id) == 0:
+        task_id = all_task_ids
+
+    task_results: t.Dict[str, bool] = {}
+    for cur_task_id, abstraction in tqdm(
+        list(itertools.product(all_task_ids, ALL_ABSTRACTIONS))
+    ):
+        if cur_task_id in task_results:
+            continue
+        if cur_task_id not in task_id:
+            continue
+
+        task = get_task(cur_task_id, abstraction)
+        setup_enum_sizes()
+        try:
+            programs = parse_programs(cur_task_id, abstraction, path)
+        except Exception as e:
+            print(f"error parsing {cur_task_id} {abstraction}: {e}")
+            traceback.print_stack()
+            continue
+
+        for _, program in enumerate(programs):
+            try:
+                executable_program = convert_ast_to_executable(program)
+            except Exception as e:
+                print(
+                    f"error making a program executable in {cur_task_id} {abstraction}: {e}"
+                )
                 print()
                 print(program)
                 print()
@@ -140,29 +196,33 @@ def parse(task_id, path):
                 print()
                 continue
 
+            try:
+                test_results = task.test_program(executable_program, abstraction)
+                if test_results:
+                    task_results[cur_task_id] = True
+                    break
+            except Exception as e:
+                print(f"error evaluating a program in {cur_task_id} {abstraction}: {e}")
+                print()
+                print(program)
+                print()
+                pprint(executable_program)
+                print()
+                traceback.print_exc()
+                print()
+                print()
+                continue
+        if cur_task_id not in task_results:
+            task_results[cur_task_id] = False
+        print(f"finished {cur_task_id} {abstraction}")
 
-@cli.command()
-@click.option("--task-id", "-t", type=click.Choice(TASK_IDS), multiple=True)
-@click.option(
-    "--path",
-    "-p",
-    type=click.Path(exists=True),
-    default="dsl/v0_3/generations/gpt4o_20240514",
-)
-def evaluate(task_id, path):
-    if len(task_id) == 0:
-        task_id = TASK_IDS
+    print("# results")
+    for task_id, result in task_results.items():
+        print(f"{task_id}: {result}")
 
-    for task in tqdm(TASKS):
-        task_id = task["task_id"]
-        abstraction = task["abstraction"] if task["abstraction"] else "nbccg"
-        try:
-            programs = parse_programs(task_id, abstraction, path)
-            num_correct = num_correct_programs(task_id, abstraction, programs)
-        except Exception as e:
-            print(f"{task_id}: {e}")
-            continue
-        print(f"{task_id}: correct/total {num_correct}/{len(programs)}")
+    print("## overall")
+    num_correct = sum(task_results.values())
+    print(f"num correct: {num_correct}")
 
 
 def tqdm_print(*args, **kwargs):
@@ -211,11 +271,17 @@ def get_task(task_id: TASK_IDS_TYPE, abstraction: str) -> Task:
         getattr(input, Image.abstraction_ops[abstraction])()
         for input in task.train_input
     ]
-    task.output_abstracted_graphs_original[task.abstraction] = [getattr(
-        output, Image.abstraction_ops[task.abstraction])() for output in task.train_output]
+    task.output_abstracted_graphs_original[task.abstraction] = [
+        getattr(output, Image.abstraction_ops[task.abstraction])()
+        for output in task.train_output
+    ]
     task.get_static_inserted_objects()
     task.get_static_object_attributes(abstraction)
     f.setup_size_and_degree_based_on_task(task)
+    test_input = task.test_input[0]
+    task.test_abstracted_graph = [
+        getattr(test_input, Image.abstraction_ops[task.abstraction])()
+    ]
     # TODO: the below line causes an error
     tf.setup_objectids(task)
     return task
@@ -244,7 +310,7 @@ def setup_enum_sizes():
         relativepos.name: 1 for relativepos in tf.RelativePosition
     }
     tf.ImagePoints._sizes = {imagepts.name: 1 for imagepts in tf.ImagePoints}
-    tf.ObjectId._sizes = {objid.name: 1 for objid in tf.ObjectId._all_values}
+    tf.ObjectId._sizes = {objid.value : 1 for objid in tf.ObjectId._all_values}
     tf.Mirror_Axis._sizes = {axis.name: 1 for axis in tf.Mirror_Axis}
     f.FColor._sizes = {color.name: 1 for color in f.FColor}
     f.Object._sizes = {obj.name: 1 for obj in f.Object}
@@ -288,6 +354,9 @@ def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
             obj=get_obj_from_arguments(_filter.color1, _filter.color2),
         )
     elif isinstance(_filter, ast.Size_Equals):
+        # print("1:", _filter.size1)
+        # print("2:", _filter.size2)
+
         return f.Size_Equals(
             size1=convert_filter_to_executable(_filter.size1),
             size2=convert_filter_to_executable(_filter.size2),
@@ -303,6 +372,7 @@ def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
         return f.Degree_Equals(
             degree1=convert_filter_to_executable(_filter.degree1),
             degree2=convert_filter_to_executable(_filter.degree2),
+            obj=get_obj_from_arguments(_filter.degree1, _filter.degree2),
         )
     elif isinstance(_filter, ast.Shape_Equals):
         return f.Shape_Equals(
@@ -332,12 +402,12 @@ def convert_filter_to_executable(_filter: ast._FilterExpr) -> f.FilterASTNode:
         # TODO: I'm assuming this is because we always wanna say that this is the neighbor of var?
         return f.Neighbor_Of()
     # these exist in the EAST, but not in the AST
-    # elif isinstance(_filter, ast.Width_Equals):
-    #     return f.Width_Equals(
-    #         width1=convert_filter_to_executable(_filter.width1),
-    #         width2=convert_filter_to_executable(_filter.width2),
-    #         obj=get_obj_from_arguments(_filter.width1, _filter.width2),
-    #     )
+    elif isinstance(_filter, ast.Width_Equals):
+        return f.Width_Equals(
+            width1=convert_filter_to_executable(_filter.width1),
+            width2=convert_filter_to_executable(_filter.width2),
+            obj=get_obj_from_arguments(_filter.width1, _filter.width2),
+        )
     # elif isinstance(_filter, ast.Row_Equals):
     #     return f.Row_Equals(
     #         row1=convert_filter_to_executable(_filter.row1),
@@ -636,16 +706,16 @@ def get_obj_from_arguments(
         return None
 
     if var1 is None:
-        return f.Object.this if var2 == "this" else f.Object.var
+        return f.Object.this if var2 == "this" else f.Object.other
 
     if var2 is None:
-        return f.Object.this if var1 == "this" else f.Object.var
+        return f.Object.this if var1 == "this" else f.Object.other
 
     if var1 != var2:
         # TODO: not sure what to do in this case, since this isn't allowed in the EAST
         return None
 
-    return f.Object.this if var1 == "this" else f.Object.var
+    return f.Object.this if var1 == "this" else f.Object.other
 
 
 # endregion FILTER
@@ -690,11 +760,9 @@ def convert_transform_to_executable(transform: ast._Transform) -> tf.TransformAS
             # overlap=convert_overlap_to_transform_ast_node(transform.overlap),
         )
     elif isinstance(transform, ast.Mirror):
-        return tf.Mirror(
-            mirror_axis=convert_transform_to_executable(transform.mirror_axis)
-        )
+        return tf.Mirror(mirror_axis=convert_transform_to_executable(transform.axis))
     elif isinstance(transform, ast.Flip):
-        return tf.Flip(axis_point=convert_transform_to_executable(transform.axis_point))
+        return tf.Flip(mirror_direction=convert_transform_to_executable(transform.axis))
     elif isinstance(transform, ast.Insert):
         return tf.Insert(
             object_id=convert_transform_to_executable(transform.source),
@@ -727,6 +795,8 @@ def convert_transform_to_executable(transform: ast._Transform) -> tf.TransformAS
         return tf.ImagePoints.Variable
     elif isinstance(transform, ast.MirrorAxisOf):
         return tf.Mirror_Axis.Variable
+    elif isinstance(transform, ast.NoOp):
+        return tf.NoOp()
     else:
         raise ValueError(
             f"Transform {transform} of type {transform.__class__.__name__} is not a valid transform."
@@ -786,6 +856,8 @@ def convert_overlap_to_transform_ast_node(overlap: bool) -> tf.Overlap:
 def convert_rotation_angle_to_transform_ast_node(
     rotation_angle: ast.RotationAngle,
 ) -> tf.Rotation_Angle:
+    if rotation_angle.value == "0" or rotation_angle.value == 0:
+        return tf.NoOp()
     if rotation_angle.value == "90" or rotation_angle.value == 90:
         return tf.Rotation_Angle.CCW
     elif rotation_angle.value == "180" or rotation_angle.value == 180:
@@ -801,15 +873,31 @@ def convert_rotation_angle_to_transform_ast_node(
 def convert_symmetry_axis_to_transform_ast_node(
     symmetry_axis: ast.SymmetryAxis,
 ) -> tf.Symmetry_Axis:
-    if symmetry_axis.value == "H":
+    if (
+        symmetry_axis.value == "H"
+        or symmetry_axis.value == "horizontal"
+        or symmetry_axis.value == "HORIZONTAL"
+    ):
         return tf.Symmetry_Axis.HORIZONTAL
-    elif symmetry_axis.value == "V":
+    elif (
+        symmetry_axis.value == "V"
+        or symmetry_axis.value == "vertical"
+        or symmetry_axis.value == "VERTICAL"
+    ):
         return tf.Symmetry_Axis.VERTICAL
     # TODO: i'm confused about which is diagonal and which is anti-diagonal
     # don't worry about this, it's from an old version of the grammar
-    elif symmetry_axis.value == "D":
+    elif (
+        symmetry_axis.value == "D"
+        or symmetry_axis.value == "diagonal_left"
+        or symmetry_axis.value == "DIAGONAL_LEFT"
+    ):
         return tf.Symmetry_Axis.DIAGONAL_LEFT
-    elif symmetry_axis.value == "AD":
+    elif (
+        symmetry_axis.value == "AD"
+        or symmetry_axis.value == "diagonal_right"
+        or symmetry_axis.value == "DIAGONAL_RIGHT"
+    ):
         return tf.Symmetry_Axis.DIAGONAL_RIGHT
     else:
         raise ValueError(
@@ -874,7 +962,7 @@ def convert_object_id_to_transform_ast_node(
     for name, member in _temp_enum.__members__.items():
         setattr(tf.ObjectId, name, tf.ObjectIdValue(member))
         next_enum_members.append(tf.ObjectId(member))
-    f.ObjectId._enum_members = next_enum_members
+    tf.ObjectId._enum_members = next_enum_members
 
     return convert_object_id_to_transform_ast_node(value)
 
