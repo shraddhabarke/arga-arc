@@ -54,13 +54,13 @@ IN_CONTEXT_TASK_NAMES = ["google_02", "google_10", "stackoverflow_07"]
 
 ModelName = t.Literal[
     "gpt-4",
-    "gpt-4o",
+    "gpt-4o-2024-05-13",
     "gpt-3.5-turbo",
     "deepseek-ai/deepseek-coder-33b-instruct",
     "codellama/CodeLlama-70b-Instruct-hf",
     "codellama/CodeLlama-13b-Instruct-hf",
 ]
-OPENAI_MODEL_NAMES = ["gpt-4", "gpt-4o", "gpt-3.5-turbo"]
+OPENAI_MODEL_NAMES = ["gpt-4", "gpt-4o-2024-05-13", "gpt-3.5-turbo"]
 TOGETHER_MODEL_NAMES = [
     "deepseek-ai/deepseek-coder-33b-instruct",
     "codellama/CodeLlama-70b-Instruct-hf",
@@ -421,20 +421,20 @@ def sample(model, num_samples):
             traceback.print_exc()
             continue
 
-    print(f"computing asts")
-    for task in tqdm(tasks):
-        task.compute_asts()
-        write()
+    # print(f"computing asts")
+    # for task in tqdm(tasks):
+    #     task.compute_asts()
+    #     write()
 
-    print(f"computing operator coverage")
-    for task in tqdm(tasks):
-        task.compute_operator_coverage()
-        write()
+    # print(f"computing operator coverage")
+    # for task in tqdm(tasks):
+    #     task.compute_operator_coverage()
+    #     write()
 
-    print(f"computing constants")
-    for task in tqdm(tasks):
-        task.compute_constants()
-        write()
+    # print(f"computing constants")
+    # for task in tqdm(tasks):
+    #     task.compute_constants()
+    #     write()
 
 
 def tqdm_print(*args, **kwargs):
@@ -473,6 +473,8 @@ class TaskJSON(t.TypedDict):
     source: str
     target_program: str
     examples: ExamplesJSON
+    time_millis: float
+    usage: t.Any
 
 
 class TaskJSONWithOutput(TaskJSON):
@@ -617,6 +619,8 @@ class Task:
     examples: Example
 
     completions: t.List[str] = field(default_factory=list)
+    time_millis: float = 0.0
+    usage: t.Any = None
     normalized_completions: t.List[str] = field(default_factory=list)
     tf_operators: t.Dict[str, int] = field(default_factory=dict)
     lex_tf_operators: t.Dict[str, int] = field(default_factory=dict)
@@ -667,6 +671,10 @@ class Task:
             ans.constant_counts = task_json["constant_counts"]
         if "aggregate_constant_count" in task_json:
             ans.aggregate_constant_count = task_json["aggregate_constant_count"]
+        if "time_millis" in task_json:
+            ans.time_millis = task_json["time_millis"]
+        if "usage" in task_json:
+            ans.usage = task_json["usage"]
         return ans
 
     def to_json(self) -> TaskJSONWithOutput:
@@ -688,6 +696,8 @@ class Task:
             "all_constants": self.all_constants,
             "constant_counts": self.constant_counts,
             "aggregate_constant_count": self.aggregate_constant_count,
+            "time_millis": self.time_millis,
+            "usage": self.usage,
         }
 
     @property
@@ -736,7 +746,7 @@ class Task:
             print(f"Task {self.name} already has completions")
             return self.completions
 
-        completions = prompt(
+        completions, time_millis, usage = prompt(
             SYSTEM_PROMPT,
             self.make_user_message(in_context_section),
             n_completions=n_completions,
@@ -744,6 +754,8 @@ class Task:
         )
 
         self.completions = completions
+        self.time_millis = time_millis
+        self.usage = usage
         return completions
 
     def compute_operator_coverage(self):
@@ -1220,7 +1232,7 @@ def prompt(
     user_message: str,
     n_completions: int = 10,
     model: ModelName = "gpt-4",
-) -> t.List[str]:
+) -> t.Tuple[t.List[str], float, t.Any]:
     if model in OPENAI_MODEL_NAMES:
         client = OPENAI
     elif model in TOGETHER_MODEL_NAMES:
@@ -1228,6 +1240,7 @@ def prompt(
     else:
         raise ValueError(f"Invalid model: {model}")
 
+    start = datetime.now()
     response = client.chat.completions.create(
         messages=[
             {"role": "system", "content": system_message},
@@ -1239,12 +1252,21 @@ def prompt(
         max_tokens=300,
         stop=["[TASK DESCRIPTION]", "[SYSTEM]", "[USER]"],
     )
+    end = datetime.now()
+    diff = end - start
+    time_millis = diff.total_seconds() * 1000
+    
+    usage = {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens,
+    }
 
     if model in TOGETHER_MODEL_NAMES:
         # sleep for 1s to cover trial rate limit
         time.sleep(1)
 
-    return [choice.message.content for choice in response.choices]
+    return [choice.message.content for choice in response.choices], time_millis, usage
 
 
 # endregion PROMPT
