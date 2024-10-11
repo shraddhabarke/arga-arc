@@ -49,6 +49,8 @@ def process_responses_json(response):
     result["usage"] = response["usage"]
     result["request_time"] = response["request_time"]
     result["n_requested"] = response["n_requested"]
+    result["prompt_messages"] = response["prompt_messages"]
+
     result["n_valid_json"] = result["n_can_parse"] = 0
     total_token_count = 0
     completions = []

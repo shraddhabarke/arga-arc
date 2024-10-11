@@ -47,8 +47,8 @@ class LanguageModel:
             model=self.model,
             n=n_responses,
             max_tokens=4000,
-            # this might impact request time significantly
-            logprobs=True,
+            # # this might impact request time significantly
+            # logprobs=True,
             response_format={ "type": "json_object" }
         )
         request_end = time.time()
@@ -58,6 +58,7 @@ class LanguageModel:
         response = response.model_dump()
         response["request_time"] = request_time
         response["n_requested"] = n_responses
+        response["prompt_messages"] = messages
         if log:
             timestamp = defs.get_timestamp(micros=False)
             log_dir = os.path.join(defs.PROJECT_ROOT, "models/logs/requests")
