@@ -1,0 +1,738 @@
+{
+    "model": "gpt-4o-2024-05-13",
+    "usage": {
+        "completion_tokens": 8814,
+        "prompt_tokens": 5186,
+        "total_tokens": 14000,
+        "prompt_tokens_details": {
+            "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+            "reasoning_tokens": 0
+        }
+    },
+    "request_time": 7.490000009536743,
+    "n_requested": 100,
+    "prompt_messages": [
+        {
+            "role": "system",
+            "content": "You are an assistant chatbot with human-like perception, reasoning and learning capabilities.\nYou can solve tasks concisely, efficiently, and moreover, correctly.\nLet's engage in perception- and logic-based tasks.\nYou only output source code.\nNo explanations or any other text.\nOnly code."
+        },
+        {
+            "role": "user",
+            "content": "You are an efficient assistant for logical reasoning and code generation.\nYou will help me solve a visual perception and reasoning task.\nI will first provide you with the definition of a Domain Specific Language you will use for writing a solution for the task.\nI will then present you with the description of the task that you will be tested in.\nYou will then respond the queries I make regarding the solution of the task.\n\n\nThis is the definition of the DSL you will use to solve the task.\nIt is given as a context-free grammar in the EBNF format used by the Lark parser generator, with some informative comments about the semantics.\nYou will return a string that is parseable by the `program` non-terminal of the grammar.\n\n```\nlibrary: \"(\" program* \")\"\n\n// Rules are executed one after another, in the order they appear.\n// There could be no rules, in which case the program does nothing.\nprogram: \"(\" \"do\" rule* \")\"\n\n// First, it declares the variables that will be used in the filter and transform expressions.\n// Second, it defines a filter expression that an object must satisfy in order to be transformed.\n// Then, it defines a list of transforms that will be applied objects that satisfy the filter expression.\nrule: \"(\" \"rule\" decl filter xform_list \")\"\n\n// The `vars` declaration specifies the names of the variables that will be used in the filter and transform expressions.\n// The `this` variable is always declared, and it refers to the object that is being transformed.\n// There could also be an additional optional variable `other` that refers to another object in the grid,\n// which is not being transformed, but is used in the filter expression.\ndecl: \"(\" \"vars\" \"(\" VAR_THIS VAR_OTHER? \")\" \")\"\n\n// A filter is a predicate over the objects in the grid.\n// If no filter is given, then all the objects are selected.\nfilter: \"(\" \"filter\" filter_expr? \")\"\n\n// It can be a primitive filter operation, or a boolean expression using the `and`, `or`, and `not` connectives.\n// IMPORTANT: The `and` and `or` connectives are strictly binary, so to take the conjunction or disjunction \n// of more than two expressions, the binary connectives must be nested.\n// AGAIN, the `and` and `or` connectives are not variadic, so the following is not allowed:\n// (and true true false)\n// Instead, the following must be used:\n// (and true (and true false))\n// The `not` connective is unary as expected.\n// The objects that are transformed are the ones that satisfy the filter expression.\nfilter_expr: filter_prim\n           | \"(\" OP_AND filter_expr filter_expr \")\"   \n           | \"(\" OP_OR filter_expr filter_expr \")\"\n           | \"(\" OP_NOT filter_expr \")\"\n\nfilter_prim: \"(\" COLOR_EQ fcolor_expr fcolor_expr \")\"           \n           | \"(\" SIZE_EQ size_expr size_expr \")\"                \n           | \"(\" HEIGHT_EQ height_expr height_expr \")\"          \n           | \"(\" WIDTH_EQ width_expr width_expr \")\"             \n           | \"(\" DEGREE_EQ degree_expr degree_expr \")\"          \n           | \"(\" SHAPE_EQ shape_expr shape_expr \")\"             \n           | \"(\" COLUMN_EQ column_expr column_expr \")\"         \n           | \"(\" NEIGHBOR_OF VAR VAR \")\"      // true if the two objects are neighbors\n\n\n// Transforms are applied one after another, in the order they appear.\nxform_list: \"(\" \"apply\" xform+ \")\"\n\n// A single transform is applied to all the objects that are bound to the `this` variable. \n// The transform is applied to each such object independently and simultaneously.\nxform:     \"(\" TR_UPDATE_COLOR color_expr \")\"                          // change this object color to the given color \n         | \"(\" TR_MOVE_NODE direction_expr \")\"                         // move this object in the given direction\n         | \"(\" TR_EXTEND_NODE direction_expr OVERLAP \")\"               // extend (move while leaving a trail) this object in the given direction\n                                                                  // if overlap is false, then the object is extended until it hits another object,\n                                                                  // otherwise it is extended until the edge of the grid.\n         | \"(\" TR_MOVE_NODE_MAX direction_expr \")\"                     // move this object until it hits another object, in the given direction\n         | \"(\" TR_ROTATE_NODE ROT_ANGLE \")\"                       // rotate this object by the given angle\n         | \"(\" TR_ADD_BORDER color_expr \")\"                            // color this exterior pixels of the object with the given color\n         | \"(\" TR_FILL_RECTANGLE color_expr OVERLAP \")\"                // color this interior of a hollow rectangle with the given color\n         | \"(\" TR_HOLLOW_RECTANGLE color_expr \")\"                      // color this interior of a solid rectangle with the given color\n         | \"(\" TR_MIRROR mirror_expr \")\"\n         | \"(\" TR_FLIP SYMMETRY_AXIS \")\"                          // flip this object with respect to the given axis\n         | \"(\" TR_INSERT OBJECT_ID img_pts_expr RELATIVE_POSITION \")\" // insert a copy of this object at the position of the given object\n         | \"(\" TR_NOOP \")\"                                        // do nothing\n\nfcolor_expr: FCOLOR\n           | \"(\" COLOR_OF VAR \")\"\n\ncolor_expr: COLOR\n          | \"(\" COLOR_OF VAR \")\"\n\nsize_expr: SIZE\n         | \"(\" SIZE_OF VAR \")\"\n\nheight_expr: HEIGHT\n           | \"(\" HEIGHT_OF VAR \")\"\n\nwidth_expr: WIDTH\n          | \"(\" WIDTH_OF VAR \")\"\n\ndegree_expr: DEGREE\n           | \"(\" DEGREE_OF VAR \")\" \n\nshape_expr: SHAPE\n          | \"(\" SHAPE_OF VAR \")\"\n\ncolumn_expr: COLUMN\n           | \"(\" COLUMN_OF VAR \")\"\n\ndirection_expr: DIRECTION\n              | \"(\" DIRECTION_OF VAR \")\"\n\nimg_pts_expr: IMAGE_POINTS\n            | \"(\" IMAGE_POINTS_OF VAR \")\"\n\nmirror_expr: \"(\" MIRROR_AXIS_OF VAR \")\"\n\nOBJECT_ID: /[0-9]+/\nFCOLOR: \"O\" // black\n      | \"B\" // blue\n      | \"R\" // red\n      | \"G\" // green\n      | \"Y\" // yellow\n      | \"X\" // grey\n      | \"F\" // fuchsia\n      | \"A\" // orange\n      | \"C\" // cyan  \n      | \"W\" // brown\n\nSIZE: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // size of objects\nDEGREE: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // degree of objects\nHEIGHT: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // height of objects\nWIDTH: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // width of objects\nCOLUMN: \"center\" | \"even\" | \"odd\" | /[0-9]+/  // column of objects\nSHAPE: \"square\" | \"enclosed\"  // shape of objects\n\nDIRECTION: \"up\"\n         | \"down\"\n         | \"left\"\n         | \"right\"\n         | \"up_left\"\n         | \"up_right\"\n         | \"down_left\"\n         | \"down_right\"\n\nSYMMETRY_AXIS: \"vertical\" | \"horizontal\" | \"diagonal_left\" | \"diagonal_right\"\n\n// The angle of clockwise rotation, in degrees.\nROT_ANGLE: \"0\" \n         | \"90\" \n         | \"180\" \n         | \"270\"\n\nCOLOR: \"O\" // black\n      | \"B\" // blue\n      | \"R\" // red\n      | \"G\" // green\n      | \"Y\" // yellow\n      | \"X\" // grey\n      | \"F\" // fuchsia\n      | \"A\" // orange\n      | \"C\" // cyan  \n      | \"W\" // brown\n\nOVERLAP: BOOL\n\nBOOL: \"true\" | \"false\"\n\nIMAGE_POINTS: \"top\" | \"bottom\" | \"left\" | \"right\" | \"top_left\" | \"top_right\" | \"bottom_left\" | \"bottom_right\" \n\nRELATIVE_POSITION: \"source\"\n                 | \"target\"\n                 | \"middle\"\n\nVAR: VAR_THIS | VAR_OTHER\nVAR_THIS: \"this\"\nVAR_OTHER: \"other\"\n\nOP_AND: \"and\"\nOP_OR: \"or\"\nOP_NOT: \"not\"\n\nCOLOR_OF: \"color_of\"\nSIZE_OF: \"size_of\"\nHEIGHT_OF: \"height_of\"\nWIDTH_OF: \"width_of\"\nDEGREE_OF: \"degree_of\"\nSHAPE_OF: \"shape_of\"\nCOLUMN_OF: \"column_of\"\nDIRECTION_OF: \"direction_of\"\nIMAGE_POINTS_OF: \"img_pts_of\"\nMIRROR_AXIS_OF: \"mirror_axis_of\"\n\nCOLOR_EQ: \"color_equals\"\nSIZE_EQ: \"size_equals\"\nDEGREE_EQ: \"degree_equals\"\nHEIGHT_EQ: \"height_equals\"\nWIDTH_EQ: \"width_equals\"\nSHAPE_EQ: \"shape_equals\"\nCOLUMN_EQ: \"column_equals\"\nNEIGHBOR_OF: \"neighbor_of\"\n\nTR_UPDATE_COLOR: \"update_color\"\nTR_MOVE_NODE: \"move_node\"\nTR_EXTEND_NODE: \"extend_node\"\nTR_MOVE_NODE_MAX: \"move_node_max\"\nTR_ROTATE_NODE: \"rotate_node\"\nTR_ADD_BORDER: \"add_border\"\nTR_FILL_RECTANGLE: \"fill_rectangle\"\nTR_HOLLOW_RECTANGLE: \"hollow_rectangle\"\nTR_MIRROR: \"mirror\"\nTR_FLIP: \"flip\"\nTR_INSERT: \"insert\"\nTR_NOOP: \"noop\"\n\nCOMMENT: /\\s*/ \";;\" /[^\\n]/*\n\n%import common.WS\n%import common.LCASE_LETTER\n%import common.INT\n%ignore WS\n%ignore COMMENT\n```\n\n\nNow we continue with the visual perception and reasoning task.\nThe input for the task is a small number of pairs of grids of characters.\nThe value of each of the cells of the grids are the colors defined in the DSL, so we can think of grids as images.\nEach pair of images correspond to an input-output example for an unknown program P.\nFor each pair, the program P is evaluated on the image grid and operates on the objects that appear in it.\nThe output of the program is then the output image.\nThe objects in the images are easy and natural to identify for humans, so there is no need to define them explicitly.\nHowever you are able to abstract them correctly, and the DSL is interpreted with the same correct abstraction.\n\n\nNow I will show you some demonstration tasks along with the output you would be expected to produce for each of them.\n\n## DEMONSTRATION TASK 1\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O O O O O\nO O O O O R O O\nO R O O O R O R\nO R R O O R O O\nO O O O O O O O\nO R R O O O O O\nO R R O R R O O\nO O O O O O O O\nOUTPUT GRID:\nO O O O O O O O\nO O O O O Y O O\nO Y O O O Y O Y\nO Y Y O O Y O O\nO O O O O O O O\nO Y Y O O O O O\nO Y Y O Y Y O O\nO O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O O O O O O O O\nO O O O R O O O O O\nO G O O R O O W O O\nO O G O O O W W O O\nO O G O O O O O O O\nO O O O X O O O O O\nO O O O O O F F F O\nO B O O O O O O O O\nO B B B B O O C C O\nO O O O O O O C O O\nOUTPUT GRID:\nO O O O O O O O O O\nO O O O Y O O O O O\nO Y O O Y O O Y O O\nO O Y O O O Y Y O O\nO O Y O O O O O O O\nO O O O Y O O O O O\nO O O O O O Y Y Y O\nO Y O O O O O O O O\nO Y Y Y Y O O Y Y O\nO O O O O O O Y O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Recolor all objects to color Y\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}\n\n\n## DEMONSTRATION TASK 2\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O O O O O\nO F F O O O R O\nO F F O O O O O\nO O O O O O O O\nO O O O O O O O\nO O O O O O O O\nO O A O O X X O\nO O O O O O O O\nOUTPUT GRID:\nO O O O O O O O\nO F F R R R R O\nO F F O O O O O\nO O A O O O O O\nO O A O O O O O\nO O A O O O O O\nO O A O O X X O\nO O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O O O O O O O O\nO O O Y O G G G G O\nO O F O O G G G G O\nO O O O O O O O O O\nO O O O O O O O O O\nO O O O O O O O O O\nO C C C O O O O O O\nO C C C O O O O A O\nO C C C O O O X O O\nO O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O O O\nO O O Y O G G G G O\nO O F Y O G G G G O\nO O F Y O O O O O O\nO O F Y O O O O O O\nO O F Y O O O O O O\nO C C C O O O O O O\nO C C C A A A A A O\nO C C C X X X X O O\nO O O O O O O O O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Extend all the objects of size 1 toward the object of maximum size, without overlapping.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (size_equals (size_of this) 1)\\n                (and\\n                    (neighbor_of this other)\\n                    (size_equals (size_of other) max)\\n                )\\n            )\\n        )\\n        (apply\\n            (extend_node (direction_of other) false)\\n        )    \\n    )\\n)\"\n}\n\n\n## DEMONSTRATION TASK 3\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O O O O O O O\nO O O O O O O G O O\nO O G O O O O G O O\nO O G G O O O G G O\nO O O O O O O O O O\nO G G O O O O O O O\nO G G O O G G G O O\nO O O O O O O O O O\nO O G G O O O G O O\nO O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O O O\nO O B O O O O G O O\nO O B B O O O G O O\nO O O O O O O G G O\nO O O O O O O O O O\nO G G O O B B B O O\nO G G O O O O O O O\nO O O O O O O O O O\nO O G G O O O G O O\nO O O O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O O O O O O O O O O O O O O\nO O O O O O O O O O O O O G O O\nO B B O O O O O O C C C O G G O\nO O O O O F O O O O O O O O O O\nO O O O O F O O O O R R O O O O\nO O O O O F O O O O R R O O O O\nO O O O O O O O W O O O O O O O\nO O O A O O O W W O O O X O O O\nO O O A A O O W W O O O X X X O\nO O O O O O O O O O O O O O O O\nO O O O O O O O O O Y Y O O O O\nO O O O B O O O O O O O O O O O\nO Y O O B O O O G O O O O F F O\nO Y O O O O O O G O O O O F F O\nO Y Y Y O O O O G O O O O O O O\nO O O O O O O O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O O O O O O B O O\nO O O O O O O O O B B B O B B O\nO B B O O B O O O O O O O O O O\nO O O O O B O O O O O O O O O O\nO O O O O B O O O O R R O O O O\nO O O O O O O O O O R R O O O O\nO O O B O O O O W O O O O O O O\nO O O B B O O W W O O O X O O O\nO O O O O O O W W O O O X X X O\nO O O O O O O O O O O O O O O O\nO O O O O O O O O O Y Y O O O O\nO O O O B O O O B O O O O O O O\nO Y O O B O O O B O O O O F F O\nO Y O O O O O O B O O O O F F O\nO Y Y Y O O O O O O O O O O O O\nO O O O O O O O O O O O O O O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Move all objects of size 3 one step up, and then recolor them to color B.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (size_equals (size_of this) 3)\\n        )\\n        (apply\\n            (move_node up)\\n            (update_color B)\\n        )\\n    )\\n)\"\n}\n\n\n## DEMONSTRATION TASK 4\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O R O O O A O\nO B O O O O B O O O\nO O O O O O O O O O\nO O O O X X X O O O\nO O O O X X X O O F\nW O O O O O O O O O\nO O F O O O Y O O O\nO O O O O O O O O O\nO O O O G O O O W O\nO O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O A O\nO B O O O O O O O O\nO O O O R O B O O O\nO O O O X X X O O O\nO O O O X X X F O O\nW O O O G O Y O O O\nO O F O O O O O O O\nO O O O O O O O O O\nO O O O O O O O W O\nO O O O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O F O O O R O O O O\nO O O O O O O O O Y O O\nO O O O O B O O O O O O\nO O R O O O O O G O O O\nB O O O O G O O O O O A\nO O O O O O R O O O W O\nO O O O O O O O C O O O\nG O X X O O O O O O O R\nO O X X O O O O O O Y O\nO O X X O O A O O O O O\nO F X X O O O O O O O O\nO O O O O Y O O O O O O\nOUTPUT GRID:\nO O O O O O O R O O O O\nO O O O O O O O O Y O O\nO O O O O B O O O O O O\nO O O O O O O O G O O O\nB O O O O G O O O O O A\nO O O O O O R O O O W O\nO O R F O O O O C O O O\nO G X X R O O O O O O O\nO O X X Y O O O O O O O\nO O X X A O O O O O O O\nO F X X O O O O O O O O\nO O O O O Y O O O O O O\n\nPAIR 3\nINPUT GRID:\nO G O O O O O O\nO O O A O O A O\nW O O O W O O O\nO O O O O O O B\nO R O X O F O O\nO O O O O O O O\nO G O O F O O G\nO O B O O A O O\nOUTPUT GRID:\nO G O O O O O O\nO O O O O O A O\nW O O O W O O O\nO O O A O O O B\nO O R X F O O O\nO O O O O O O O\nO G O O F O O G\nO O B O O A O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Move all objects of color different than X, toward the object of color X, if they are neighbors of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (neighbor_of this other)\\n                    (color_equals (color_of other) X)\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}\n\n\nNow follows task you will be evaluated on.\nOutput the solution as a JSON object, which should contain both a natural language description of the solution and the solution written in the DSL.\nThe code should be parseable by the DSL grammar.\nThe JSON must have the following structure:\n\n{\n    \"nl_description\": \"TO_BE_FILLED\",\n    \"code\": \"TO_BE_FILLED\"\n}\n\n## TEST TASK\n\nPAIR 1\nINPUT GRID:\nO O F\nO Y O\nG O O\nOUTPUT GRID:\nO O F\nO Y F\nG Y F\n\nPAIR 2\nINPUT GRID:\nO R O\nA O C\nO O O\nOUTPUT GRID:\nO R O\nA R C\nA R C\n\nPAIR 3\nINPUT GRID:\nY O O\nO R O\nO O O\nOUTPUT GRID:\nY O O\nY R O\nY R O\n"
+        }
+    ],
+    "n_valid_json": 100,
+    "n_can_parse": 93,
+    "completions": [
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 2 or more to the right until they hit another object.",
+            "code": "(do (rule (vars (this)) (filter (size_equals (size_of this) 2)) (apply (extend_node right true))) (rule (vars (this)) (filter (size_equals (size_of this) 3)) (apply (extend_node right true))))",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward, with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Copy the color of the top neighbor from the object to the current position if it is not empty (O).",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (not (color_equals (color_of other) O))\n                    (color_equals (color_of this) O)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects towards the bottom-right and recolor them to 'R'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (move_node down_right)\n                (update_color R)\n            )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward until they hit another object or the edge of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of color Y towards their neighbor, or neighbors, of color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n                (color_equals (color_of other) F)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of other) F)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of color R downwards to the bottom of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the right and recolor the extension with the color of 'other' neighbor.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of color Y downward, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) Y))\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of color Y to the rightmost column.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 to the right without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 in the down direction, allowing overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of color Y to the bottom until they hit another object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward without overlapping until they hit another object or the edge.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend the size 1 object in direction down, overlapping with other cells",
+            "code": "(do\n,rule\n(vars (this))\n(filter\n(size_equals (size_of this)  1))\n(apply\n(extend_node  down true)\n)\n)\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches ',' in the current parser context, at line 2 col 1\n\n,rule\n^\nExpected one of: \n\t* LPAR\n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 in the downward direction, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 toward the bottom until the edge of the grid is reached, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 to the right, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Add a border of color of border object to all objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend the objects of color R towards the bottom edge without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend objects of size 1 downwards until they hit another object or the boundary of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 in the down direction until they hit another object of any size, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects by one cell upward.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node up false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the bottom edge, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects in the downward direction until they hit another object, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the bottom, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects to the maximum row while retaining their column, and update their color to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max down)\n            (update_color R)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the most left column without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node left false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward, stopping at the edge of the grid or another object, if they are not already at the bottom.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (neighbor_of this (down)))\n            )\n        )\n        (apply\n            (extend_node down false)\n        )    \n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 7 col 40\n\n                (not (neighbor_of this (down)))\n                                       ^\nExpected one of: \n\t* VAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move nodes of color R one step down and update their color to match the neighboring node.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node down)\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward, allowing overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects in the grid downward without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 to the bottom edge, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )    \n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all R objects upwards, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node up false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all fully surrounded objects of size 1 until the edge of the grid, overlapping with other objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Fill all the cells adjacent to the cells containing 'R' with the color 'Y'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move the bottom neighbor of each Y object to the bottom-most row and change its color to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max down)\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 in downward direction without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )    \n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of size 1 downward until they hit the edge or another object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend the objects with color Y downwards, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 toward the bottom edge, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1))\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches ')' in the current parser context, at line 6 col 9\n\n        )\n        ^\nExpected one of: \n\t* LPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 in the down direction, with overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend objects towards the bottom of the grid without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of size 1 towards the object of color F, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects downwards without overlapping",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all the fuchsia objects and the red objects to color fuchsia, and color the yellow objects in the color yellow also.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) Y)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward toward the bottom of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards down, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 in the down direction, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects in the grid toward the bottom edge while leaving a trail.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the down direction, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downwards without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects in the rightmost column to the color of the object directly to their left.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all the objects of size 1 towards the object of size 2 until the edge of the grid is reached.",
+            "code": "(do (rule (vars (this other)) (filter (and (size_equals (size_of this) 1) (and (neighbor_of this other) (size_equals (size_of other) 2)))) (apply (extend_node (direction_of other) false))))",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of color R downward, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the bottom, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downwards, overlapping other objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards downwards",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of size 1 downward.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 in the downward direction until the edge of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 down without overlapping",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards down without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the bottom edge with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 toward the object of color R, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 vertically downwards, allowing overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the bottom edge, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 vertically, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend objects of size 1 downwards, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of size 1 towards bottom-right, if they are neighbors of it, and recolor them to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node down_right)\n            (update_color F)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1, downward and covering any cells underneath.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the bottom without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend objects downwards to make all objects in column 2.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 2)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend objects of size 1 downward, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all the objects of size 1 towards the bottom edge of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of color R in the down direction, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Fill the bottom row with the color of the object in the middle row.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (neighbor_of this other)\n                (color_equals (color_of this) O)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) O)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend the objects of color R downward, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node down false)\n        )    \n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Fill the bottom-right cell of all objects with color F if they are located at their bottom-empty cells.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n                (and\n                    (not (color_equals (color_of other) O))\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (and\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend fuchsia objects down until the bottom of the grid or they hit another object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downwards with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of size 1 to the bottom until they hit another object or the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of size 1 down and recolor them to Fuchsia.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (move_node down)\n            (update_color F)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects vertically until they hit another object or the edge of the grid, with overlapping allowed.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects towards the right, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects except those of color R and F, one step downwards without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) R))\n                (not (color_equals (color_of this) F))\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects with color different than 'O' towards the bottom without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 towards the down direction, with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects with color Y or R, one step down.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) Y)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend the rightmost column of each object of size 1, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of color different than O, towards the object of color O, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects except the ones with color O in down direction until they hit another object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of size 1 downward without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects towards the bottom edge without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend all objects of color R in the downward direction, overlapping other objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Extend the objects of color Y in the down direction, overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)",
+            "can_parse": true
+        }
+    ],
+    "task_id": "d037b0a7"
+}

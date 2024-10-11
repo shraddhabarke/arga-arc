@@ -1,0 +1,759 @@
+{
+    "model": "gpt-4o-2024-05-13",
+    "usage": {
+        "completion_tokens": 22142,
+        "prompt_tokens": 5884,
+        "total_tokens": 28026,
+        "prompt_tokens_details": {
+            "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+            "reasoning_tokens": 0
+        }
+    },
+    "request_time": 19.85293984413147,
+    "n_requested": 100,
+    "prompt_messages": [
+        {
+            "role": "system",
+            "content": "You are an assistant chatbot with human-like perception, reasoning and learning capabilities.\nYou can solve tasks concisely, efficiently, and moreover, correctly.\nLet's engage in perception- and logic-based tasks.\nYou only output source code.\nNo explanations or any other text.\nOnly code."
+        },
+        {
+            "role": "user",
+            "content": "You are an efficient assistant for logical reasoning and code generation.\nYou will help me solve a visual perception and reasoning task.\nI will first provide you with the definition of a Domain Specific Language you will use for writing a solution for the task.\nI will then present you with the description of the task that you will be tested in.\nYou will then respond the queries I make regarding the solution of the task.\n\n\nThis is the definition of the DSL you will use to solve the task.\nIt is given as a context-free grammar in the EBNF format used by the Lark parser generator, with some informative comments about the semantics.\nYou will return a string that is parseable by the `program` non-terminal of the grammar.\n\n```\nlibrary: \"(\" program* \")\"\n\n// Rules are executed one after another, in the order they appear.\n// There could be no rules, in which case the program does nothing.\nprogram: \"(\" \"do\" rule* \")\"\n\n// First, it declares the variables that will be used in the filter and transform expressions.\n// Second, it defines a filter expression that an object must satisfy in order to be transformed.\n// Then, it defines a list of transforms that will be applied objects that satisfy the filter expression.\nrule: \"(\" \"rule\" decl filter xform_list \")\"\n\n// The `vars` declaration specifies the names of the variables that will be used in the filter and transform expressions.\n// The `this` variable is always declared, and it refers to the object that is being transformed.\n// There could also be an additional optional variable `other` that refers to another object in the grid,\n// which is not being transformed, but is used in the filter expression.\ndecl: \"(\" \"vars\" \"(\" VAR_THIS VAR_OTHER? \")\" \")\"\n\n// A filter is a predicate over the objects in the grid.\n// If no filter is given, then all the objects are selected.\nfilter: \"(\" \"filter\" filter_expr? \")\"\n\n// It can be a primitive filter operation, or a boolean expression using the `and`, `or`, and `not` connectives.\n// IMPORTANT: The `and` and `or` connectives are strictly binary, so to take the conjunction or disjunction \n// of more than two expressions, the binary connectives must be nested.\n// AGAIN, the `and` and `or` connectives are not variadic, so the following is not allowed:\n// (and true true false)\n// Instead, the following must be used:\n// (and true (and true false))\n// The `not` connective is unary as expected.\n// The objects that are transformed are the ones that satisfy the filter expression.\nfilter_expr: filter_prim\n           | \"(\" OP_AND filter_expr filter_expr \")\"   \n           | \"(\" OP_OR filter_expr filter_expr \")\"\n           | \"(\" OP_NOT filter_expr \")\"\n\nfilter_prim: \"(\" COLOR_EQ fcolor_expr fcolor_expr \")\"           \n           | \"(\" SIZE_EQ size_expr size_expr \")\"                \n           | \"(\" HEIGHT_EQ height_expr height_expr \")\"          \n           | \"(\" WIDTH_EQ width_expr width_expr \")\"             \n           | \"(\" DEGREE_EQ degree_expr degree_expr \")\"          \n           | \"(\" SHAPE_EQ shape_expr shape_expr \")\"             \n           | \"(\" COLUMN_EQ column_expr column_expr \")\"         \n           | \"(\" NEIGHBOR_OF VAR VAR \")\"      // true if the two objects are neighbors\n\n\n// Transforms are applied one after another, in the order they appear.\nxform_list: \"(\" \"apply\" xform+ \")\"\n\n// A single transform is applied to all the objects that are bound to the `this` variable. \n// The transform is applied to each such object independently and simultaneously.\nxform:     \"(\" TR_UPDATE_COLOR color_expr \")\"                          // change this object color to the given color \n         | \"(\" TR_MOVE_NODE direction_expr \")\"                         // move this object in the given direction\n         | \"(\" TR_EXTEND_NODE direction_expr OVERLAP \")\"               // extend (move while leaving a trail) this object in the given direction\n                                                                  // if overlap is false, then the object is extended until it hits another object,\n                                                                  // otherwise it is extended until the edge of the grid.\n         | \"(\" TR_MOVE_NODE_MAX direction_expr \")\"                     // move this object until it hits another object, in the given direction\n         | \"(\" TR_ROTATE_NODE ROT_ANGLE \")\"                       // rotate this object by the given angle\n         | \"(\" TR_ADD_BORDER color_expr \")\"                            // color this exterior pixels of the object with the given color\n         | \"(\" TR_FILL_RECTANGLE color_expr OVERLAP \")\"                // color this interior of a hollow rectangle with the given color\n         | \"(\" TR_HOLLOW_RECTANGLE color_expr \")\"                      // color this interior of a solid rectangle with the given color\n         | \"(\" TR_MIRROR mirror_expr \")\"\n         | \"(\" TR_FLIP SYMMETRY_AXIS \")\"                          // flip this object with respect to the given axis\n         | \"(\" TR_INSERT OBJECT_ID img_pts_expr RELATIVE_POSITION \")\" // insert a copy of this object at the position of the given object\n         | \"(\" TR_NOOP \")\"                                        // do nothing\n\nfcolor_expr: FCOLOR\n           | \"(\" COLOR_OF VAR \")\"\n\ncolor_expr: COLOR\n          | \"(\" COLOR_OF VAR \")\"\n\nsize_expr: SIZE\n         | \"(\" SIZE_OF VAR \")\"\n\nheight_expr: HEIGHT\n           | \"(\" HEIGHT_OF VAR \")\"\n\nwidth_expr: WIDTH\n          | \"(\" WIDTH_OF VAR \")\"\n\ndegree_expr: DEGREE\n           | \"(\" DEGREE_OF VAR \")\" \n\nshape_expr: SHAPE\n          | \"(\" SHAPE_OF VAR \")\"\n\ncolumn_expr: COLUMN\n           | \"(\" COLUMN_OF VAR \")\"\n\ndirection_expr: DIRECTION\n              | \"(\" DIRECTION_OF VAR \")\"\n\nimg_pts_expr: IMAGE_POINTS\n            | \"(\" IMAGE_POINTS_OF VAR \")\"\n\nmirror_expr: \"(\" MIRROR_AXIS_OF VAR \")\"\n\nOBJECT_ID: /[0-9]+/\nFCOLOR: \"O\" // black\n      | \"B\" // blue\n      | \"R\" // red\n      | \"G\" // green\n      | \"Y\" // yellow\n      | \"X\" // grey\n      | \"F\" // fuchsia\n      | \"A\" // orange\n      | \"C\" // cyan  \n      | \"W\" // brown\n\nSIZE: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // size of objects\nDEGREE: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // degree of objects\nHEIGHT: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // height of objects\nWIDTH: \"min\" | \"max\" | \"even\" | \"odd\" | /[0-9]+/  // width of objects\nCOLUMN: \"center\" | \"even\" | \"odd\" | /[0-9]+/  // column of objects\nSHAPE: \"square\" | \"enclosed\"  // shape of objects\n\nDIRECTION: \"up\"\n         | \"down\"\n         | \"left\"\n         | \"right\"\n         | \"up_left\"\n         | \"up_right\"\n         | \"down_left\"\n         | \"down_right\"\n\nSYMMETRY_AXIS: \"vertical\" | \"horizontal\" | \"diagonal_left\" | \"diagonal_right\"\n\n// The angle of clockwise rotation, in degrees.\nROT_ANGLE: \"0\" \n         | \"90\" \n         | \"180\" \n         | \"270\"\n\nCOLOR: \"O\" // black\n      | \"B\" // blue\n      | \"R\" // red\n      | \"G\" // green\n      | \"Y\" // yellow\n      | \"X\" // grey\n      | \"F\" // fuchsia\n      | \"A\" // orange\n      | \"C\" // cyan  \n      | \"W\" // brown\n\nOVERLAP: BOOL\n\nBOOL: \"true\" | \"false\"\n\nIMAGE_POINTS: \"top\" | \"bottom\" | \"left\" | \"right\" | \"top_left\" | \"top_right\" | \"bottom_left\" | \"bottom_right\" \n\nRELATIVE_POSITION: \"source\"\n                 | \"target\"\n                 | \"middle\"\n\nVAR: VAR_THIS | VAR_OTHER\nVAR_THIS: \"this\"\nVAR_OTHER: \"other\"\n\nOP_AND: \"and\"\nOP_OR: \"or\"\nOP_NOT: \"not\"\n\nCOLOR_OF: \"color_of\"\nSIZE_OF: \"size_of\"\nHEIGHT_OF: \"height_of\"\nWIDTH_OF: \"width_of\"\nDEGREE_OF: \"degree_of\"\nSHAPE_OF: \"shape_of\"\nCOLUMN_OF: \"column_of\"\nDIRECTION_OF: \"direction_of\"\nIMAGE_POINTS_OF: \"img_pts_of\"\nMIRROR_AXIS_OF: \"mirror_axis_of\"\n\nCOLOR_EQ: \"color_equals\"\nSIZE_EQ: \"size_equals\"\nDEGREE_EQ: \"degree_equals\"\nHEIGHT_EQ: \"height_equals\"\nWIDTH_EQ: \"width_equals\"\nSHAPE_EQ: \"shape_equals\"\nCOLUMN_EQ: \"column_equals\"\nNEIGHBOR_OF: \"neighbor_of\"\n\nTR_UPDATE_COLOR: \"update_color\"\nTR_MOVE_NODE: \"move_node\"\nTR_EXTEND_NODE: \"extend_node\"\nTR_MOVE_NODE_MAX: \"move_node_max\"\nTR_ROTATE_NODE: \"rotate_node\"\nTR_ADD_BORDER: \"add_border\"\nTR_FILL_RECTANGLE: \"fill_rectangle\"\nTR_HOLLOW_RECTANGLE: \"hollow_rectangle\"\nTR_MIRROR: \"mirror\"\nTR_FLIP: \"flip\"\nTR_INSERT: \"insert\"\nTR_NOOP: \"noop\"\n\nCOMMENT: /\\s*/ \";;\" /[^\\n]/*\n\n%import common.WS\n%import common.LCASE_LETTER\n%import common.INT\n%ignore WS\n%ignore COMMENT\n```\n\n\nNow we continue with the visual perception and reasoning task.\nThe input for the task is a small number of pairs of grids of characters.\nThe value of each of the cells of the grids are the colors defined in the DSL, so we can think of grids as images.\nEach pair of images correspond to an input-output example for an unknown program P.\nFor each pair, the program P is evaluated on the image grid and operates on the objects that appear in it.\nThe output of the program is then the output image.\nThe objects in the images are easy and natural to identify for humans, so there is no need to define them explicitly.\nHowever you are able to abstract them correctly, and the DSL is interpreted with the same correct abstraction.\n\n\nNow I will show you some demonstration tasks along with the output you would be expected to produce for each of them.\n\n## DEMONSTRATION TASK 1\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O O O O O\nO O O O O R O O\nO R O O O R O R\nO R R O O R O O\nO O O O O O O O\nO R R O O O O O\nO R R O R R O O\nO O O O O O O O\nOUTPUT GRID:\nO O O O O O O O\nO O O O O Y O O\nO Y O O O Y O Y\nO Y Y O O Y O O\nO O O O O O O O\nO Y Y O O O O O\nO Y Y O Y Y O O\nO O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O O O O O O O O\nO O O O R O O O O O\nO G O O R O O W O O\nO O G O O O W W O O\nO O G O O O O O O O\nO O O O X O O O O O\nO O O O O O F F F O\nO B O O O O O O O O\nO B B B B O O C C O\nO O O O O O O C O O\nOUTPUT GRID:\nO O O O O O O O O O\nO O O O Y O O O O O\nO Y O O Y O O Y O O\nO O Y O O O Y Y O O\nO O Y O O O O O O O\nO O O O Y O O O O O\nO O O O O O Y Y Y O\nO Y O O O O O O O O\nO Y Y Y Y O O Y Y O\nO O O O O O O Y O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Recolor all objects to color Y\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter)\\n        (apply\\n            (update_color Y)\\n        )\\n    )\\n)\"\n}\n\n\n## DEMONSTRATION TASK 2\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O O O O O\nO F F O O O R O\nO F F O O O O O\nO O O O O O O O\nO O O O O O O O\nO O O O O O O O\nO O A O O X X O\nO O O O O O O O\nOUTPUT GRID:\nO O O O O O O O\nO F F R R R R O\nO F F O O O O O\nO O A O O O O O\nO O A O O O O O\nO O A O O O O O\nO O A O O X X O\nO O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O O O O O O O O\nO O O Y O G G G G O\nO O F O O G G G G O\nO O O O O O O O O O\nO O O O O O O O O O\nO O O O O O O O O O\nO C C C O O O O O O\nO C C C O O O O A O\nO C C C O O O X O O\nO O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O O O\nO O O Y O G G G G O\nO O F Y O G G G G O\nO O F Y O O O O O O\nO O F Y O O O O O O\nO O F Y O O O O O O\nO C C C O O O O O O\nO C C C A A A A A O\nO C C C X X X X O O\nO O O O O O O O O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Extend all the objects of size 1 toward the object of maximum size, without overlapping.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (size_equals (size_of this) 1)\\n                (and\\n                    (neighbor_of this other)\\n                    (size_equals (size_of other) max)\\n                )\\n            )\\n        )\\n        (apply\\n            (extend_node (direction_of other) false)\\n        )    \\n    )\\n)\"\n}\n\n\n## DEMONSTRATION TASK 3\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O O O O O O O\nO O O O O O O G O O\nO O G O O O O G O O\nO O G G O O O G G O\nO O O O O O O O O O\nO G G O O O O O O O\nO G G O O G G G O O\nO O O O O O O O O O\nO O G G O O O G O O\nO O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O O O\nO O B O O O O G O O\nO O B B O O O G O O\nO O O O O O O G G O\nO O O O O O O O O O\nO G G O O B B B O O\nO G G O O O O O O O\nO O O O O O O O O O\nO O G G O O O G O O\nO O O O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O O O O O O O O O O O O O O\nO O O O O O O O O O O O O G O O\nO B B O O O O O O C C C O G G O\nO O O O O F O O O O O O O O O O\nO O O O O F O O O O R R O O O O\nO O O O O F O O O O R R O O O O\nO O O O O O O O W O O O O O O O\nO O O A O O O W W O O O X O O O\nO O O A A O O W W O O O X X X O\nO O O O O O O O O O O O O O O O\nO O O O O O O O O O Y Y O O O O\nO O O O B O O O O O O O O O O O\nO Y O O B O O O G O O O O F F O\nO Y O O O O O O G O O O O F F O\nO Y Y Y O O O O G O O O O O O O\nO O O O O O O O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O O O O O O B O O\nO O O O O O O O O B B B O B B O\nO B B O O B O O O O O O O O O O\nO O O O O B O O O O O O O O O O\nO O O O O B O O O O R R O O O O\nO O O O O O O O O O R R O O O O\nO O O B O O O O W O O O O O O O\nO O O B B O O W W O O O X O O O\nO O O O O O O W W O O O X X X O\nO O O O O O O O O O O O O O O O\nO O O O O O O O O O Y Y O O O O\nO O O O B O O O B O O O O O O O\nO Y O O B O O O B O O O O F F O\nO Y O O O O O O B O O O O F F O\nO Y Y Y O O O O O O O O O O O O\nO O O O O O O O O O O O O O O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Move all objects of size 3 one step up, and then recolor them to color B.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this))\\n        (filter\\n            (size_equals (size_of this) 3)\\n        )\\n        (apply\\n            (move_node up)\\n            (update_color B)\\n        )\\n    )\\n)\"\n}\n\n\n## DEMONSTRATION TASK 4\n\n### INPUT\nPAIR 1\nINPUT GRID:\nO O O O R O O O A O\nO B O O O O B O O O\nO O O O O O O O O O\nO O O O X X X O O O\nO O O O X X X O O F\nW O O O O O O O O O\nO O F O O O Y O O O\nO O O O O O O O O O\nO O O O G O O O W O\nO O O O O O O O O O\nOUTPUT GRID:\nO O O O O O O O A O\nO B O O O O O O O O\nO O O O R O B O O O\nO O O O X X X O O O\nO O O O X X X F O O\nW O O O G O Y O O O\nO O F O O O O O O O\nO O O O O O O O O O\nO O O O O O O O W O\nO O O O O O O O O O\n\nPAIR 2\nINPUT GRID:\nO O O F O O O R O O O O\nO O O O O O O O O Y O O\nO O O O O B O O O O O O\nO O R O O O O O G O O O\nB O O O O G O O O O O A\nO O O O O O R O O O W O\nO O O O O O O O C O O O\nG O X X O O O O O O O R\nO O X X O O O O O O Y O\nO O X X O O A O O O O O\nO F X X O O O O O O O O\nO O O O O Y O O O O O O\nOUTPUT GRID:\nO O O O O O O R O O O O\nO O O O O O O O O Y O O\nO O O O O B O O O O O O\nO O O O O O O O G O O O\nB O O O O G O O O O O A\nO O O O O O R O O O W O\nO O R F O O O O C O O O\nO G X X R O O O O O O O\nO O X X Y O O O O O O O\nO O X X A O O O O O O O\nO F X X O O O O O O O O\nO O O O O Y O O O O O O\n\nPAIR 3\nINPUT GRID:\nO G O O O O O O\nO O O A O O A O\nW O O O W O O O\nO O O O O O O B\nO R O X O F O O\nO O O O O O O O\nO G O O F O O G\nO O B O O A O O\nOUTPUT GRID:\nO G O O O O O O\nO O O O O O A O\nW O O O W O O O\nO O O A O O O B\nO O R X F O O O\nO O O O O O O O\nO G O O F O O G\nO O B O O A O O\n\n### EXPECTED OUTPUT\n{\n    \"nl_description\": \"Move all objects of color different than X, toward the object of color X, if they are neighbors of it.\",\n    \"code\": \"(do\\n    (rule\\n        (vars (this other))\\n        (filter\\n            (and\\n                (not (color_equals (color_of this) X))\\n                (and\\n                    (neighbor_of this other)\\n                    (color_equals (color_of other) X)\\n                )\\n            )\\n        )\\n        (apply\\n            (move_node_max (direction_of other))\\n        )\\n    )\\n)\"\n}\n\n\nNow follows task you will be evaluated on.\nOutput the solution as a JSON object, which should contain both a natural language description of the solution and the solution written in the DSL.\nThe code should be parseable by the DSL grammar.\nThe JSON must have the following structure:\n\n{\n    \"nl_description\": \"TO_BE_FILLED\",\n    \"code\": \"TO_BE_FILLED\"\n}\n\n## TEST TASK\n\nPAIR 1\nINPUT GRID:\nY Y Y Y Y Y Y Y Y Y Y Y\nY R R R R R R R R R R Y\nY R B B B B B B B B R Y\nY R B G G G G G G B R Y\nY R B G X X X X G B R Y\nY R B G X C C X G B R Y\nY R B G X C C X G B R Y\nY R B G X X X X G B R Y\nY R B G G G G G G B R Y\nY R B B B B B B B B R Y\nY R R R R R R R R R R Y\nY Y Y Y Y Y Y Y Y Y Y Y\nOUTPUT GRID:\nC C C C C C C C C C C C\nC X X X X X X X X X X C\nC X G G G G G G G G X C\nC X G B B B B B B G X C\nC X G B R R R R B G X C\nC X G B R Y Y R B G X C\nC X G B R Y Y R B G X C\nC X G B R R R R B G X C\nC X G B B B B B B G X C\nC X G G G G G G G G X C\nC X X X X X X X X X X C\nC C C C C C C C C C C C\n\nPAIR 2\nINPUT GRID:\nR R R R R R\nR B B B B R\nR B F F B R\nR B F F B R\nR B B B B R\nR R R R R R\nOUTPUT GRID:\nF F F F F F\nF B B B B F\nF B R R B F\nF B R R B F\nF B B B B F\nF F F F F F\n\nPAIR 3\nINPUT GRID:\nC C C C C C C C\nC B B B B B B C\nC B R R R R B C\nC B R Y Y R B C\nC B R Y Y R B C\nC B R R R R B C\nC B B B B B B C\nC C C C C C C C\nOUTPUT GRID:\nY Y Y Y Y Y Y Y\nY R R R R R R Y\nY R B B B B R Y\nY R B C C B R Y\nY R B C C B R Y\nY R B B B B R Y\nY R R R R R R Y\nY Y Y Y Y Y Y Y\n\nPAIR 4\nINPUT GRID:\nA A A A A A A A A A\nA R R R R R R R R A\nA R Y Y Y Y Y Y R A\nA R Y B B B B Y R A\nA R Y B G G B Y R A\nA R Y B G G B Y R A\nA R Y B B B B Y R A\nA R Y Y Y Y Y Y R A\nA R R R R R R R R A\nA A A A A A A A A A\nOUTPUT GRID:\nG G G G G G G G G G\nG B B B B B B B B G\nG B Y Y Y Y Y Y B G\nG B Y R R R R Y B G\nG B Y R A A R Y B G\nG B Y R A A R Y B G\nG B Y R R R R Y B G\nG B Y Y Y Y Y Y B G\nG B B B B B B B B G\nG G G G G G G G G G\n"
+        }
+    ],
+    "n_valid_json": 100,
+    "n_can_parse": 72,
+    "completions": [
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move the neighbouring objects of color towards the inner object and then recolor all the objects, different from inner objects, to color of the inner objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) (color_of other)))\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches ')' in the current parser context, at line 20 col 13\n\n            )\n            ^\nExpected one of: \n\t* LPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the object starting at the center (object with R or B color in the middle) with the innermost object boundary color while also shifting colors of succeeding boundaries inward.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects except the objects of size 1, to the color of the maximum height object in the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (height_equals (height_of other) max)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects to different colors based on their current color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) Y))\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color X))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (update_color G))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) C))\n        (apply (update_color Y))\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Replace all colors of the objects with the color of their surrounding border.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) (color_of other))\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the objects in the input grid to match the colors in the output grid with the following rules: cells with color R in the input should be recolored to color X, cells with color B to G, cells with color G to B, cells with color F to Y, and cells with color Y to C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects to the color of the object of the minimum size, flip them horizontally, and add a border with the color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of other) min)\n        )\n        (apply\n            (update_color (color_of other))\n            (flip horizontal)\n            (add_border C)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects with the color in their center to match the center color, then change the grid's border to the center object color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (or (color_equals (color_of this) B) (color_equals (color_of this) F) (color_equals (color_of this) R) (color_equals (color_of this) Y)) (or (and (neighbor_of this other) (color_equals (color_of other) X)) (and (neighbor_of this other) (color_equals (color_of other) C)))))\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) A))\n        (apply\n            (update_color G)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 4 col 92\n\nis) B) (color_equals (color_of this) F) (color_equals (color_of this) R) (color_\n                                        ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor objects along the border to color 1, recolor objects adjacent to the border objects to color adjacent to the border objects to color 2, and repeat this process alternating colors between the two sets of colors. ",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (edge_equals this))\n        (apply (update_color 1))\n    )\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of other) 1) (neighbor_of this other)))\n        (apply (update_color 2)))z",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'e' in the current parser context, at line 4 col 18\n\n        (filter (edge_equals this))\n                 ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_NOT\n\t* OP_AND\n\t* WIDTH_EQ\n\t* DEGREE_EQ\n\t* SIZE_EQ\n\t* COLUMN_EQ\n\t* COLOR_EQ\n\t* NEIGHBOR_OF\n\t* HEIGHT_EQ\n\t* OP_OR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors of objects located at the border of the grid with the colors of objects inside the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of color G and R towards the object of color B, change the edge objects to Y, and then recolor all objects to color Y or R alternatively.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or \n                    (color_equals (color_of this) G) \n                    (color_equals (color_of this) R) \n                )\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 11 col 17\n\n                (color_equals (color_of other) B)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects to different color based on whether the initial object was in the middle of surrounding border objects, and optionally move all objects if other objects are neighbors.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n            (update_color F)\n            (update_color Y)\n            (update_color G)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the objects along the diagonal in different colors while maintaining a border of a single color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of this) Y))\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply (update_color G))\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply (update_color R))\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) A)\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n                (not (color_equals (color_of other) X))\n            )\n        )\n        (apply (update_color R))\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 23 col 17\n\n                (color_equals (color_of other) R)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the borders to a specific color and interchange the colors of the shapes inside the border with another specific color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) Y)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) C)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) G)\n                (or\n                    (color_equals (color_of this) B)\n                    (color_equals (color_of this) X)\n                )\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) A)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor border objects to the color of the innermost object",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) (color_of other))\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the outermost boundary of each object to color C, the next boundary inward to color X, the next boundary inward to color G, and the next boundary inward to color B, then for the remaining uncolored region, color it X if it was the innermost shape, R if it was one step out from the innermost, and G if it was the second step out from the innermost.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border C)\n            )\n    )\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border X)\n            )\n    )\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border G)\n            )\n    )\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border B)\n            )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Rotate all objects except for the edges 180 degrees and recolor them based on the color of the object in the same position in the output grid of the previous test pair.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not\n                (or\n                    (color_equals (color_of this) O)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (rotate_node 180)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Change the color of the border objects to a new color C. Then, rotate color assignments of non-border objects clockwise.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) Y)\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) C)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (color_equals (color_of this) G)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the outermost perimeter and the innermost object to C, and swap colors B and R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) Y) (color_equals (color_of this) A)))\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (update_color R))\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move the outermost objects inward, then recolor all objects with a checkerboard pattern.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (and (size_equals (size_of this) 12) (color_equals (color_of this) Y)) (and (size_equals (size_of this) 6) (color_equals (color_of this) R)) (and (size_equals (size_of this) 8) (color_equals (color_of this) C)) (and (size_equals (size_of this) 10) (color_equals (color_of this) A))))\n        (apply\n            (move_node (up))\n            (move_node (left))\n            (update_color O)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 4 col 162\n\ns) 6) (color_equals (color_of this) R)) (and (size_equals (size_of this) 8) (col\n                                        ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the entire grid such that each object is recolored with the color of the object directly inside it (one step inward in all directions).",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (or\n                    (color_equals (color_of this) G)\n                    (or\n                        (color_equals (color_of this) B)\n                        (or\n                            (color_equals (color_of this) C)\n                            (or\n                                (color_equals (color_of this) F)\n                                (or\n                                    (color_equals (color_of this) ID1)\n                                    (or\n                                        (color_equals (color_of this) ID2)\n                                        (color_equals (color_of this) ID3)\n                                    )\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) ID4)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'I' in the current parser context, at line 16 col 67\n\n          (color_equals (color_of this) ID1)\n                                        ^\nExpected one of: \n\t* LPAR\n\t* FCOLOR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all the boundaries of each object to color of center pixel and change colors of center pixels of objects with central pixel other than X, if object has central pixel of X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n\t(and\n           (hollow_rectangle)\n\t   (color_equals (color_of this) C)\n\t                )\n        )\n        (apply\n            (update_color left this sub\n\t\t\t\t)\n        )\n       )\n\t(rule\n        (vars (this other))\n        (filter\n\t(and\n\t\t(color_equals ( (color_of sub) other sub)\n           (color_not_equals)\n            (color_eq)\n\t                )\n        )\n        (apply\n\t(extend_node)\n            (update_color other)\n        )    \n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'h' in the current parser context, at line 6 col 13\n\n           (hollow_rectangle)\n            ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_NOT\n\t* OP_AND\n\t* WIDTH_EQ\n\t* DEGREE_EQ\n\t* SIZE_EQ\n\t* COLUMN_EQ\n\t* COLOR_EQ\n\t* NEIGHBOR_OF\n\t* HEIGHT_EQ\n\t* OP_OR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the exterior boundary of each grid to the color in the center if their colors are the same.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of each image to the color at the center of the original border, and replace the colors of every internal object with the color opposite to its original position.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (and (color_equals (color_of this) Y) (neighbor_of this other) (color_equals (color_of other) R))\n                (and (color_equals (color_of this) R) (neighbor_of this other) (color_equals (color_of other) B))\n                (and (color_equals (color_of this) B) (neighbor_of this other) (color_equals (color_of other) G))\n                (and (color_equals (color_of this) G) (neighbor_of this other) (color_equals (color_of other) C))\n                (and (color_equals (color_of this) F) (neighbor_of this other) (color_equals (color_of other) B))\n                (and (color_equals (color_of this) R) (neighbor_of this other) (color_equals (color_of other) F))\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 6 col 80\n\nor_of this) Y) (neighbor_of this other) (color_equals (color_of other) R))\n                                        ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Change the color of the border and recolor the interior objects in a particular manner according to their shapes and sizes.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (or\n                    (size_equals (size_of this) max)\n                    (size_equals (size_of this) min)\n                )\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )    \n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (update_color B)\n        )\n    )    \n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (update_color (color_of this))\n        )    \n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects except those of color Y, to their neighboring object's color, except in the cases where both objects are the same color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) Y))\n                (and\n                    (neighbor_of this other)\n                    (not (color_equals (color_of this) (color_of other)))\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor borders to color C, recolor all squares in the inner ring to the color X, recolor the objects in the middle to another color in a specific pattern.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (degree_equals (degree_of this) even)\n                    (size_equals (size_of this) 4)\n                )\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (degree_equals (degree_of this) even)\n                    (size_equals (size_of this) 6)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (degree_equals (degree_of this) even)\n                    (size_equals (size_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all inner objects toward the closest boundary, and recolor them to match the new boundary color. The inner objects are those that are surrounded by a boundary different from their original boundary.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) (color_of other)))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) (color_of this))\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects diagonally from top left to bottom right (as well as the border) to a new specified color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (and (color_equals (color_of this) Y) (color_equals (color_of this) R) (color_equals (color_of this) B) (color_equals (color_of this) G)) (color_equals (color_of this) R) (color_equals (color_of this) X)))\n        (apply (update_color (color_of this)))\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 4 col 92\n\nis) Y) (color_equals (color_of this) R) (color_equals (color_of this) B) (color_\n                                        ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects, mirrors horizontally and recolor them again.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color X)\n            (mirror (mirror_axis_of this))\n            (update_color G)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the outermost border of all objects to a new color. Then circularly rotate the colors of the objects inside the border counterclockwise.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 270)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap colors of the objects located at center and boundary positions.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Change colors of G to B, B to R, R to Y, Y to X, X to C, and C to G in any object with top left corner B and bottom right corner Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and\n            (color_equals (color_of this) G)\n            (neighbor_of this other)\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of other this)\n                (color_equals (color_of other) Y)\n            )\n        ))\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and\n            (color_equals (color_of this) B)\n            (neighbor_of this other)\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of other this)\n                (color_equals (color_of other) Y)\n            )\n        ))\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and\n            (color_equals (color_of this) R)\n            (neighbor_of this other)\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of other this)\n                (color_equals (color_of other) Y)\n            )\n        ))\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and\n            (color_equals (color_of this) Y)\n            (neighbor_of this other)\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of other this)\n                (color_equals (color_of other) Y)\n            )\n        ))\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and\n            (color_equals (color_of this) X)\n            (neighbor_of this other)\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of other this)\n                (color_equals (color_of other) Y)\n            )\n        ))\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and\n            (color_equals (color_of this) C)\n            (neighbor_of this other)\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of other this)\n                (color_equals (color_of other) Y)\n            )\n        ))\n        (apply\n            (update_color G)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 7 col 13\n\n            (and\n            ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "For each color region, move the edge objects to their new positions towards the border while recoloring them to the color of the initial border.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Change the outer color to the inner color and change the inner color to the outer color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) Y)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) C)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) G)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) X)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the objects enclosed by R, and change the colors of the enclosing R objects themselves.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of all enclosed objects to color C, recolor the inner part of all enclosed objects to color X, swap bordering colors of objects with size other than max.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border C)\n            (hollow_rectangle X)\n        )    \n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of other) enclosed)\n                (not (shape_equals (shape_of this) enclosed))\n            )\n        )\n        (apply\n            (swap_colors (color_of this) (color_of other))\n        )    \n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 's' in the current parser context, at line 21 col 14\n\n            (swap_colors (color_of this) (color_of ot\n             ^\nExpected one of: \n\t* TR_MIRROR\n\t* TR_MOVE_NODE\n\t* TR_NOOP\n\t* TR_MOVE_NODE_MAX\n\t* TR_HOLLOW_RECTANGLE\n\t* TR_FILL_RECTANGLE\n\t* TR_ROTATE_NODE\n\t* TR_EXTEND_NODE\n\t* TR_ADD_BORDER\n\t* TR_FLIP\n\t* TR_INSERT\n\t* TR_UPDATE_COLOR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors of objects on the diagonal with the color of their surrounding border.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) B)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) G)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors of the two largest objects with the two smallest ones.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (size_equals (size_of this) max)\n                    (size_equals (size_of this) min)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches ')' in the current parser context, at line 10 col 13\n\n            )\n            ^\nExpected one of: \n\t* LPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Rotates all enclosing squares by 90 degrees for objects in the grid",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the frame to color X, change the color of the inner objects to the color of the frame, and finally change the color of the inner objects to the original frame color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) max))\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects with their neighbor's color, if they are neighbors of objects of color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects in the grid with a like-for-like swap of colors: R to G, G to B, B to Y, Y to C, and C to X.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color G))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (update_color Y))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) Y))\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) C))\n        (apply (update_color X))\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor objects within the border to the color of the objects located at the corners of the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of other) C)\n                    (or\n                        (color_equals (color_of other) F)\n                        (or\n                            (color_equals (color_of other) Y)\n                            (color_equals (color_of other) G))))))\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches ')' in the current parser context, at line 14 col 9\n\n        )\n        ^\nExpected one of: \n\t* LPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors of objects colors R and G with Y and C respectively.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Transpose the colors of the interior objects with the colors of the frame objects they are within.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors of the inner borders and objects within those borders by swapping colors accordingly.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and (color_equals (color_of this) R) (color_equals (color_of other) C))\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and (color_equals (color_of this) B) (color_equals (color_of other) X))\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and (color_equals (color_of this) G) (color_equals (color_of other) X))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and (color_equals (color_of this) Y) (color_equals (color_of other) X))\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and (color_equals (color_of this) R) (color_equals (color_of other) X))\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all the objects surrounded by a border to match the color of objects next to them, and add a border to every object of maximum size.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Change the color of the boundary of the grid to match the color at the same position in the final grid and then swap the colors of objects within the boundary.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (not (color_equals (color_of this) O)))\n        (apply (update_color (color_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (not (color_equals (color_of this) O)))\n        (apply (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors R and C, swap the colors Y and B, and swap the colors X and G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) C))\n        (apply (update_color R))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) Y))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (update_color Y))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply (update_color G))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply (update_color X))\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all cells to the color of the opposite corner cell",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Update the color of all objects to the color of the object in the middle of the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move the objects of color that are not the boundary color, to the color of the objects inside the boundary, and recolor the boundary to an inside color, and the rest to be boundary color except the immediate inside.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)\n",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors of the interior and exterior objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) A))\n        (apply (update_color F))\n    )\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) Y))\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) F))\n        (apply (update_color A))\n    )\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) C))\n        (apply (update_color Y))\n    )\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of this) Y))\n        (apply (update_color A))\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all the border objects to color C, change the color of the smallest objects to their previous border color except the smallest border color, and then interchange the border color with a neighbor object's color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (border_equals (border_of this) true))\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) min)\n                (and\n                    (neighbor_of other this)\n                    (color_equals (color_of this) (border_of other))\n                )\n            )\n        )\n        (apply\n            (update_color (border_of this))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) (border_color_this))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) (border_color_other))\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'b' in the current parser context, at line 4 col 18\n\n        (filter (border_equals (border_of this) true))\n                 ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_NOT\n\t* OP_AND\n\t* WIDTH_EQ\n\t* DEGREE_EQ\n\t* SIZE_EQ\n\t* COLUMN_EQ\n\t* COLOR_EQ\n\t* NEIGHBOR_OF\n\t* HEIGHT_EQ\n\t* OP_OR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Rotate each object that is not of color X or corner object clockwise by 90 degrees, then change its color to the same color as the nearest corner",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (color_equals (color_of other) B)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (rotate_node 90)\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of each object to the color at the border, then change the color of the rest of the object to the next color in the sequence of colors of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (width_equals (width_of this) 1))\n        (apply\n            (update_color (color_of this))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and\n            (neighbor_of this other)\n            (color_equals (color_of this) (color_of other))\n        ))\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the color of objects in the outermost border with the color of the objects in the innermost area.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) A)\n                (color_equals (color_of this) Y)\n                (color_equals (color_of this) C)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) C)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border objects to color 1, recolor the second layer objects to color 2, and recolor the inner objects to color 3.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (or\n                    (column_equals (column_of this) (width_of this))\n                    (or\n                        (height_equals (height_of this) 0)\n                        (height_equals (height_of this) (height_of this))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color 1)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 1)\n                (or\n                    (column_equals (column_of this) (- (width_of this) 1))\n                    (or\n                        (height_equals (height_of this) 1)\n                        (height_equals (height_of this) (- (height_of this) 1))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color 2)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_greater_than (column_of this) 1)\n                (and\n                    (column_less_than (column_of this) (- (width_of this) 1))\n                    (and\n                        (height_greater_than (height_of this) 1)\n                        (height_less_than (height_of this) (- (height_of this) 1))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color 3)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'w' in the current parser context, at line 8 col 54\n\n       (column_equals (column_of this) (width_of this))\n                                        ^\nExpected one of: \n\t* COLUMN_OF\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of all objects to C, then recolor the diagonal objects to a new color.",
+            "code": "(do\n  (rule\n    (vars (this))\n    (filter)\n    (apply\n      (add_border C)\n    )\n  )\n  (rule\n    (vars (this other))\n    (filter\n      (and\n        (neighbor_of this other)\n        (or\n          (mirror (mirror_axis_of other))\n          (mirror (mirror_axis_of this))\n        )\n      )\n    )\n    (apply\n      (update_color (color_of other))\n    )\n  )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'm' in the current parser context, at line 15 col 12\n\n          (mirror (mirror_axis_of other))\n           ^\nExpected one of: \n\t* SHAPE_EQ\n\t* OP_NOT\n\t* OP_AND\n\t* WIDTH_EQ\n\t* DEGREE_EQ\n\t* SIZE_EQ\n\t* COLUMN_EQ\n\t* COLOR_EQ\n\t* NEIGHBOR_OF\n\t* HEIGHT_EQ\n\t* OP_OR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects with the color pattern running along their border colors to the new interior color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) Y)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the outer objects to color C and move the inner objects based on their neighboring positions.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Change the border color to the color in the middle of smallest bordered objects, and move the color at the middle of smallest bordered objects to bordered list",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects except the background to new colors based on their original colors.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) Y))\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Move all objects of color different than X, toward the object of color X, if they are neighbors of it. Then, change the color of all objects to the color of the object they moved toward.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Change the boundary of the grid to a new color, then swap the color of the surrounding region with the central region.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (or (color_equals (color_of this) Y) (color_equals (color_of this) R)) (or (and (column_equals (column_of this) 0) (color_equals (color_of this) Y)) (and (column_equals (column_of this) 11) (color_equals (color_of this) Y)) (and (column_equals (column_of this) 0) (color_equals (color_of this) R)) (and (column_equals (column_of this) 5) (color_equals (color_of this) R)) (and (column_equals (column_of this) 6) (color_equals (color_of this) R)) (and (column_equals (column_of this) 11) (color_equals (color_of this) R)))) )\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of this) Y) (neighbor_of this other) (color_equals (color_of other) R)))\n        (apply (update_color G))\n    )\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of this) B) (neighbor_of this other) (color_equals (color_of other) G)))\n        (apply (update_color X))\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 4 col 246\n\n) 11) (color_equals (color_of this) Y)) (and (column_equals (column_of this) 0) \n                                        ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of each grid to color C and interchange the colors of the objects with color B and R, C and Y, X and F, and G and B.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 0)\n        )\n        (apply\n             (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) max)\n        )\n        (apply\n             (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) C)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'm' in the current parser context, at line 14 col 45\n\n        (column_equals (column_of this) max)\n                                        ^\nExpected one of: \n\t* LPAR\n\t* COLUMN\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all rectangles to form a more symmetric pattern, modifying their boundaries",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (shape_equals (shape_of other) enclosed)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects. Change color of R to X, color of G to B, and color of B to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects and the background.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects to the corresponding color (C, X, G, R, Y, F, B) in the replacement pattern.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the exterior of all objects of color to match the color of the center area.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (add_border (color_of this))\n            (update_color (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the perimeter of all grids to C. Change diagonal stripe patterns to the colors B, G, R or Y alternatively.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and \n                (neighbor_of this other) \n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the outermost boundary, the innermost boundary, the second innermost boundary, and the third innermost boundary with a specific color pattern.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (or\n                    (neighbor_of this other)\n                    (or (color_equals (color_of other) C) (color_equals (color_of this) Y))\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (or (neighbor_of this other) (or (color_equals (color_of other) X) (color_equals (color_of this) R)))\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) G))\n                (or (neighbor_of this other) (or (color_equals (color_of other) G) (color_equals (color_of this) B)))\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) B))\n                (or (neighbor_of this other) (or (color_equals (color_of other) B) (color_equals (color_of this) G)))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) R))\n                (or (neighbor_of this other) (or (color_equals (color_of other) R) (color_equals (color_of this) F)))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) F))\n                (or (neighbor_of this other) (or (color_equals (color_of other) F) (color_equals (color_of this) A)))\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) A))\n                (or (neighbor_of this other) (or (color_equals (color_of other) A) (color_equals (color_of this) Y)))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border elements and the internal objects to create a color gradient effect. Border elements should be of outermost color C, followed by X, G, B, R, Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n            (color_equals (color_of this) R)\n            (color_equals (color_of other) B)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n            (color_equals (color_of this) B)\n            (color_equals (color_of other) G)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other))\n            (color_equals (color_of this) G)\n            (color_equals (color_of other) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other))\n            (color_equals (color_of this) X)\n            (color_equals (color_of other) C)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 6 col 13\n\n            (color_equals (color_of this) R)\n            ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of all objects to a new color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border object to color 1, recolor the object just inside the border to color 2, and proceed with the next objects (if any) by alternating the colors 1 and 2.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) A)\n                (neighbor_of this ()))\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this ()))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this ()))\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this ()))\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 7 col 35\n\n                (neighbor_of this ()))\n                                  ^\nExpected one of: \n\t* VAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects along the diagonals to G, objects in the inner ring to Y, and change the color of the external border objects to C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of shapes to the color of the central inner element, and recolor the central inner element to a different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) Y))\n                (degree_equals (degree_of this) min)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of all objects in one color with the color of another color object's exterior border.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of this) B)\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                    (color_equals (color_of this) Y)\n                )\n            )\n        )\n        (apply\n            (add_border (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 10 col 21\n\n                    (color_equals (color_of this) G)\n                    ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of the canvas to color of center object, move the objects at the boundaries to the center, and replace the center object with the object that was at the boundary.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (not (color_equals (color_of this) R)))\n        (apply\n            (update_color X)\n        )\n    )\n\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of this) R))\n        (apply\n            (move_node_max (direction_of (neighbor_of this other)))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 14 col 42\n\n           (move_node_max (direction_of (neighbor_of this other)))\n                                        ^\nExpected one of: \n\t* VAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors of the central objects with the border objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the outermost layer of each grid to color F and move it one step outward, recolor the second outermost layer to color X, the next inner layer to color G, the next to color B, and the innermost layer to color R and move it one step inward.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) even)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) even)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color F)\n            (move_node (direction_of this))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects of color R to color X, all objects of color B to color G, and all objects of color G to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects in the grid with the color that the central object in the input grid has been recolored to in the output grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the objects with color Y at the center of the grid to color G; recolor the external border (frame) objects with color R to color F; and recolor all other objects to the neighboring object's color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) R))\n                (and\n                    (not (color_equals (color_of this) Y))\n                    (not (color_equals (color_of this) G))\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor yellow (Y) to cyan (C), red (R) to black (X), blue (B) to green (G), green (G) to blue (B), black (X) to yellow (Y), orange (A) to black (G), black (X) to red (R) and fuchsia (F) to red (R).",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) Y))\n        (apply (update_color C))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color X))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (update_color G))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply (update_color Y))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) A))\n        (apply (update_color G))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply (update_color R))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply (update_color R))\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "For each pair, recolor the object at the border of the grid to color of other largest object inside the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border objects to a specific color, and then recolor the center objects to a new color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (not (color_equals (color_of this) C))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Switch color between certain pairs of colors in a circular manner around the edge of the grid, and swap color in the center.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) Y) (or (color_equals (color_of this) R) (color_equals (color_of this) C))))\n        (apply (update_color C)))\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) B) (color_equals (color_of this) G)))\n        (apply (update_color G)))\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply (update_color R)))\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color F)))\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) A))\n        (apply (update_color G)))\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the border of all objects with color B, except those already having B, to C, and recolor the remaining objects to their neighboring color excluding Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n                (not\n                    (color_equals (color_of this) B)\n                )\n            )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter)\n            (and\n                (neighbor_of this other)\n                (not\n                    (color_equals (color_of this) Y)\n                )\n                (not\n                    (color_equals (color_of other) B)\n                )\n            )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches 'a' in the current parser context, at line 5 col 14\n\n            (and\n             ^\nExpected one of: \n\t* APPLY\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "First, recolor all objects of the minimum size to color R. Then, swap colors between the two objects whose original colors were R and G",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n            (update_color (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the entire border of the input grid to the color of the existing object that is at the border for each border cell.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or (color_equals (color_of this) R)\n                (or (color_equals (color_of this) Y)\n                    (or (color_equals (color_of this) G)\n                        (or (color_equals (color_of this) A)\n                            (color_equals (color_of this) C)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (add_border (color_of this))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the objects by mapping R->X, G->B, B->R, Y->C, and retain other color mappings.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color X))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (update_color R))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) Y))\n        (apply (update_color C))\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor each object to the color of the object directly inside it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor all objects to the color of their outer border.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) (color_of other))\n            )\n        )\n        (apply\n            (add_border (color_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap the colors B and F for each object. Move each object with color B or F one step up, and then change colors X to R and G to B.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (move_node up)\n            (update_color (color_of this))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the objects in the frame's corners with different colors and swap the colors X and the object in the middle, while retaining their original positions.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) Y)\n                (color_equals (color_of this) C)\n                (color_equals (color_of this) A)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches '(' in the current parser context, at line 8 col 17\n\n                (color_equals (color_of this) A)\n                ^\nExpected one of: \n\t* RPAR\n"
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Swap colors of objects along the diagonals in the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)",
+            "can_parse": true
+        },
+        {
+            "finish_reason": "stop",
+            "valid_json": true,
+            "nl_description": "Recolor the largest object and their entire row to color corresponding to interior of object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and (size_equals (size_of this) max))\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)",
+            "can_parse": false,
+            "parse_error_message": "No terminal matches ')' in the current parser context, at line 5 col 50\n\n   (and (size_equals (size_of this) max))\n                                        ^\nExpected one of: \n\t* LPAR\n"
+        }
+    ],
+    "task_id": "85c4e7cd"
+}
