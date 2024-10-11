@@ -421,20 +421,20 @@ def sample(model, num_samples):
             traceback.print_exc()
             continue
 
-    # print(f"computing asts")
-    # for task in tqdm(tasks):
-    #     task.compute_asts()
-    #     write()
+    print(f"computing asts")
+    for task in tqdm(tasks):
+        task.compute_asts()
+        write()
 
-    # print(f"computing operator coverage")
-    # for task in tqdm(tasks):
-    #     task.compute_operator_coverage()
-    #     write()
+    print(f"computing operator coverage")
+    for task in tqdm(tasks):
+        task.compute_operator_coverage()
+        write()
 
-    # print(f"computing constants")
-    # for task in tqdm(tasks):
-    #     task.compute_constants()
-    #     write()
+    print(f"computing constants")
+    for task in tqdm(tasks):
+        task.compute_constants()
+        write()
 
 
 def tqdm_print(*args, **kwargs):
