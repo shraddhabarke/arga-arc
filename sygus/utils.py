@@ -37,14 +37,14 @@ LOGGER = logging.getLogger(__name__)
 
 ModelName = t.Literal[
     "gpt-4",
-    "gpt-4o" "gpt-3.5-turbo",
+    "gpt-4o-2024-05-13" "gpt-3.5-turbo",
     "Phind/Phind-CodeLlama-34B-v2",
     "deepseek-ai/deepseek-coder-33b-instruct",
     "codellama/CodeLlama-70b-Instruct-hf",
     "codellama/CodeLlama-13b-Instruct-hf",
     "codellama/CodeLlama-7b-Instruct-hf",
 ]
-OPENAI_MODEL_NAMES = ["gpt-4", "gpt-4o", "gpt-3.5-turbo"]
+OPENAI_MODEL_NAMES = ["gpt-4", "gpt-4o-2024-05-13", "gpt-3.5-turbo"]
 TOGETHER_MODEL_NAMES = [
     "deepseek-ai/deepseek-coder-33b-instruct",
     "Phind/Phind-CodeLlama-34B-v2",
@@ -68,19 +68,21 @@ OCTO = octoai.client.OctoAI(api_key=CONFIG.OCTO_SECRET_KEY)
 
 ExampleTuple = t.Tuple[t.List[str], str]
 
-BenchmarkName = t.Literal["larger-string", "string"]  # , "circuit", "hackers-delight"]
-BENCHMARK_NAMES = ["larger-string", "string"]  # , "circuit", "hackers-delight"]
+BenchmarkName = t.Literal["larger-string"]
+#, "string"]  # , "circuit", "hackers-delight"]
+BENCHMARK_NAMES = ["larger-string"]
+#, "string"]  # , "circuit", "hackers-delight"]
 
 BENCHMARKS_DIRECTORY = CONFIG.ROOT_DIR / "sygus/Probe/src/test/benchmarks"
 BENCHMARK_DIRECTORIES: dict[BenchmarkName, Path] = {
     "larger-string": BENCHMARKS_DIRECTORY / "larger-grammar",
-    "string": BENCHMARKS_DIRECTORY / "string",
+    # "string": BENCHMARKS_DIRECTORY / "string",
     # "circuit": BENCHMARKS_DIRECTORY / "circuit/test",
     # "hackers-delight": BENCHMARKS_DIRECTORY / "hackers-delight",
 }
 EXAMPLE_FILES: dict[BenchmarkName, t.Optional[Path]] = {
     "larger-string": None,
-    "string": None,
+    # "string": None,
     # "circuit": CONFIG.ROOT_DIR / "sygus/io-results-circuit.json",
     # "hackers-delight": CONFIG.ROOT_DIR / "sygus/io-results-bitvec.json",
 }
@@ -168,9 +170,15 @@ def merge(file, output):
     required=True,
     help="The model to use for sampling completions",
 )
-def stats(model):
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    help="The number of completions to sample for each problem",
+)
+def stats(model, num_samples):
     for benchmark in BENCHMARK_NAMES:
-        output_file = compute_output_file(benchmark, model)
+        output_file = compute_output_file(benchmark, model, num_samples)
         benchmark: SygusBenchmark = SygusBenchmark.read_from_file(
             benchmark, output_file, BENCHMARK_DIRECTORIES[benchmark]
         )
@@ -185,10 +193,16 @@ def stats(model):
     required=True,
     help="The model to use for sampling completions",
 )
-def fixup(model):
+@click.option(
+    "-n",
+    "--num-samples",
+    type=int,
+    help="The number of completions to sample for each problem",
+)
+def fixup(model, num_samples):
     setup_logging(model)
     for benchmark in BENCHMARK_NAMES:
-        fixup_benchmark(benchmark, model)
+        fixup_benchmark(benchmark, model, num_samples)
 
 
 @cli.command(help="parse constants for all benchmarks")
@@ -328,8 +342,8 @@ def sample_benchmark(benchmark: BenchmarkName, model: ModelName, n: int):
     benchmark.sample_solutions(model=model, n=n, output_file=output_file)
 
 
-def fixup_benchmark(benchmark: BenchmarkName, model: ModelName):
-    output_file = compute_output_file(benchmark, model)
+def fixup_benchmark(benchmark: BenchmarkName, model: ModelName, num_samples: int):
+    output_file = compute_output_file(benchmark, model, num_samples)
 
     if output_file.exists():
         print(f"Reading from {output_file}")
@@ -508,7 +522,7 @@ def cleanup_completion(completion: str) -> str:
 
 def sample_gpt_solutions(
     problem: SygusProblem, n: int = 10, model: ModelName = "gpt-4"
-) -> t.Tuple[t.Optional[t.List[str]], int]:
+) -> t.Tuple[t.Optional[t.List[str]], int, t.Optional[t.Dict[str, int]]]:
     if model in OPENAI_MODEL_NAMES:
         client = OPENAI
     elif model in TOGETHER_MODEL_NAMES:
@@ -534,13 +548,18 @@ def sample_gpt_solutions(
     time_diff_ms = (end_time - start_time).microseconds / 1000
 
     if response is None:
-        return None, time_diff_ms
+        return None, time_diff_ms, None
 
+    usage = {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens,
+    }
     if model in TOGETHER_MODEL_NAMES:
         # sleep for 1s to cover trial rate limit
         time.sleep(1)
 
-    return [choice.message.content for choice in response.choices], time_diff_ms
+    return [choice.message.content for choice in response.choices], time_diff_ms, usage
 
 
 MAX_RETRIES = 3
@@ -738,12 +757,13 @@ class SygusBenchmark:
                 continue
             try:
                 print(f"sampling completions for {filename}")
-                completions, time_diff_ms = sample_gpt_solutions(
+                completions, time_diff_ms, usage = sample_gpt_solutions(
                     problem, n=n, model=model
                 )
                 self.output[filename] = {
                     "completions": completions,
                     "time_diff_ms": time_diff_ms,
+                    "usage": usage,
                 }
                 if completions is None:
                     print(f"Error generating completions for {filename}")
@@ -756,6 +776,7 @@ class SygusBenchmark:
                 print(traceback.format_exc())
                 continue
 
+        # return self.output
         self.fixup_solutions()
         return self.parse_constants()
 
@@ -861,13 +882,12 @@ def extract_code(completion: str) -> t.Optional[str]:
     if code_block_result is not None:
         ans = code_block_result
         return remove_leading_close_paren(ans)
-    
+
     try:
         sexp.loads(completion)
         ans = completion
     except:
         ans = extract_plain_code(completion)
-        
 
     return remove_leading_close_paren(ans)
 
