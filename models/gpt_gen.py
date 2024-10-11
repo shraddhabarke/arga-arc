@@ -41,34 +41,54 @@ def get_last_code_snippet(response:str) -> str:
             return block
     return None
 
-def process_responses_json(responses):
+def process_responses_json(response):
     # Each response is a JSON object that has two keys: "nl_description" and "code"
     # We want to extract the last code snippet from the "code" field and try to parse it
-    valid_programs, valid_responses, invalid_responses = [], [], []
-    for response in responses:
+    result = {}
+    result["model"] = response["model"]
+    result["usage"] = response["usage"]
+    result["request_time"] = response["request_time"]
+    result["n_requested"] = response["n_requested"]
+    result["prompt_messages"] = response["prompt_messages"]
+
+    result["n_valid_json"] = result["n_can_parse"] = 0
+    total_token_count = 0
+    completions = []
+    for choice in response["choices"]:
+        completion_info = {
+            "finish_reason": choice["finish_reason"],
+        }
+        if choice["logprobs"]:
+            completion_info["n_tokens"] = len(choice["logprobs"]["content"])
+            total_token_count += completion_info["n_tokens"]
+        completion = choice["message"]["content"]
         try:
-            jobject = json.loads(response)
+            json_completion = json.loads(completion)
         except Exception as e:
-            invalid_response = {
-                "response": response,
-                "error_type": "json_parse_error",
-                "error_message": str(e)
-            }
-            invalid_responses.append(invalid_response)
+            completion_info.update({
+                "valid_json": False,
+                "error_message": str(e),
+                "completion": completion
+            })
+            completions.append(completion_info)
             continue
-        code = jobject["code"]
+        result["n_valid_json"] += 1
+        completion_info["valid_json"] = True
+        completion_info["nl_description"] = json_completion["nl_description"]
+        code = completion_info["code"] = json_completion["code"]
         can_parse, error = is_parseable(code)
         if can_parse:
-            valid_programs.append(code)
-            valid_responses.append(response)
+            result["n_can_parse"] += 1
+            completion_info["can_parse"] = True
         else:
-            invalid_response = {
-                "response": response,
-                "error_type": "parse_error",
-                "error_message": str(error)
-            }
-            invalid_responses.append(invalid_response)
-    return valid_programs, valid_responses, invalid_responses
+            completion_info["can_parse"] = False
+            completion_info["parse_error_message"] = str(error)
+        completions.append(completion_info)        
+    result["completions"] = completions
+    if total_token_count:
+        assert total_token_count == result["usage"]["completion_tokens"]
+
+    return result
 
 def query_task(task_id, n_responses, output_dir, model):
     """

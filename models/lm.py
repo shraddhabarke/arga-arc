@@ -1,5 +1,6 @@
 import os
 import json
+import time
 
 import openai
 
@@ -39,34 +40,42 @@ class LanguageModel:
                 "content": prompt
             }
         ]
-        # request = {
-        #     "messages": messages,
-        #     "model": self.model,
-        #     "n": n_responses,
-        # }
+
+        request_start = time.time()
         response = self.client.chat.completions.create(
             messages=messages,
             model=self.model,
             n=n_responses,
             max_tokens=4000,
+            # # this might impact request time significantly
+            # logprobs=True,
             response_format={ "type": "json_object" }
         )
-        # print(response)
+        request_end = time.time()
+        request_time = request_end - request_start
+        print(f"Request took {request_time:.2f} seconds")
         # Save the response to a file
+        response = response.model_dump()
+        response["request_time"] = request_time
+        response["n_requested"] = n_responses
+        response["prompt_messages"] = messages
         if log:
             timestamp = defs.get_timestamp(micros=False)
             log_dir = os.path.join(defs.PROJECT_ROOT, "models/logs/requests")
-            dump = response.model_dump_json(indent=4)
+            # dump = response.model_dump_json(indent=4)
+            dump = json.dumps(response, indent=4)
             with open(os.path.join(log_dir, f"{timestamp}.json"), "w") as f:
                 f.write(dump)
 
         finish_error = 0
-        for choice in response.choices:
-            if choice.finish_reason != "stop":
+        for choice in response["choices"]:
+            if choice["finish_reason"] != "stop":
                 finish_error += 1
         if finish_error > 0:
             print(f"WARNING: {finish_error} responses did not finish by 'stop'")
 
-        completions = [choice.message.content for choice in response.choices]
-        return completions
+        # completions = [choice.message.content for choice in response.choices]
+        # return completions
+
+        return response
     
