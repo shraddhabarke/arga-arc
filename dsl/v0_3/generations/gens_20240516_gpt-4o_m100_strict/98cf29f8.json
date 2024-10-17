@@ -1,0 +1,492 @@
+{
+    "completions": [
+        {
+            "nl_description": "Move all X objects upwards and then remove X objects that have no neighbors.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove isolated objects of size less than 8.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and \n                (or \n                    (size_equals (size_of this) 7) \n                    (size_equals (size_of this) 1) \n                )\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Merge vertically aligned neighbor objects of the same color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (column_equals (column_of this) (column_of other))\n                    (color_equals (color_of this) (color_of other))\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "If any object is at least partially adjacent and has the same color, merge them and remove any extra cells.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) (color_of other))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Expand all vertical segments of height 3 and recolor the objects below them with their respective colors",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (height_equals (height_of this) 3)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove objects that are isolated and recolor their neighbors to match them",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of other) O))\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the shapes with size greater than 1 downwards to remove the ones of size 1.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than 2 towards the object of color X, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (and\n                    (size_equals (size_of this) min)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X to the left.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects that do not have color X upward until they reach color X, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of color Y one step toward the object of color X, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all objects except the ones of color X.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) X))\n        )\n        (apply\n            (move_node (direction_of this))\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Delete objects of size 1 and 2 that have the neighboring object X",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (size_equals (size_of this) 1)\n                    (size_equals (size_of this) 2)\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color Y towards objects of color X, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the objects to the same column as the object 'X'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 12 down so they are merged with their neighboring blue objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 12)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color different than O downwards until they form a single row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than X, toward the object of color X, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects toward the object of color X that are neighbors to it, and are then recolored Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects that are neighbors of the object with color X upwards, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (extend_node up false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace objects having different neighboring color with that object if they are adjacent to each other.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) (color_of other)))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all Y-colored objects if they are neighbors of an X-colored object",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O upwards until they hit another object or reach the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color Y towards the X object, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all enclosing objects to the position of the leftmost X object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color Y toward the object of color X, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the smallest square towards the largest square until they intersect.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (size_equals (size_of this) min)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move each object of size greater than 6 one step up.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the objects of color X while keeping overlap false.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Merge connected objects of the same color together",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (and\n                    (neighbor_of this other)\n                    (not (color_equals (color_of this) O))\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the neighbor objects of the border with color X toward the middle X objects and capture the border by X objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move X-shaped objects toward each other if they are neighbors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 8 toward the object of color X, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 8)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size greater than 3 to the right, if they are neighbors of an object of size greater than 3.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects that touch an object of color X, and then remove the X colored object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects while leaving a trail, until they hit another object of size other than 9 without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of other) 9))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X one step up.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 toward the object of maximum size, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Switch the positions of objects of color Y and X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (insert 1 (img_pts_of this) target)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (color_equals (color_of other) Y)\n            )\n        )\n        (apply\n            (insert 1 (img_pts_of this) target)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Merge all objects that share an edge.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all vertical lines of color X one step left",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) odd)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 7 towards the nearest object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 7)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X one step up.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size greater than 1 downward, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than X one step toward the direction of the object of color X if they are neighbors, recolor the neighbors of the object of color X to color X, then change the color of any remaining object of color Y to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects in contact with X in the direction of X. If there are other blocks in the destination direction, move all the involved objects, and finally if the objects end up being grouped altogether reshape them to a rectangle.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects with color Y towards the objects with color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove objects of color other than X if they are neighbors of an object of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (color_equals (color_of other) X)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all neighboring objects towards the object of color X until they displace adjacent ones.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend selected objects of specific shape (enclosed) toward each other.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than 3 one step up",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 3))\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than X, if they are neighbors of an object of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 8 or more one step to the left.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 8)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the yellow objects of height 3 horizontally in both directions until they hit another object or the grid edge.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (height_equals (height_of this) 3)\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all squares to the bottom row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O into the top left, maintaining their relative positions.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all objects touching the object of color X, and then remove objects of color Y that touch the object of color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color Y and G towards neighboring objects of color X while not overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or (color_equals (color_of this) Y) (color_equals (color_of this) G))\n                (and (neighbor_of this other) (color_equals (color_of other) X))\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color Y towards objects of color X, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Merge the objects but preserve the color of the larger object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Relocate all Y objects that are neighbors of X objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 7 one step up",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color toward the object of color X, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of colors Y and G toward the object of color X, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) Y)\n                    (color_equals (color_of this) G)\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all vertical objects that have neighboring block to the right to the right.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) enclosed)\n                )\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all smaller objects adjacent to larger ones into the larger objects' positions.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all horizontal line blocks to a closer common row.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) enclosed)\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color different than O and with horizontal dimensions towards each other, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects towards the adjacent neighboring objects of different color, then recolor them to that neighbor's color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of other)))\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all 'Y' colored objects towards the position with maximum 'X' colored objects",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Merge all horizontal groups of neighboring objects with their neighbors",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than X towards the object of color X if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the largest rectangle upwards, filling the empty cells along the way and leaving an empty row at the bottom.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) max)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the neighboring X objects one step up.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the objects of yellow color next to the object of color red.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all horizontal line objects down to the bottom and then recolor Y who was adjacent to objects of different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and (color_equals (color_of other) X) (neighbor_of this other))\n        )\n        (apply\n            (update_color X)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color Y one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move yellow objects toward each other without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color Y toward the object of color X without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color different than X toward objects of color X, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally objects in grid until they overlap, for objects that have color X",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects containing Y downwards, merging them with adjacent R or G objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move yellow Y objects to the top of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects toward an object of color X, if they are neighbors of it, then recolor them with the color of the adjacent object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace the left object with the right object if they are adjacent.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (not (color_equals (color_of other) O))\n                        (not (color_equals (color_of this) (color_of other)))\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of the smallest size toward the object of color X, if they are neighbors of it, and recolor them to match the color of the object X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color Y (yellow) toward the object of color X (grey), if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects, except walls, toward the walls if they are neighbors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color different than X toward the edge of the grid, until they hit another object or the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) X))\n        )\n        (apply\n            (extend_node (direction_of this) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all objects that intersect with the object of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the vertical line objects vertically to the maximum size without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (height_equals (height_of this) (height_of other))\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all neighbors of objects of color X to the color of the color X object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill hollow interior regions surrounded by X or R, and then remove the border objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) X)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (fill_rectangle (color_of this) false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all objects of size 1 and 2 from the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 1)\n                (size_equals (size_of this) 2)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color Y to the bottom edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Merge adjacent objects of different colors into one object of the color at the bottom.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of other)))\n            )\n        )\n        (apply\n            (update_color (color_of this))    \n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of color Y and G towards the nearest object of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) Y)\n                    (color_equals (color_of this) G)\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift the bounding rectangle of color X to the top of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move down objects which overlap along the horizontal center with objects of color X and clear color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (and\n                    (color_equals (color_of other) X)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the yellow approximate square down to replace part of the horizontal red object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color Y up to align with the objects of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node up)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of color Y and G that are neighboring the object of color X towards X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (and\n                    (neighbor_of this other)\n                    (or\n                        (color_equals (color_of this) Y)\n                        (color_equals (color_of this) G)\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects downward and if they go off the grid, remove them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all horizontal bars containing the color Y with alternating segments of colors Y and X.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all contiguous regions towards each other when neighboring and overlapping, then eliminate the overlapping objects.",
+            "code": "(do\n  (rule\n    (vars (this other))\n    (filter \n      (neighbor_of this other))\n    (apply\n      (move_node (direction_of other))\n    ))\n  (rule\n    (vars (this other))\n    (filter (neighbor_of this other))\n    (apply\n      (update_color O)\n    )))"
+        },
+        {
+            "nl_description": "Extend all objects towards the other object of color of X, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of other) X)\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the objects of color X by 1 step inward to enclose the objects of the respective grid with X object inside it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (color_equals (color_of other) Y)\n            )\n        )\n        (apply\n            (extend_node (direction_of this) true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 towards the adjacent object to form a solid block and remove isolated objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the blue objects downwards, and the yellow objects upwards.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of color Y to align with the objects of color X",
+            "code": "(do\n(rule\n(vars (this other))\n(filter\n(and\n(color_equals (color_of this) Y)\n(and\n(neighbor_of this other)\n(color_equals (color_of other) X)\n)\n)\n)\n(apply\n(move_node_max (direction_of other))\n)\n)\n)"
+        },
+        {
+            "nl_description": "Move all objects to reduce row overlap with other objects while maintaining their alignment.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (or (color_equals (color_of this) O) (color_equals (color_of other) O)))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects upward until they hit another object, and then remove them",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all cyan (X) objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (extend_node up false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all objects of color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the objects in the middle row to the next row below them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (column_equals (column_of this) even)\n                    (column_equals (column_of this) odd)\n                )\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the bottom Y-colored object to the right until it hits another object, then extend the bottom X-colored object to the left until it hits another object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (size_equals (size_of this) max)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (size_equals (size_of this) max)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (extend_node left false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color X toward the nearest neighboring object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 8 one step down.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 8)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all yellow objects to the right and merge them with red objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X up along the column, stopping upon collision with another object or reaching the grid boundary.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all horizontal objects of size greater than 3 that are neighbors of each other towards each other",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of this) max)\n                    (and\n                        (size_equals (size_of other) max)\n                        (color_equals (color_of this) (color_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of color X downwards if they are neighbors of the nearest non-X object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        }
+    ]
+}

@@ -1,0 +1,424 @@
+{
+    "completions": [
+        {
+            "nl_description": "Recolor the internal 2x2 square of larger Y-colored objects to B in both upper squares, and R in both lower squares.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 4)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (size_equals (size_of this) 4)\n                        (neighbor_of other this)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 subregions within the Y blocks to B or R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color the 2x2 squares inside the objects with color B, excluding the first row and column of the object, and color the 4x2 squares inside the objects with color R, excluding the first row and last column of the object",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (move_node up)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner objects to color B and R while retaining the border objects in color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the smallest square object inside the largest square object with color B and R respectively",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) min)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the middle objects in each row of Y shaped objects to a different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this this)\n                    (and\n                        (neighbor_of this this)\n                        (size_equals (size_of this) 16)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this this)\n                    (and\n                        (neighbor_of this this)\n                        (size_equals (size_of this) 16)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the inner 2x2 blocks in larger objects of color Y to a different color, and change the middle 2x2 of a different object of color to another color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle 2x2 square of each 5x5 square of color Y to B, and the middle 2x2 square of each 4x4 square of color Y to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (and\n                        (size_equals (size_of this) 25)\n                        (neighbor_of this this)\n                    )\n                    (and\n                        (size_equals (size_of this) 16)\n                        (neighbor_of this this)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 blocks in the center of some of the Y blocks, to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (color_equals (color_of this) Y)\n                    (column_equals (column_of this) center)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color the interior pixels of the second smallest objects with black (B) and the smallest objects with red (R).",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) 5) (color_equals (color_of this) Y)))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) 4) (color_equals (color_of this) Y)))\n        (apply (update_color R))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor inner 2x2 blocks within 5x3 blocks of Y to color B in the first block, and R in the second block.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 25)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (extend_node down_left false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 9)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 square and the bottom 2x2 square of Y objects to B and R respectively.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (extend_node down false)\n            (extend_node right false)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior 2x2 region of 3x3 objects from Y to another color.",
+            "code": "(do\r\n    (rule\r\n        (vars (this))\r\n        (filter\r\n            (size_equals (size_of this) 9)\r\n        )\r\n        (apply\r\n            (fill_rectangle B false)\r\n        )\r\n    )\r\n)"
+        },
+        {
+            "nl_description": "Recolor the middle 2x2 area of 4x5 objects to B and recolor the middle 2x3 area of 5x4 objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and (height_equals (height_of this) 4) (width_equals (width_of this) 5))\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and (height_equals (height_of this) 5) (width_equals (width_of this) 4))\n        )\n        (apply\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "All enclosed objects are recolored",
+            "code": "(do (rule (vars (this)) (filter (shape_equals (shape_of this) enclosed)) (apply (update_color R) ) ) )"
+        },
+        {
+            "nl_description": "Recolor the 2x2 square at center of all Y objects to B for the first group and R for the second group and recolor the bottom 2x2 square of the second group to B and R",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n             (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                ))             \n       )\n        (apply\n            (update_color B) \n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n             (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                ))             \n       )\n        (apply\n            (update_color R) \n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central block of pixels in each large yellow 'Y' block to blue, and the central block of pixels in each small yellow 'Y' block to red.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 25)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 9)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central four cells of any blue or red rectangular block of size 4x2.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) Y)\n                    (color_equals (color_of this) R)\n                )\n                (size_equals (size_of this) 8)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 blocks in columns 3 and 6 of the objects of color Y to B and R respectively.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (column_equals (column_of this) 3)\n                    (column_equals (column_of this) 6)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (column_equals (column_of this) 6)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the 2x2 tiles inside larger Y objects so that the two central cells become B or R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle two rows of the tallest columns from color Y to B, and the middle two rows of the smallest columns from color Y to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) max)\n                (or\n                    (column_equals (column_of this) 2)\n                    (column_equals (column_of this) 3)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) min)\n                (or\n                    (column_equals (column_of this) 7)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor 2x2 squares of Y objects within the larger Y structures to different colors.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this this)\n                    (and\n                        (neighbor_of this this)\n                        (neighbor_of this this)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this this)\n                    (and\n                        (neighbor_of this this)\n                        (neighbor_of this this)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 region of size 5 square objects to a different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 5)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 8)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 squares inside the rows of Y's within the input grids to a new color based on certain positions: part of the first 2x2 square in the second Y sequence from the top is recolored B, and part of a 2x2 square in the third Y sequence from the top is recolored R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the 2x2 squares to B above midline and to R below midline.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4) \n                (column_equals (column_of this) even) \n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4) \n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior 2x2 area of each 5x5 square object to blue, and the interior 2x2 area of each 4x4 square object to red.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 25)\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 16)\n        )\n        (apply\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner part of horizontal objects of size 5 to another color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 5)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 2x2 to red, and recolor all objects of size 3x2 to red.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (width_equals (width_of this) 2)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 3)\n                (width_equals (width_of this) 2)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 squares with a diagonal pattern with color B and R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 2)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the 2x2 squares located within the objects of color Y to either B or R, preserving their positions.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (size_equals (size_of this) 2)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 region of maximum-sized objects to color B and central 4x2 region of objects of size 8 to color R.",
+            "code": "(do (rule (vars (this)) (filter (and (size_equals (size_of this) max) (column_equals (column_of this) even))) (apply (update_color B))) (rule (vars (this)) (filter (and (size_equals (size_of this) 8) (and (column_equals (column_of this) odd) (not (column_equals (column_of this) even))))) (apply (update_color R))))"
+        },
+        {
+            "nl_description": "Recolor the center 2x2 region of the largest objects to color B, and then recolor second half of neighbor objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 3x3 squares within objects Y to color B and the 2x2 squares within objects Y to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 square to blue for the first block of the connected squares of size multiple of 2, and recolor the inner 2x2 square to red for the second block of the connected squares of size multiple of 2.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (fill_rectangle B true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 8)\n        )\n        (apply\n            (fill_rectangle R true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform the second object from the top in the second column and the second object from the top in the sixth column to color B.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n           (and\n               (color_equals (color_of this) Y)\n               (not (color_equals (color_of other) Y))\n           )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 squares inside larger Y objects. Recolor the inner 2x2 squares of the top Y objects to B and the 2x2 squares of the bottom Y objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (and \n                    (color_equals (color_of this) Y)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (and \n                    (color_equals (color_of this) Y)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center objects of top rows to B and the center objects of bottom rows to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (and\n                    (color_equals (color_of this) Y)\n                    (or\n                        (and\n                            (size_equals (size_of this) 4)\n                            (height_equals (height_of this) 2)\n                        )\n                        (and\n                            (size_equals (size_of this) 6)\n                            (height_equals (height_of this) min)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (and\n                    (color_equals (color_of this) Y)\n                    (or\n                        (and\n                            (size_equals (size_of this) 8)\n                            (height_equals (height_of this) max)\n                        )\n                        (and\n                            (size_equals (size_of this) 2)\n                            (height_equals (height_of this) min)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 section of objects of color Y to color B, and the bottom central 2x2 section of objects of color Y to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the middle part of objects sized 5 to B or R depending on the row or column",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the objects in the middle row of each square to either B or R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 squares in the object of color Y to B, and the 2x2 squares in the lower right corner to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (and\n                    (color_equals (color_of this) Y)\n                    (or\n                        (and\n                            (column_equals (column_of this) 2)\n                            (and\n                                (column_equals (column_of this) 3)\n                                (and\n                                    (column_equals (column_of this) 4)\n                                    (column_equals (column_of this) 5)\n                                )\n                            )\n                        )\n                        (and\n                            (column_equals (column_of this) 7)\n                            (and\n                                (column_equals (column_of this) 8)\n                                (and\n                                    (column_equals (column_of this) 9)\n                                    (column_equals (column_of this) 10)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (and\n                    (color_equals (color_of this) Y)\n                    (and\n                        (column_equals (column_of this) 7)\n                        (and\n                            (column_equals (column_of this) 8)\n                            (and\n                                (column_equals (column_of this) 9)\n                                (column_equals (column_of this) 10)\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 squares of color Y that are in the middle of bigger 2x5 objects of color Y, to B. Also, recolor the 2x2 squares of color Y that are part of 4x3 objects to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (color_equals (color_of this) Y)\n                    (and\n                        (neighbor_of this other)\n                        (and\n                            (size_equals (size_of other) 10)\n                            (and\n                                (color_equals (color_of other) Y)\n                                (or\n                                    (neighbor_of this other)\n                                    (color_equals (color_of other) Y)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (color_equals (color_of this) Y)\n                    (and\n                        (neighbor_of this other)\n                        (and\n                            (size_equals (size_of other) 12)\n                            (and\n                                (color_equals (color_of other) Y)\n                                (or\n                                    (neighbor_of this other)\n                                    (color_equals (color_of other) Y)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior of each enclosed 3x3 square within the object to a different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 9)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 region inside each of the larger squares with different colors.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 16)\n            )\n        )\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 25)\n            )\n        )\n        (apply\n            (hollow_rectangle R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor 2x2 sub-objects inside larger objects to B and R respectively.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 2x2 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (width_equals (width_of this) 2)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the two central cells of each Y block, the middle cells in the Y block are recolored to B, and the left two cells in the central row of a 3x3-Y block are recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the centers of the 4x4 squares within the larger objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the smaller inner squares within objects of color Y to color B or R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 portion of the 5x5 region in the top-left and bottom-right quadrants of the image, with a new color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 25)\n                (or\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 25)\n                (or\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform the inner 2x2 squares of Y-colored objects to B, and the innermost 2x2 square inside larger Y objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 sub-squares of the Y-colored objects to B and R, respectively.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of this) Y) (neighbor_of this other)))\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of this) Y) (neighbor_of this other)))\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the 2x2 blocks at positions (2,2) to B and (8,8) to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (and\n                    (width_equals (width_of this) 2)\n                    (or\n                        (neighbor_of this other)\n                        (and\n                            (neighbor_of this other)\n                            (column_equals (column_of other) 2)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (and\n                    (width_equals (width_of this) 2)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior elements of the two large objects from B to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (size_equals (size_of other) 1)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 3x3 region at the center of the larger objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior elements of the largest square object to color R, leaving a border of original color intact.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner objects inside each bigger color Y object to different colors",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center part of the yellow squares with size 4 to color B and the center part of the yellow squares with size 3 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the inner 2x2 square of the largest enclosed objects to a different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (fill_rectangle B false)\n            (rotate_node 90)\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center of each object with a different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the center 3x2 block of the lower green object to red, and the center 2x2 block of the upper green object to blue.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (neighbor_of this other)\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (neighbor_of this other)\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center pixels of object(s) that form a rectangle.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are enclosed in a rectangle of colors entirely surrounded by color Y",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of other) Y) (shape_equals (shape_of this) enclosed)))\n        (apply (update_color R))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 squares within objects larger than 2 with the color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) odd)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center objects of color Y to color B or R if they exist in the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (or\n                        (color_equals (color_of other) B)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects that are surrounded by objects that are the same size.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of this) (size_of other))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of this) (size_of other))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace the 2x2 portions of color Y in the inner part of objects with colors B and R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 block of the largest square blue.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central part of green objects to blue and red.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (size_equals (size_of this) 4)\n                    (neighbor_of this this)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 2x2 to color B if they are connected to another object of color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (and\n                    (width_equals (width_of this) 2)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (width_equals (width_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the innermost objects within groups of squares.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (size_equals (size_of this) even)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (size_equals (size_of this) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center 2x2 area of Y objects to B, and recolor a different 2x2 bottom area of Y objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (and\n                        (column_equals (column_of this) 2)\n                        (column_equals (column_of this) 3)\n                    )\n                    (and\n                        (column_equals (column_of this) 4)\n                        (column_equals (column_of this) 5)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (and\n                        (column_equals (column_of this) 6)\n                        (column_equals (column_of this) 7)\n                    )\n                    (and\n                        (column_equals (column_of this) 8)\n                        (column_equals (column_of this) 9)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor specific regions in objects with a distinct color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) O)\n                    )\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center regions of 'Y' colored objects of size larger than 1, to 'B' for size 4 and 'R' for size 6.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (size_equals (size_of this) 4)\n                    (size_equals (size_of this) 6)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 6)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 enclosed objects within a larger Y colored object to color B, and the last 2x2 enclosed object at the bottom right corner to color R",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (color_equals (color_of this) Y)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects within the central row of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color R)\n         )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner squares of the enclosed shapes to a different color (B or R).",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of a single color to red. Then all the objects in the same row of the maximum size object next to some object colored red in the row are recolored to red.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center objects of each yellow block to blue, and the right edge objects of each yellow block to red.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (column_equals (column_of this) 2)\n                    (column_equals (column_of this) 3)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (column_equals (column_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the inner 2x2 square of each 5x5 block to B, and the inner 2x2 square of each 4x4 block to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor 2x2 regions within larger objects that differ from the main color to B or R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the 2x2 region in the middle to color B if surrounded by Y, and recolor the 2x2 region at the bottom to color R if surrounded by Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of the 2x2 squares in the central region to blue and the 2x2 squares in the lower right region to red.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and (size_equals (size_of this) 2) (and (height_equals (height_of this) 2) (width_equals (width_of this) 2)))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and (size_equals (size_of this) 2) (and (height_equals (height_of this) 2) (width_equals (width_of this) 2)))\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 squares within all objects to color B, then recolor the inner 4x1 or 1x4 shapes within all objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (not (color_equals (color_of this) O))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 16)\n                (not (color_equals (color_of this) O))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center 2x2 block of Y objects inside the large objects to B or R depending on the object being near the top or bottom of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (column_equals (column_of this) odd)\n                    (height_equals (height_of this) 4)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (column_equals (column_of this) odd)\n                    (height_equals (height_of this) 6)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the interior cells of each shape to color B",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 area of each Y object to B, and recolor the central 2x2 area of each secondary Y object to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 6)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the four inner cells of the 5x5 square in the middle of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (and\n                    (size_equals (size_of this) 1)\n                    (and\n                        (neighbor_of this other)\n                        (size_equals (size_of other) 25)\n                    )\n                )\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) square)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (and\n                    (size_equals (size_of this) 1)\n                    (and\n                        (neighbor_of this other)\n                        (size_equals (size_of other) 25)\n                    )\n                )\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) enclosed)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 area of all Y blocks to B, and the inner 4x4 area to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (hollow_rectangle R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the second row of the big Y-shaped object from the top-most row, and the second-to-last row of the big Y-shaped object from the bottom-most row to color R, and recolor the second row of the small Y-shaped object from the top-most row to the color B.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (height_equals (height_of this) 10)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (height_equals (height_of this) 5)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner part of the Y-shaped objects to B in the first part, and R in the second part. Additionally, recolor the inner part of the Y-shaped objects to R in the first part, and B in the second part.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (hollow_rectangle R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior of each object to another color, without changing the exterior.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center cells of the objects of color Y to color B, and recolor the bottom center cells to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 region of each Y-colored 5x5 block to B, and the inner 2x2 region of each Y-colored 6x4 block to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 25)\n            )\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) 24)\n            )\n        )\n        (apply\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center 2x2 square of the larger blocks differently, either to R or B.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of this) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all internal objects of the Y-colored regions to B and R, maintaining the structure and adjacency.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (or\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) Y)\n                    )\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (color_equals (color_of other) Y)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor interior sections of the grid to color B or R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (color_equals (color_of other) Y)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (color_equals (color_of other) B)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 region of top-center objects to color B, and the central 2x2 region of bottom-center objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )    \n    )(rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the enclosed objects inside the first and third quadrant of Y objects to B and the enclosed objects inside the fourth quadrant of Y objects to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner objects within each group of neighboring 'Y' colored blocks.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central 2x2 block of the largest objects to color B, and the central 2x2 block of the smallest objects to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the internal pixels of the 4x4 objects with a different color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 4)\n                (width_equals (width_of this) 4)\n            )\n        )\n        (apply\n            (fill_rectangle B false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor to R the horizontally centered Y columns to the left of an enclosed Y column, and recolor to B the horizontally centered Y columns to the right of an enclosed Y column.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (shape_equals (shape_of this) enclosed)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (and\n                    (shape_equals (shape_of other) enclosed)\n                    (neighbor_of other this)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For each Y-colored object, if it's surrounded by Y-colored objects, recolor the inner ones to B and the center ones to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (fill_rectangle B false)\n            (hollow_rectangle R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner 2x2 squares within the larger objects in the middle",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        }
+    ]
+}
