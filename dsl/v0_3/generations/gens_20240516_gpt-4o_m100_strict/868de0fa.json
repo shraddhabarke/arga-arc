@@ -1,428 +1,404 @@
 {
     "completions": [
         {
-            "nl_description": "Recolor the objects connected to the mid section of the main vertical column to R, and the objects connected to the mid section of the second vertical column to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of other) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of other) 2)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the cells in rows that contain a blue object, to red if the cell is blue and to orange if the cell is empty.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color A, and recolor all objects of size greater than 10 to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color the squares of the inner border of each square-shaped structure with color A and the exterior border with color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) max) (shape_equals (shape_of this) square)))\n        (apply \n            (add_border A) \n            (add_border R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all internal objects in red and all border objects in orange.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (or\n                    (column_equals (column_of this) 9)\n                    (or\n                        (column_equals (column_of this) 19)\n                        (or\n                            (column_equals (column_of this) 10)\n                            (column_equals (column_of this) 11)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the smallest object to A and the largest to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior cells of connected object's size greater than 3.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the first two rows of grid cells where the color is B, based on whether object is of size 2 to R, otherwise to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (neighbor_of this other))\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of all cells, changing isolated B cells to R and isolated groups of size 3 B cells to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 3)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+            "nl_description": "Move all objects of color B, that are surrounded by empty spaces and replaced with A if they are of size 1, and replace them with R if they are of size 4 or more.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n          (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n      (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all inner objects that are surrounded by other color cells in the grid to a new color: orange in the center and red in the outer part.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) A)\n                (neighbor_of other this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor internal parts of enclosed objects to color R, and enclosed external parts to color A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the inner color of all shapes made of color B objects to R and change the border color of all shapes made of color B objects to A",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color B)\n            (add_border A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor inner cells of all B objects to color R and recolor boundary cells to color A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) odd)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) even)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the inner 'O' blocks of the 'B' objects to 'R' for certain objects and 'A' for others, based on their position.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )    \n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects bound by B in the left side to Color A and recolor objects bound by B at the right side to Color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects towards objects of maximum size if they are neighbors and change their color to either A or R based on some condition.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color 'R' and 'A' one step upwards.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects in the input that are in a path of connected squares of object of color B toward their nearest different colored neighbor.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior objects to color R if they are inside a B outline object. Change the color of the larger interior objects to A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (not (color_equals (color_of this) B))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Enclose all objects of color O with color R if they are neighbors of another object with a different color, and extend all the objects of color B towards enclosing object",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (not (color_equals (color_of other) O))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the inner objects of color O to R, then recolor the outer objects of color O to A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects that are neighbors of other objects to color R, recolor their neighboring objects to color A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) A)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the interior objects fully surrounded by B to color A, and change the color of the interior objects partially surrounded by B to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (not (shape_equals (shape_of this) enclosed))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Recolor objects of color B to color R, and objects of color O and size 3 to color A.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (size_equals (size_of this) 3)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "All objects in the grid are recolored. Objects of size 2 are recolored to R, and objects of size 3 are recolored to A; meanwhile all other objects are left unchanged.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (noop)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B, except edge-bound ones, towards internal objects of color O, and recolor them partially to A and R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n            (move_node_max (direction_of other))\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor cells neighboring a blue cell to color R or A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move red-colored objects towards and recolor 'A' towards neighbors of top-left object, then recolor center to 'R' and border to 'A'",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of other) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and (not (color_equals (color_of this) B))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects adjacent to objects of color B upwards and recolor objects adjacent to color O to color A, otherwise recolor them to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of other) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all isolated cells to R and the color of all sequences of 3 cells to A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move bottom touching objects of color B to the right and bottom touching objects of color A to the left, and recolor them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node right)\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) A)\n        )\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move inner parts of all enclosed red and orange objects to adjacent empty spaces upward, changing red parts to color A and orange parts to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of other) B)\n                    (color_equals (color_of other) O)\n                )\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Objects of color B that form a boundary are recolored with colors R and A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all B objects with size 4, 5, 6 to the rightmost edge and then recolor them with A or R according to their original vertical position",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (or\n                    (size_equals (size_of this) 4)\n                    (size_equals (size_of this) 5)\n                )\n                (size_equals (size_of this) 6)\n            )\n        )\n        (apply\n            (move_node_max right)\n            (update_color A)\n        )\n    )\n\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the diagonal neighbors of colored blocks to a new color based on their position in the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) B))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B to the nearest side of length 4, and then recolor them to color R and A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 7)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color B and size greater than 1 to the right, recoloring them with increasing shades.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (move_node right)\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (move_node right)\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects completely towards the center, then recolor objects of size 4 to R and objects of size greater than 4 to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior nodes of enclosed objects to color R, and also recolor to color A the second column of interior nodes starting from the top.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (column_equals (column_of this) 3))\n        (apply \n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the object of color B to A if the object is enclosed within another object, and recolor to R if the object is surrounded by another object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (shape_equals (shape_of this) square)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B towards the nearest object, then recolor objects of size 3 to color R and objects of size 6 to color A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor and move objects with neighbors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color A)\n            (move_node_max (direction_of other))\n        )    \n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects in column 2 to color A, and the objects in column 5 to color R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 5)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color O, R, G, and W toward the object of color B if they are neighbors, then recolor the moved objects to color A and R respectively.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) O)\n                    (or\n                        (color_equals (color_of this) R)\n                        (or\n                            (color_equals (color_of this) G)\n                            (color_equals (color_of this) W)\n                        )\n                    )\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color A)\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 to the same side and recolor them to colors R and A based on their new position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (column_equals (column_of this) 1)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all hollow rectangle objects one step toward the closest enclosed object, and then recolor all objects that are size 9.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) enclosed)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 8)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that touch the left border, and then extend the largest objects toward the right-most object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 0)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects in color B one step towards the nearest node boundary, then recolor all cells adjacent to other objects with maximum size in color A, and finally recolor the rightmost segments adjacent to other objects of size 4 with color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighboring cells of size 1 to color R, extend objects of size 3 towards the bottom and recolor them to color A",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (extend_node down false)\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B, toward the closest object, and recolor the closest object to R, recoloring the rest to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B by filling them with adjacent color A, then recolor the remaining parts of the objects to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node down)\n            (extend_node down false)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B towards the center or the largest object size and recolor them to A closer to the top-involves-distance preference or R closer to sides-involves-neighbor preference.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node up)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node right)\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the inner cells of objects with a border of color B to color A, and color the rest to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects adjacent to the objects of color B, change their color based on their size: if size 1 change to A, if size 3 change to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 towards a border, and recolor them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B one step towards the object of color X if they are neighbors, and then recolor them to colors A and R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) A)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B toward the nearest object of color different than B, until they hit another object or the edge, and recolor them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (color_equals (color_of other) B))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (color_equals (color_of other) B))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Replace the color of all internal objects adjacent to borders to R, and update border objects to have color A. All other objects are updated to have color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color A)\n        )\n    )\n)"
+            "nl_description": "Recolor all internal objects in red and all border objects in orange.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (or\n                    (column_equals (column_of this) 9)\n                    (or\n                        (column_equals (column_of this) 19)\n                        (or\n                            (column_equals (column_of this) 10)\n                            (column_equals (column_of this) 11)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 1 to color A, and all objects of size 4 to color R.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the inner elements of enclosed objects to color A, then move the inner elements to color R if the color of the object is different from white.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) A)\n                (not (color_equals (color_of other) W))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects with degree 2 to color A and objects with degree 4 to color R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (degree_equals (degree_of this) 2))\n        (apply (update_color A))\n    )\n    (rule\n        (vars (this))\n        (filter (degree_equals (degree_of this) 4))\n        (apply (update_color R))\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 toward the object of maximum size, without overlapping, and recolor objects of size more than 1 differently.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the cells in the middle of the checkerboard patterns to 'A', and change the color of the edge cells in the checkerboard patterns to 'R'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Identify objects with specific sizes next to objects of different sizes. Recolor neighbors and move smaller objects towards larger objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change color to R of the objects of size 4, then change color to A of the objects of size 5.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 toward the object of color B, and then recolor them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the inner pixel of all enclosed B objects to R. Recolor the outer border of all enclosed B objects to A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (add_border R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the inner region of 'L' shaped patterns in the grid. The 'L' shapes are formed by a vertical and a horizontal segment intersecting at a right angle. The inner part of the 'L' shape is filled with colors A and R, in vertical and horizontal segments respectively.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (degree_equals (degree_of this) min)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) min)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (degree_equals (degree_of this) 2)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B, that are surrounded by empty spaces and replaced with A if they are of size 1, and replace them with R if they are of size 4 or more.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n          (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n      (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the internal cells of the objects to 'A'. Then, change the color of the perimeter cells of the objects to 'R'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects on the left to color A and all objects on the right to color R",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior objects of size 1 to color A, and the interior objects of size greater than 1 to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O, toward the object of color O, if they are neighbors of it. Then recolor all objects of color R to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbors of red objects to color A, and then recolor the red objects to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 3 to their right neighbor and recolor them as A, then recolor their former positions to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (move_node right)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects upward and then change their color to R if they neighbor the largest object and their size is 1. Else, change their color to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node up false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For objects composed of cells of color B, recolor the border cells to color A and the interior cells to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects of size 2 to color R and the objects of size 3 to color A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects adjacent to each other with color B and form them into rows and columns, then recolor them to A and R respectively.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) A)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all O objects vertically and recolor them to A for the portion before a B object, and change the remaining B objects to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (extend_node down false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Replace the color of the neighbors of objects of size 7 to color A, and the color of neighbors of objects of size 10 to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) 7)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) 10)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change color of interior objects of size 1 to A and move interior objects with size larger than 1 one step up and change their color to R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node up)\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color R and A to the left toward the object of color B, if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) A)\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Move all inner 'B' objects to the edge of the larger object and recolor them. Fill inner 'B' objects with 'A' and non-inner 'B' objects with 'R' after moving.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (and (column_equals (column_of this) even) (size_equals (size_of this) 1))\n                    (and (column_equals (column_of this) odd) (size_equals (size_of this) 1))\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (and (column_equals (column_of this) even) (size_equals (size_of this) 2))\n                    (and (column_equals (column_of this) odd) (size_equals (size_of this) 2))\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color B towards the right-extremity and recolor them to colors R and A depending on their width.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (width_equals (width_of this) max))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the inner regions of all B-colored objects to color A, and the outer regions to color R, if they are even in size",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) even)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (size_equals (size_of this) even)\n                    (neighbor_of this this)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all non-overlapping objects enclosed by other objects one step toward the bottom-left corner, then recolor them to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (move_node down_left)\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of size 2 to R and objects of size 4 to A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects containing B south and replace interior B with A and outer B with R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply\n            (move_node down)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of this) R) (color_equals (color_of other) B)))\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Move all objects of color B, toward the closest object, and recolor the closest object to R, recoloring the rest to A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all interior objects one step towards the closest exterior object touching the boundary, then recolor the cells after the first step.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Objects of size 1 are recolored to 'A', and objects of size 4 are recolored to 'R'",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "All objects in the grid are recolored. Objects of size 2 are recolored to R, and objects of size 3 are recolored to A; meanwhile all other objects are left unchanged.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (noop)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the inner parts of enclosed objects to color A and the periphery to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Recolor the objects connected to the mid section of the main vertical column to R, and the objects connected to the mid section of the second vertical column to A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of other) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of other) 2)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor objects within specific rows to colors A and R based on their positions, and within specific rows move particular objects away from their original position and insert gaps.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 3)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 5)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Move all objects of color B to the nearest side of length 4, and then recolor them to color R and A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 7)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the internal color of all objects with internal color O to R at the top, A at the bottom, and leave them as is for other colors.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+            "nl_description": "Extend the objects upward and then change their color to R if they neighbor the largest object and their size is 1. Else, change their color to A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node up false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of bordered objects of color B to color A, and then change the color of inline objects of color B to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) A))\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Recolor the diagonal neighbors of colored blocks to a new color based on their position in the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) B))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor and move objects with neighbors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color A)\n            (move_node_max (direction_of other))\n        )    \n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B towards the nearest object, then recolor objects of size 3 to color R and objects of size 6 to color A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor the objects within columns 2 to 4 as R, and within columns 6 to 8 as A.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 2)\n                (or\n                    (column_equals (column_of this) 3)\n                    (column_equals (column_of this) 4))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 6)\n                (or\n                    (column_equals (column_of this) 7)\n                    (column_equals (column_of this) 8))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all interior pixels of square objects with alternating colors R and A, starting from R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (neighbor_of this other))\n        (apply \n            (update_color R)\n            (update_color A)\n        )\n    )\n)"
+            "nl_description": "Recolor the inner regions of all B-colored objects to color A, and the outer regions to color R, if they are even in size",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) even)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (size_equals (size_of this) even)\n                    (neighbor_of this this)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than 1 to the same side and recolor them to colors R and A based on their new position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (column_equals (column_of this) 1)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the first two rows of grid cells where the color is B, based on whether object is of size 2 to R, otherwise to A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (neighbor_of this other))\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the cells in rows that contain a blue object, to red if the cell is blue and to orange if the cell is empty.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of shape square one step up, and then recolor the left objects to color A and the rest to color R.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (shape_equals (shape_of this) square)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) odd)\n                (shape_equals (shape_of this) square)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move certain cells to the left or to the right to form a straight column and recolor them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (move_node right)\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Color the squares of the inner border of each square-shaped structure with color A and the exterior border with color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) max) (shape_equals (shape_of this) square)))\n        (apply \n            (add_border A) \n            (add_border R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Objects of size 1 are recolored to 'A', and objects of size 4 are recolored to 'R'",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner region of 'L' shaped patterns in the grid. The 'L' shapes are formed by a vertical and a horizontal segment intersecting at a right angle. The inner part of the 'L' shape is filled with colors A and R, in vertical and horizontal segments respectively.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (degree_equals (degree_of this) min)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) min)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (degree_equals (degree_of this) 2)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects adjacent to each other with color B and form them into rows and columns, then recolor them to A and R respectively.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) A)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the interior objects fully surrounded by B to color A, and change the color of the interior objects partially surrounded by B to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (not (shape_equals (shape_of this) enclosed))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior nodes of enclosed objects to color R, and also recolor to color A the second column of interior nodes starting from the top.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (column_equals (column_of this) 3))\n        (apply \n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior cells of connected object's size greater than 3.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner elements of enclosed objects to color A, then move the inner elements to color R if the color of the object is different from white.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) A)\n                (not (color_equals (color_of other) W))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the inner 'O' blocks of the 'B' objects to 'R' for certain objects and 'A' for others, based on their position.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )    \n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects in the input that are in a path of connected squares of object of color B toward their nearest different colored neighbor.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change color to R of the objects of size 4, then change color to A of the objects of size 5.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B towards the right-extremity and recolor them to colors R and A depending on their width.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (width_equals (width_of this) max))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the inner cells of objects with a border of color B to color A, and color the rest to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all B objects with size 4, 5, 6 to the rightmost edge and then recolor them with A or R according to their original vertical position",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (or\n                    (size_equals (size_of this) 4)\n                    (size_equals (size_of this) 5)\n                )\n                (size_equals (size_of this) 6)\n            )\n        )\n        (apply\n            (move_node_max right)\n            (update_color A)\n        )\n    )\n\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects in column 2 to color A, and the objects in column 5 to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 5)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of all cells, changing isolated B cells to R and isolated groups of size 3 B cells to A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 3)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects adjacent to the objects of color B, change their color based on their size: if size 1 change to A, if size 3 change to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 toward the object of maximum size, without overlapping, and recolor objects of size more than 1 differently.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects containing B south and replace interior B with A and outer B with R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply\n            (move_node down)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter (and (color_equals (color_of this) R) (color_equals (color_of other) B)))\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior objects to color R if they are inside a B outline object. Change the color of the larger interior objects to A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (not (color_equals (color_of this) B))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects with degree 2 to color A and objects with degree 4 to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (degree_equals (degree_of this) 2))\n        (apply (update_color A))\n    )\n    (rule\n        (vars (this))\n        (filter (degree_equals (degree_of this) 4))\n        (apply (update_color R))\n    )\n)"
         },
         {
             "nl_description": "Move all objects of color B down if they have another object below them and then recolor them to match the object below's color.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node down)\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move objects of color B of size 1 up, and recolor them to A. Then recolor objects of color B with size greater than 1, to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (move_node up)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Recolor the smallest object to A and the largest to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of the internal objects (neighboring other objects) to R and change the color of the external objects (not neighboring other objects) to A.",
-            "code": "(do\n  (rule\n    (vars (this other))\n    (filter\n      (neighbor_of this other)\n    )\n    (apply\n      (update_color R)\n    )\n  )\n  (rule\n    (vars (this other))\n    (filter\n      (not (neighbor_of this other))\n    )\n    (apply\n      (update_color A)\n    )\n  )\n)"
+            "nl_description": "Move all objects of color B towards the center or the largest object size and recolor them to A closer to the top-involves-distance preference or R closer to sides-involves-neighbor preference.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node up)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node right)\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all hollow squares toward themselves and recolor them to color R and recolor all remaining neighboring cells to color A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (shape_equals (shape_of this) square))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor inner cells of a rectangle structures.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) 2)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Identify objects with specific sizes next to objects of different sizes. Recolor neighbors and move smaller objects towards larger objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Change the color of objects of size 1 to A and extend towards the nearest B, then change the color of objects of size 4 to R and extend towards nearest size 4 object of same color.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (update_color A)\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 4))\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
+            "nl_description": "Recolor cells neighboring a blue cell to color R or A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects that are neighbors of other objects to color R, recolor their neighboring objects to color A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) A)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects towards objects of maximum size if they are neighbors and change their color to either A or R based on some condition.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the internal objects (neighboring other objects) to R and change the color of the external objects (not neighboring other objects) to A.",
+            "code": "(do\n  (rule\n    (vars (this other))\n    (filter\n      (neighbor_of this other)\n    )\n    (apply\n      (update_color R)\n    )\n  )\n  (rule\n    (vars (this other))\n    (filter\n      (not (neighbor_of this other))\n    )\n    (apply\n      (update_color A)\n    )\n  )\n)"
+        },
+        {
+            "nl_description": "Replace the color of all internal objects adjacent to borders to R, and update border objects to have color A. All other objects are updated to have color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color R and A to the left toward the object of color B, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) A)\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Enclose all objects of color O with color R if they are neighbors of another object with a different color, and extend all the objects of color B towards enclosing object",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (not (color_equals (color_of other) O))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color B and size greater than 1 to the right, recoloring them with increasing shades.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (move_node right)\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (move_node right)\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B, except edge-bound ones, towards internal objects of color O, and recolor them partially to A and R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n            (move_node_max (direction_of other))\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than 1 towards a border, and recolor them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighboring cells of size 1 to color R, extend objects of size 3 towards the bottom and recolor them to color A",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (extend_node down false)\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move bottom touching objects of color B to the right and bottom touching objects of color A to the left, and recolor them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node right)\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) A)\n        )\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor inner cells of a rectangle structures.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) 2)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that touch the left border, and then extend the largest objects toward the right-most object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 0)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all non-overlapping objects enclosed by other objects one step toward the bottom-left corner, then recolor them to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (move_node down_left)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects in color B one step towards the nearest node boundary, then recolor all cells adjacent to other objects with maximum size in color A, and finally recolor the rightmost segments adjacent to other objects of size 4 with color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects of size 2 to color R and the objects of size 3 to color A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color A, and recolor all objects of size greater than 10 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner objects of color O to R, then recolor the outer objects of color O to A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbors of red objects to color A, and then recolor the red objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects bound by B in the left side to Color A and recolor objects bound by B at the right side to Color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the cells in the middle of the checkerboard patterns to 'A', and change the color of the edge cells in the checkerboard patterns to 'R'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color O, R, G, and W toward the object of color B if they are neighbors, then recolor the moved objects to color A and R respectively.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) O)\n                    (or\n                        (color_equals (color_of this) R)\n                        (or\n                            (color_equals (color_of this) G)\n                            (color_equals (color_of this) W)\n                        )\n                    )\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color A)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For objects composed of cells of color B, recolor the border cells to color A and the interior cells to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B one step towards the object of color X if they are neighbors, and then recolor them to colors A and R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) A)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all isolated cells to R and the color of all sequences of 3 cells to A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Objects of color B that form a boundary are recolored with colors R and A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B by filling them with adjacent color A, then recolor the remaining parts of the objects to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node down)\n            (extend_node down false)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all hollow squares toward themselves and recolor them to color R and recolor all remaining neighboring cells to color A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (shape_equals (shape_of this) square))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace the color of the neighbors of objects of size 7 to color A, and the color of neighbors of objects of size 10 to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) 7)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) 10)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects on the left to color A and all objects on the right to color R",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 toward the object of color B, and then recolor them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move inner parts of all enclosed red and orange objects to adjacent empty spaces upward, changing red parts to color A and orange parts to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of other) B)\n                    (color_equals (color_of other) O)\n                )\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all hollow rectangle objects one step toward the closest enclosed object, and then recolor all objects that are size 9.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) enclosed)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 8)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the internal color of all objects with internal color O to R at the top, A at the bottom, and leave them as is for other colors.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all interior pixels of square objects with alternating colors R and A, starting from R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (neighbor_of this other))\n        (apply \n            (update_color R)\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O, toward the object of color O, if they are neighbors of it. Then recolor all objects of color R to A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects of size 2 to R and objects of size 4 to A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor internal parts of enclosed objects to color R, and enclosed external parts to color A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color B of size 1 up, and recolor them to A. Then recolor objects of color B with size greater than 1, to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (move_node up)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change color of interior objects of size 1 to A and move interior objects with size larger than 1 one step up and change their color to R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node up)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color 'R' and 'A' one step upwards.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B toward the nearest object of color different than B, until they hit another object or the edge, and recolor them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (color_equals (color_of other) B))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (color_equals (color_of other) B))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Recolor the interior of blue objects to red and the exterior to fuchsia.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (hollow_rectangle A)\n            (fill_rectangle R false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of bordered objects of color B to color A, and then change the color of inline objects of color B to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) A))\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects adjacent to objects of color B upwards and recolor objects adjacent to color O to color A, otherwise recolor them to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of other) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the inner color of all shapes made of color B objects to R and change the border color of all shapes made of color B objects to A",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color B)\n            (add_border A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner pixel of all enclosed B objects to R. Recolor the outer border of all enclosed B objects to A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (add_border R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all O objects vertically and recolor them to A for the portion before a B object, and change the remaining B objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (extend_node down false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor inner cells of all B objects to color R and recolor boundary cells to color A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) odd)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) even)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects within specific rows to colors A and R based on their positions, and within specific rows move particular objects away from their original position and insert gaps.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 3)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 4)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) 5)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the inner parts of enclosed objects to color A and the periphery to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move red-colored objects towards and recolor 'A' towards neighbors of top-left object, then recolor center to 'R' and border to 'A'",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of other) B)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and (not (color_equals (color_of this) B))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color R)\n        )\n    )\n)"
         }
     ]
 }

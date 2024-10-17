@@ -1,319 +1,119 @@
 {
     "completions": [
         {
-            "nl_description": "Fill rectangles around the objects of color R and F with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For all objects of shape enclosed, change their color to Y if they are neighbors of an object of color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the first row of each object containing the color R to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert a yellow border around all objects of color R and F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) R) (color_equals (color_of this) F)))\n        (apply (add_border Y))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of the object of color 'R' to color 'Y'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the leftmost and rightmost columns of a row to color Y if the row is fully filled with the same color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of this) (size_of other))\n                    (color_equals (color_of this) (color_of other))\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of width 1 to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 1)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 towards the object of maximum size without overlapping, and then recolor them to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Recolor all objects of color G to Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a yellow border to objects of the same color R or F, and larger than height 1, then change their color to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 4)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) F)\n                )\n            )\n        )\n        (apply\n            (add_border Y)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of width 1 in color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 1)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Transform objects that vertically align with neighbors of different colors by changing their color and those of their respective immediate neighbors to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of other)))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the 2x2 squares at the center of the grids to color Y",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (column_equals (column_of this) center)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a border of color Y around objects of color different from O that have a neighbor of color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of an object of color R to color Y",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the border of the row of objects containing more than two elements to the color Y, for only the objects that neighbor them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of other this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all rows that contain objects of color R to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior pixels of the square objects to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all cells to Y, except when they are neighbors of a cell with the same color that is not Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            ))\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the external border of the square objects to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter \n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects adjacent to 'Y' to match 'Y'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) Y)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 4 to color Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects of maximum size if they are neighbors of other objects, without overlapping, and recolor them to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Extend all vertical objects at the intersection of rows of maximum width with rows of color R, changing the extended objects to color Y without overlapping the intersection columns.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (height_equals (height_of this) max)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (extend_node down false)\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the center row of each object to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill with color Y any cell such that there's at least one orthogonally adjacent cell in the same row or column with the same color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbors of objects of color G to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor horizontal and vertical monochromatic stripes of width 2 to Y, and horizontal stripes of width 4 to Y, while leaving stripes of width 1 and 3 unchanged.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (width_equals (width_of this) 2)\n                    (shape_equals (shape_of this) square)\n                )\n                (width_equals (width_of this) 4)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the border of each rectangular object to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border Y)\n            )\n    )\n)"
-        },
-        {
-            "nl_description": "Form horizontal lines of color Y through the centers of vertical segments of color B.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the rows where all elements are the same as color Y, except for rows with one different element in the middle.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) (color_of other))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects enclosed by objects of the same color to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) 4)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) (color_of other))\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all vertical objects of width 1 and length of 4 cells.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (width_equals (width_of this) 1)\n                (height_equals (height_of this) 4)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 3 to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects with color G, R, and C, if they are surrounded by objects of color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects in columns shared by red or fuchsia objects to yellow.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of other) R)\n                    (color_equals (color_of other) F)\n                )\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a new yellow border around objects of column center.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of maximum size toward their neighbors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Add a border of color Y to objects of height 4",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 4)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all non-center objects to yellow Y if they are neighbors of non-square object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (shape_equals (shape_of this) square))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the rows that have objects of size 4 to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 4)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color the objects in the same column as an object of color G and R to color Y",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of other) G)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of size 3 to color Y if they are neighbors of an object of size 4.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 4)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 horizontally without overlapping, and recolor the objects intersecting the left border to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 0)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a border of color Y around the largest middle object in each grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a yellow border around objects of the maximum size.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighboring objects of color different than 'B' and 'F' to yellow, encapsulated by these objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (or (color_equals (color_of this) B) (color_equals (color_of this) F)))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior vertical lines of objects to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the object with the greatest degree (connectivity) to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (degree_equals (degree_of this) max)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects except the ones with color F to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) F))\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a yellow border of color Y to the central objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color G to Y, while replacing objects of color G that are neighbors of an object of color R and Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of this) Y)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change color to Y for all objects that are neighbors of an object of color 'B' or 'R' and change R to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of other) B)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 3 to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Transform the objects of the maximum size by extending them in the given direction without overlapping, and then recolor them to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the first row and column of the grid to color Y, except for the rightmost cell of each transformed row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Enclose each object of maximum width with yellow color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) max)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of height 2 and width 4, to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (width_equals (width_of this) 4)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert a yellow border around objects of color B, R, and G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all rows fully occupied by a single object to color Y",
-            "code": "(do\n    (rule\n        (vars (this other)) \n        (filter\n            (or\n                (and (degree_equals (degree_of this) max) (height_equals (height_of this) 1))\n                (and (degree_equals (degree_of this) max) (shape_equals (shape_of this) enclosed))\n            )\n        ) \n        (apply (update_color Y))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects within the same column as an object of color Y to color Y if they form a horizontal or vertical line with that object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) Y)\n                (or\n                    (column_equals (column_of this) (column_of other))\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor vertical neighbors of Y's to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) Y)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all rows fully occupied by objects of the same color to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the top and bottom borders of the largest overlapping vertical line to fill horizontally with color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor to Y all objects surrounding objects of color different from their own.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of other)))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Surround all objects of minimum size with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the top row and the leftmost vertical column intersecting at the first object, as well as any other row or column containing the same object color, with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this this)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects of shape \"enclosed\" to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects entirely surrounded by other objects to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (neighbor_of this this))\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects adjacent to the line objects to yellow.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) F))\n                (and\n                    (neighbor_of this other)\n                    (or\n                        (color_equals (color_of other) R)\n                        (and\n                            (color_equals (color_of other) F)\n                            (not (color_equals (color_of this) C))\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects adjacent to objects of color G to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor the objects on the left side of the grid to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects vertically aligned in the central column to color Y, except the ones that are neighbors of object of color C.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (not\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) C)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the objects that are neighbors of objects of color R with color Y and then extend them horizontally.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n            (extend_node right true)\n        )\n    )\n)"
+            "nl_description": "Recolor the top row and the leftmost vertical column intersecting at the first object, as well as any other row or column containing the same object color, with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this this)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects to color Y, preserving the original color for objects adjacent to the objects of color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) R)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+            "nl_description": "Recolor the first row and column of the grid to color Y, except for the rightmost cell of each transformed row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center row of each object to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the top, bottom, left, and right neighbors of each object of color R to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 4 to color Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all cross-shaped objects to color Y",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (width_equals (width_of this) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of height 1 or width 1 to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (height_equals (height_of this) 1)\n                (width_equals (width_of this) 1)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 3 to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects entirely surrounded by other objects to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (neighbor_of this this))\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Enclose each object of maximum width with yellow color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) max)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color other than Y surrounded by objects of color other than Y in some direction, to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) Y))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor the objects with color G and add a border on all objects of color G with color Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Replace all objects of size greater than 1 with Y, except objects of color F",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (not (color_equals (color_of this) F))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of color G to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the neighbors of the largest object to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor objects of size 3 to color Y if they are neighbors of an object of size 4.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 4)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the upper boundary of the central vertical column to color Y.",
+            "nl_description": "Surround all objects of minimum size with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert a yellow border around all objects of color R and F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) R) (color_equals (color_of this) F)))\n        (apply (add_border Y))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor horizontal and vertical monochromatic stripes of width 2 to Y, and horizontal stripes of width 4 to Y, while leaving stripes of width 1 and 3 unchanged.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (width_equals (width_of this) 2)\n                    (shape_equals (shape_of this) square)\n                )\n                (width_equals (width_of this) 4)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 horizontally without overlapping, and recolor the objects intersecting the left border to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 0)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the rows where all elements are the same as color Y, except for rows with one different element in the middle.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) (color_of other))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For all objects of shape enclosed, change their color to Y if they are neighbors of an object of color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill rows containing the color G with color Y, and then the central cell of T-shaped structures with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 4 towards their neighbors without overlapping, then recolor all objects to yellow.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbor objects of color G or F to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of other) G)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects adjacent to objects of color G to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects at the center of their columns to Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
@@ -321,132 +121,284 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 1)\n                (width_equals (width_of this) 4)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the top, bottom, left, and right neighbors of each object of color R to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbors of the maximum size object to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color G towards the nearest left object, and then recolor all objects of color G to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects at the center of their columns to Y.",
+            "nl_description": "Recolor the central position of the object of maximum width with color Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform the objects of the maximum size by extending them in the given direction without overlapping, and then recolor them to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the border of each rectangular object to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border Y)\n            )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of width 1 in color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 1)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects adjacent to the line objects to yellow.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) F))\n                (and\n                    (neighbor_of this other)\n                    (or\n                        (color_equals (color_of other) R)\n                        (and\n                            (color_equals (color_of other) F)\n                            (not (color_equals (color_of this) C))\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all non-center objects to yellow Y if they are neighbors of non-square object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (shape_equals (shape_of this) square))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects within the same column as an object of color Y to color Y if they form a horizontal or vertical line with that object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) Y)\n                (or\n                    (column_equals (column_of this) (column_of other))\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 3 to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor the border of the rectangle enclosing the objects of color R to Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Transform specific rows to Y pattern, without overlapping them onto other objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbor objects of color G or F to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of other) G)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 5 to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Recolor all rows or columns of objects that have the same color to Y, except when the color is F.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) F))\n                (or\n                    (column_equals (column_of this) (column_of other))\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of this) (color_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all neighbor objects to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Extend all vertical objects of width 1 and length of 4 cells.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (width_equals (width_of this) 1)\n                (height_equals (height_of this) 4)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all rows containing objects of color B to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all rows containing an object of color R or F to color Y, maintaining the original color of the other objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the middle row of each column to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all objects in the center column to yellow, except the top and bottom rows.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (not (or (height_equals (height_of this) 0) (height_equals (height_of this) max)))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color G to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor to Y all objects surrounding objects of color different from their own.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of other)))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor the border of objects that touch the edge to color Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all shapes of objects to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+            "nl_description": "Recolor all rows fully occupied by objects of the same color to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of all objects neighbor to objects of maximum size to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor the interior vertical lines of objects to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all non-boundary cells in rows with a horizontal line of the same color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 4 towards their neighbors without overlapping, then recolor all objects to yellow.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the second row and the third to last row to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 2)\n                (column_equals (column_of this) 3)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects on the left side of the grid to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor the neighbors of the maximum size object to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all vertical lines of size 4 or more to color Y except at their top and bottom ends.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (height_equals (height_of this) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the leftmost column of the 2x2 squares positioned in the middle of the grid to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor all shapes of objects to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects of color other than Y surrounded by objects of color other than Y in some direction, to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) Y))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Transform specific rows to Y pattern, without overlapping them onto other objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a border of color Y to objects of height 4",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 4)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the second row and the third to last row to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 2)\n                (column_equals (column_of this) 3)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all rows that contain objects of color R to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color G to Y, while replacing objects of color G that are neighbors of an object of color R and Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of this) Y)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects except the ones with color F to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) F))\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all neighbor objects to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior pixels of the square objects to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects that are neighbors of objects of color R with color Y and then extend them horizontally.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 5 to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a new yellow border around objects of column center.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects with color G, R, and C, if they are surrounded by objects of color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbors of objects of color G to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle row of each column to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill rectangles around the objects of color R and F with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all rows fully occupied by a single object to color Y",
+            "code": "(do\n    (rule\n        (vars (this other)) \n        (filter\n            (or\n                (and (degree_equals (degree_of this) max) (height_equals (height_of this) 1))\n                (and (degree_equals (degree_of this) max) (shape_equals (shape_of this) enclosed))\n            )\n        ) \n        (apply (update_color Y))\n    )\n)"
+        },
+        {
+            "nl_description": "Change all objects in the center column to yellow, except the top and bottom rows.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (not (or (height_equals (height_of this) 0) (height_equals (height_of this) max)))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all vertical lines of size 4 or greater with color Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (degree_equals (degree_of this) 1)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects of height 1 or width 1 to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (height_equals (height_of this) 1)\n                (width_equals (width_of this) 1)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Move all objects of color G towards the nearest left object, and then recolor all objects of color G to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all vertical objects at the intersection of rows of maximum width with rows of color R, changing the extended objects to color Y without overlapping the intersection columns.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (height_equals (height_of this) max)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (extend_node down false)\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects that are neighbors of an object of color R to color Y",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the central position of the object of maximum width with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Add a yellow border to objects of the same color R or F, and larger than height 1, then change their color to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 4)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) F)\n                )\n            )\n        )\n        (apply\n            (add_border Y)\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the border of the objects of height max to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) max)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+            "nl_description": "Change the color of the border of the row of objects containing more than two elements to the color Y, for only the objects that neighbor them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of other this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the 2x2 squares at the center of the grids to color Y",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (column_equals (column_of this) center)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill with color Y any cell such that there's at least one orthogonally adjacent cell in the same row or column with the same color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change color to Y for all objects that are neighbors of an object of color 'B' or 'R' and change R to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of other) B)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the top and bottom borders of the largest overlapping vertical line to fill horizontally with color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform objects that vertically align with neighbors of different colors by changing their color and those of their respective immediate neighbors to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of other)))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all cross-shaped objects to color Y",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (width_equals (width_of this) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors of the object of color 'R' to color 'Y'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert a yellow border around objects of color B, R, and G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the external border of the square objects to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter \n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a yellow border of color Y to the central objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 towards the object of maximum size without overlapping, and then recolor them to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of width 1 to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 1)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all rows (except touching colored cells) to Y",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Fill rows containing the color G with color Y, and then the central cell of T-shaped structures with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) R)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of height 2 and width 4, to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 2)\n                (width_equals (width_of this) 4)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the leftmost column of the 2x2 squares positioned in the middle of the grid to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects enclosed by objects of the same color to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) 4)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) (color_of other))\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighboring objects of color different than 'B' and 'F' to yellow, encapsulated by these objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (or (color_equals (color_of this) B) (color_equals (color_of this) F)))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a yellow border around objects of the maximum size.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects in columns shared by red or fuchsia objects to yellow.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of other) R)\n                    (color_equals (color_of other) F)\n                )\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a border of color Y around objects of color different from O that have a neighbor of color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color the objects in the same column as an object of color G and R to color Y",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of other) G)\n                (color_equals (color_of other) R)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color Y, preserving the original color for objects adjacent to the objects of color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) R)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbors of the largest object to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace all objects of size greater than 1 with Y, except objects of color F",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (not (color_equals (color_of this) F))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Form horizontal lines of color Y through the centers of vertical segments of color B.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all rows containing an object of color R or F to color Y, maintaining the original color of the other objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the border of the objects of height max to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) max)\n        )\n        (apply\n            (add_border Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects neighbor to objects of maximum size to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the rows that have objects of size 4 to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 4)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the object with the greatest degree (connectivity) to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (degree_equals (degree_of this) max)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         }
     ]
 }

@@ -1,136 +1,96 @@
 {
     "completions": [
         {
-            "nl_description": "Move all objects of size 1 to the edges and recolor them as they reach the edges.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) center)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
+            "nl_description": "Move objects of size 1 to the closest edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 toward the boundary objects, and update their colors to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Move the objects of size 1 toward the object of maximum size, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color different than O, that are in the 2nd column, to the nearest edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (not (color_equals (color_of this) O))\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (not (color_equals (color_of this) O))\n            )\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
+            "nl_description": "Move the objects with colors F, R, G, and Y to the border, keeping their respective columns.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) Y)\n                            (color_equals (color_of this) C)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node up)\n            (move_node down)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move objects in the corners closest to the center, one step towards the center.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) O))\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects inside the center object group towards the grid edges, based on adjacency.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of other) R)\n                    (or (color_equals (color_of other) Y) (or (color_equals (color_of other) G) (color_equals (color_of other) F) ) )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all smallest objects (not equal to the largest object) furthest outward to the edge.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (not (size_equals (size_of this) (size_of other)))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects of color different than O to the opposite side of the diagonal.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (mirror (mirror_axis_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F, G, W, C, or R to the nearest border, and then recolor them according to the direction of the move.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) G)\n                    (or\n                        (color_equals (color_of this) W)\n                        (or\n                            (color_equals (color_of this) C)\n                            (color_equals (color_of this) R)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O along the perimeter of the grid to the nearest cell, in a circular manner.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects that are adjacent to the object of color different from O to the opposite edges and update their colors to match each other.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the nearest edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F or R to the nearest border",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color R, F, G, Y, and C to the leftmost 'O' cells in the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (or\n                    (color_equals (color_of this) F)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) Y)\n                            (color_equals (color_of this) C)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n)"
+            "nl_description": "Swap the colors of the objects positioned in the corners with those positioned at coordinates next to them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (and\n                        (column_equals (column_of this) 1)\n                        (color_equals (color_of other) F)\n                    )\n                    (and\n                        (column_equals (column_of this) 10)\n                        (color_equals (color_of other) W)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
             "nl_description": "Swap the colors of the first and last objects in each row, for the rows where the objects are aligned in a row.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) Y)\n                    (color_equals (color_of other) F)\n                )\n                (and\n                    (color_equals (color_of this) G)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move objects that are on the main diagonal to the position of objects of color F, place them there, and vice versa.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color B)\n        )\n    )\n)"
+            "nl_description": "Move all objects on the opposite corners of the grid",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (or (neighbor_of this other) (neighbor_of this other)))\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move objects of color [F, R, G, Y, W, C, X] to the nearest corner, following a specific order of corner assignment and ensuring no two objects go to the same position if they belong to same group.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) Y)\n                            (or\n                                (color_equals (color_of this) W)\n                                (or\n                                    (color_equals (color_of this) C)\n                                    (color_equals (color_of this) X)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than C, toward the object of color C, if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 horizontally to the boundary of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to their closest edge of the grid, based on their relative position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
         },
         {
             "nl_description": "Move objects of color different than C in each corner and then recolo C colored neighbor object.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
+            "nl_description": "Move all objects of color different than O to the leftmost unoccupied positions in their respective rows. If multiple objects of the same color are in the same row, the order is preserved.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 towards the center of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of maximum size toward the edges (up or down) and then recolor them to color present in the object of size 1.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (size_equals (size_of other) 1)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects with color equal to F, R, G, W, C to the border of the grid based on their respective position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) W)\n                            (color_equals (color_of this) C)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Move all objects of color different than C toward the object of color C, if they are neighbors of it.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color different than C, toward the object of color C, if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move all smallest objects (not equal to the largest object) furthest outward to the edge.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (not (size_equals (size_of this) (size_of other)))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 to the edge of the grid and recolor them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color B)\n        )\n    )\n)"
+            "nl_description": "Move the neighbors of objects of color different than O and X to the positions around the objects of color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (not (color_equals (color_of other) O))\n                        (not (color_equals (color_of other) X))\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Rotate all objects one step clockwise.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of size 8 to color of neighboring object with color G or R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 8)\n                (and\n                    (neighbor_of this other)\n                    (or\n                        (color_equals (color_of other) G)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the objects of size 1 to the border of the grid, in no specific direction.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects at the edge of rectangular objects to the corners of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max up_left)\n            (move_node_max up_right)\n            (move_node_max down_left)\n            (move_node_max down_right)\n        )\n    )\n)"
         },
         {
             "nl_description": "Swap the positions of objects of size 1 with the smallest object of size greater than 1.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (size_equals (size_of other) 1)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the outermost objects towards their adjacent objects, and swap colors between the moved objects and their respective destinations.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to the nearest border.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color different than the border color, toward the object of the border color, if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to the nearest edge.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 to the nearest edge and change their colors as per the new object in place.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 toward the boundary objects, and update their colors to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the top and bottom neighboring colors differently.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color different than bordering objects (C and A) to their respective border object, and the bordering C and A objects in those same pairs towards the middle.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (neighbor_of this other) (or (color_equals (color_of other) C) (color_equals (color_of other) A))))\n        (apply (move_node (direction_of other)))\n    )\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) C) (color_equals (color_of this) A)))\n        (apply (move_node down))\n    )\n)"
-        },
-        {
-            "nl_description": "Swap the colors of the objects located at the corners with the colors of the objects located at the middle rows, excluding others.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                (neighbor_of other this)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the edge in the direction of the object with maximum size.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move every object of color different than O to the edge, and then change its color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the uppermost and lowermost objects adjacent to the horizontal strip to the opposite edges.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to the center column, and then recolor them to the color of the center column object in their respective rows.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of other) center)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects colored F, R, G, W, and C, which are not neighbors of the central object, to the border of the grid.",
@@ -141,284 +101,304 @@
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )    \n    )\n)"
         },
         {
-            "nl_description": "Move objects of color F, R, G, and C to the borders of the grid if they are neighbors of objects of color different than C.",
-            "code": "(do (rule (vars (this other)) (filter (and (or (color_equals (color_of this) F) (or (color_equals (color_of this) R) (or (color_equals (color_of this) G) (color_equals (color_of this) C)))) (and (neighbor_of this other) (not (color_equals (color_of other) C))))) (apply (move_node_max (direction_of other)))))"
-        },
-        {
             "nl_description": "Move all objects of size 1 in the direction toward the object of size 2, then move all objects of color either R or G or F or W until they hit another object, in the clockwise direction.",
             "code": "(do (rule (vars (this other)) (filter (and (size_equals (size_of this) 1) (and (neighbor_of this other) (size_equals (size_of other) 2)))) (apply (move_node (direction_of other)))) (rule (vars (this)) (filter (or (or (color_equals (color_of this) R) (color_equals (color_of this) G)) (or (color_equals (color_of this) F) (color_equals (color_of this) W)))) (apply (move_node_max down_right))))"
-        },
-        {
-            "nl_description": "Recolor all objects of size 8 to color of neighboring object with color G or R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 8)\n                (and\n                    (neighbor_of this other)\n                    (or\n                        (color_equals (color_of other) G)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to their closest edge of the grid, based on their relative position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects not overlapping the central core to the corners. Object colors are consistent with their initial colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (neighbor_of this other))\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the nearest object of maximum size.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (insert 0 (img_pts_of other) target)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the nearest grid edge, changing vertical position to match the first empty cell in columns.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 1 to the nearest exterior border and extend their color to the new position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down)\n            (move_node_max up)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move single objects from the edges of the grid across to the other edge, if they are not adjacent to another object with the same color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (rotate_node 180)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 1 outwards to the furthest empty position, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not\n                    (size_equals (size_of this) (size_of other))\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the nearest empty corner of the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move up the objects of size 1, and recolor them based on their initial positions.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node up)\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 towards the edge of the grid, and recolor them based on their initial position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move any isolated objects (size 1) to the first and last rows.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node up)\n            (move_node up)\n            (move_node up)\n            (move_node up)\n            (move_node up)\n            (move_node down)\n            (move_node down)\n            (move_node down)\n            (move_node down)\n            (move_node down)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects at the perimeter towards the center.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) F)\n                    (column_equals (column_of this) odd)\n                )\n                (and\n                    (color_equals (color_of this) F)\n                    (column_equals (column_of this) even)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the boundary and then recolor them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than the object's center column to the nearest boundary pixel without changing direction.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (column_equals (column_of this) center))\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Rotate all the objects of color different than C, by 90 degrees.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all the objects of size 1 to the bottom of the grid, and recolor them to colors from the bottom-most row of the grid.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (move_node_max down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 to their respective positions.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 horizontally to the boundary of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 2 to the borders, and recolor them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (extend_node (direction_of this) false)\n        )\n    )\n)"
+            "nl_description": "Move any isolated objects (size 1) to the first and last rows.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node up)\n            (move_node up)\n            (move_node up)\n            (move_node up)\n            (move_node up)\n            (move_node down)\n            (move_node down)\n            (move_node down)\n            (move_node down)\n            (move_node down)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 to the edges of the grid, while preserving their order, and keeping the center for larger objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    ))"
-        },
-        {
-            "nl_description": "Move all corner objects to the nearest border.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the neighbors of objects of color different than O and X to the positions around the objects of color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (not (color_equals (color_of other) O))\n                        (not (color_equals (color_of other) X))\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of different colors than those forming a rectangle to the corners.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (move_node up_left)\n            (move_node up_right)\n            (move_node down_left)\n            (move_node down_right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 1 which are neighbors to objects of the largest size, and place them at the top or bottom of the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects on the opposite corners of the grid",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (or (neighbor_of this other) (neighbor_of this other)))\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 1 to the corners of the grid, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (insert 0 top_left source)\n            (insert 0 top_right source)\n            (insert 0 bottom_left source)\n            (insert 0 bottom_right source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 that are neighbors of objects of maximum size towards them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 1 to the closest edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the objects of color other than 'C' to the first empty cell on the border",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Swap the colors of the objects positioned in the corners with those positioned at coordinates next to them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (and\n                        (column_equals (column_of this) 1)\n                        (color_equals (color_of other) F)\n                    )\n                    (and\n                        (column_equals (column_of this) 10)\n                        (color_equals (color_of other) W)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the center column, and then recolor them to the color of the center column object in their respective rows.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of other) center)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 1 to edge of the grid and place them in the corners.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move each object at the edge of the grid toward the center of the grid while swapping their positions with another object at the edge.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (or\n                    (and (size_equals (size_of this) 1) (size_equals (size_of other) 1))\n                    (color_equals (color_of this) G)\n                )\n                (color_equals (color_of other) F)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move a row and column of colors out to the edge of grid from anywhere within grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (move_node down)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Move the corners object one step outward, and re-color it to the color present in their corners.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (height_equals (height_of this) 2)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the nearest edge.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the neighboring objects of the center object to the outer area, preserving the original shape.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the opposite empty side of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply (move_node_max down))\n    )\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply (move_node_max up))\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects of size 1 toward the object of maximum size, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color different than C to new positions in the surrounding and update their positions.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (move_node up_left)\n            (update_color X)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to the edge of the grid and recolor them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color B)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move objects of size 1 to the object's color that is diagonally located",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) odd)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )    \n    )\n)"
         },
         {
-            "nl_description": "Move all the objects of size 1 to the border of the grid, in no specific direction.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 1 located on a border to the adjacent border on the opposite side and recolor them to their new border color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects at the corners of grids, which are not Y, to the position of the object Y if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) Y))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to the boundary and then recolor them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects at the top direction to the nearest empty cell and preserve their respective relative positions.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the objects of color R, G, F, W to the edges of the grid while swapping their columns with the color objects on the edges.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) F)\n                            (color_equals (color_of this) W)\n                        )\n                    )\n                )\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) W)\n                (or\n                    (color_equals (color_of this) F)\n                    (or\n                        (color_equals (color_of this) R)\n                        (color_equals (color_of this) G)\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move the objects of color different than O to the opposite side of the diagonal.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (mirror (mirror_axis_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color different than O to the leftmost unoccupied positions in their respective rows. If multiple objects of the same color are in the same row, the order is preserved.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 towards the grid borders without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) even)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the object's size 1, except if neighbor is size 1, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (size_equals (size_of other) 1))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 towards the center of the grid.",
+            "nl_description": "Move all objects of size 1 to the nearest edge of the grid.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color different than C, toward the object of color C if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move objects of color [F, R, G, Y, W, C, X] to the nearest corner, following a specific order of corner assignment and ensuring no two objects go to the same position if they belong to same group.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) Y)\n                            (or\n                                (color_equals (color_of this) W)\n                                (or\n                                    (color_equals (color_of this) C)\n                                    (color_equals (color_of this) X)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 toward the object of maximum size, if they are their immediate neighbours",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects of colors F, R, G and Y to the previously unoccupied border cells.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (color_equals (color_of this) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects of size 1 to the border, if they are neighbors of an object of size 8.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 8)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects of maximum size toward the edges (up or down) and then recolor them to color present in the object of size 1.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (size_equals (size_of other) 1)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects with colors F, R, G, and Y to the border, keeping their respective columns.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) Y)\n                            (color_equals (color_of this) C)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node up)\n            (move_node down)\n        )\n    )\n)"
+            "nl_description": "Move up the objects of size 1, and recolor them based on their initial positions.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node up)\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of degree 0 to the four corners of the grid in a specific order: top-left, top-right, bottom-left, bottom-right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter (degree_equals (degree_of this) 0))\n        (apply\n            (insert 1 top_left source)\n            (insert 2 top_right source)\n            (insert 3 bottom_left source)\n            (insert 4 bottom_right source)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the objects of size 1 and color F or R to the objects of size 1 and color G or Y and vice versa, when they are neighbors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (size_equals (size_of other) 1)\n                    (and\n                        (or\n                            (color_equals (color_of this) F)\n                            (color_equals (color_of this) R)\n                        )\n                        (or\n                            (color_equals (color_of other) G)\n                            (color_equals (color_of other) Y)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (size_equals (size_of other) 1)\n                    (and\n                        (or\n                            (color_equals (color_of this) G)\n                            (color_equals (color_of this) Y)\n                        )\n                        (or\n                            (color_equals (color_of other) F)\n                            (color_equals (color_of other) R)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 towards the grid borders without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) even)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the objects at the edge of rectangular objects to the corners of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max up_left)\n            (move_node_max up_right)\n            (move_node_max down_left)\n            (move_node_max down_right)\n        )\n    )\n)"
+            "nl_description": "Move the top and bottom neighboring colors differently.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 to the border directions if they lie inside the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node up_left)\n            (move_node up_right)\n            (move_node down_left)\n            (move_node down_right)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 towards the edge of the grid, and recolor them based on their initial position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 farthest toward the object of size max, if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Move objects inside the center object group towards the grid edges, based on adjacency.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (or\n                    (color_equals (color_of other) R)\n                    (or (color_equals (color_of other) Y) (or (color_equals (color_of other) G) (color_equals (color_of other) F) ) )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 to the nearest border.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+            "nl_description": "Move all objects of color different than C, toward the object of color C, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O, that are in the 2nd column, to the nearest edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (not (color_equals (color_of this) O))\n            )\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (not (color_equals (color_of this) O))\n            )\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the first and last objects in the first row and last row/color to the respective first object columns.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node left)\n            (move_node left)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of size 1 to the closest empty corner of the grid.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up_left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up_right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down_left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down_right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Rotate all non-empty objects by 90 degrees.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O, toward the objects of color O in a vertical direction, if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects with color equal to F, R, G, W, C to the border of the grid based on their respective position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) W)\n                            (color_equals (color_of this) C)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Move all objects of size 1 to the nearest border and update their colors in order.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )    \n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )    \n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the first and last objects in the first row and last row/color to the respective first object columns.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node left)\n            (move_node left)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to the nearest grid edge, changing vertical position to match the first empty cell in columns.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 1 outwards to the furthest empty position, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not\n                    (size_equals (size_of this) (size_of other))\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of color R, G, F, W to the edges of the grid while swapping their columns with the color objects on the edges.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) F)\n                            (color_equals (color_of this) W)\n                        )\n                    )\n                )\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) W)\n                (or\n                    (color_equals (color_of this) F)\n                    (or\n                        (color_equals (color_of this) R)\n                        (color_equals (color_of this) G)\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the opposite empty side of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply (move_node_max down))\n    )\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) 1))\n        (apply (move_node_max up))\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the edges and recolor them as they reach the edges.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) center)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the outermost objects towards their adjacent objects, and swap colors between the moved objects and their respective destinations.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the edges of the grid, while preserving their order, and keeping the center for larger objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    ))"
+        },
+        {
+            "nl_description": "Move all objects of color different than the object's center column to the nearest boundary pixel without changing direction.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (column_equals (column_of this) center))\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of different colors than those forming a rectangle to the corners.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (move_node up_left)\n            (move_node up_right)\n            (move_node down_left)\n            (move_node down_right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 1 located on a border to the adjacent border on the opposite side and recolor them to their new border color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 1 to the nearest exterior border and extend their color to the new position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max down)\n            (move_node_max up)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of colors F, R, G and Y to the previously unoccupied border cells.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) G)\n                        (color_equals (color_of this) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects that are on the main diagonal to the position of objects of color F, place them there, and vice versa.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the nearest object of maximum size.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (insert 0 (img_pts_of other) target)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects at the perimeter towards the center.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) F)\n                    (column_equals (column_of this) odd)\n                )\n                (and\n                    (color_equals (color_of this) F)\n                    (column_equals (column_of this) even)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than C, toward the object of color C, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 2 to the borders, and recolor them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (extend_node (direction_of this) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects in the corners closest to the center, one step towards the center.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) O))\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Swap the colors of the objects located at the corners with the colors of the objects located at the middle rows, excluding others.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                (neighbor_of other this)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than C, toward the object of color C if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move each object at the edge of the grid toward the center of the grid while swapping their positions with another object at the edge.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (or\n                    (and (size_equals (size_of this) 1) (size_equals (size_of other) 1))\n                    (color_equals (color_of this) G)\n                )\n                (color_equals (color_of other) F)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all corner objects to the nearest border.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the neighboring objects of the center object to the outer area, preserving the original shape.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the objects of color other than 'C' to the first empty cell on the border",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) C))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 farthest toward the object of size max, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move single objects from the edges of the grid across to the other edge, if they are not adjacent to another object with the same color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (rotate_node 180)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F, G, W, C, or R to the nearest border, and then recolor them according to the direction of the move.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of this) G)\n                    (or\n                        (color_equals (color_of this) W)\n                        (or\n                            (color_equals (color_of this) C)\n                            (color_equals (color_of this) R)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects that are adjacent to the object of color different from O to the opposite edges and update their colors to match each other.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects not overlapping the central core to the corners. Object colors are consistent with their initial colors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (neighbor_of this other))\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the uppermost and lowermost objects adjacent to the horizontal strip to the opposite edges.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move a row and column of colors out to the edge of grid from anywhere within grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (move_node down)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of size 1 and color F or R to the objects of size 1 and color G or Y and vice versa, when they are neighbors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (size_equals (size_of other) 1)\n                    (and\n                        (or\n                            (color_equals (color_of this) F)\n                            (color_equals (color_of this) R)\n                        )\n                        (or\n                            (color_equals (color_of other) G)\n                            (color_equals (color_of other) Y)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (size_equals (size_of other) 1)\n                    (and\n                        (or\n                            (color_equals (color_of this) G)\n                            (color_equals (color_of this) Y)\n                        )\n                        (or\n                            (color_equals (color_of other) F)\n                            (color_equals (color_of other) R)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 toward the object of maximum size, if they are their immediate neighbours",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F or R to the nearest border",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) R)\n            )\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than the border color, toward the object of the border color, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 1 to edge of the grid and place them in the corners.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the object's size 1, except if neighbor is size 1, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (size_equals (size_of other) 1))\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the border directions if they lie inside the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node up_left)\n            (move_node up_right)\n            (move_node down_left)\n            (move_node down_right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Rotate all non-empty objects by 90 degrees.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 that are neighbors of objects of maximum size towards them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the nearest edge and change their colors as per the new object in place.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to their respective positions.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 1 to the corners of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (insert 0 top_left source)\n            (insert 0 top_right source)\n            (insert 0 bottom_left source)\n            (insert 0 bottom_right source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color R, F, G, Y, and C to the leftmost 'O' cells in the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (or\n                    (color_equals (color_of this) F)\n                    (or\n                        (color_equals (color_of this) G)\n                        (or\n                            (color_equals (color_of this) Y)\n                            (color_equals (color_of this) C)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color different than C to new positions in the surrounding and update their positions.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (move_node up_left)\n            (update_color X)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Rotate all the objects of color different than C, by 90 degrees.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (rotate_node 90)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color F, R, G, and C to the borders of the grid if they are neighbors of objects of color different than C.",
+            "code": "(do (rule (vars (this other)) (filter (and (or (color_equals (color_of this) F) (or (color_equals (color_of this) R) (or (color_equals (color_of this) G) (color_equals (color_of this) C)))) (and (neighbor_of this other) (not (color_equals (color_of other) C))))) (apply (move_node_max (direction_of other)))))"
+        },
+        {
+            "nl_description": "Move the objects of size 1 to the border, if they are neighbors of an object of size 8.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 8)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the corners object one step outward, and re-color it to the color present in their corners.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (height_equals (height_of this) 2)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move every object of color different than O to the edge, and then change its color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color different than bordering objects (C and A) to their respective border object, and the bordering C and A objects in those same pairs towards the middle.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (neighbor_of this other) (or (color_equals (color_of other) C) (color_equals (color_of other) A))))\n        (apply (move_node (direction_of other)))\n    )\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) C) (color_equals (color_of this) A)))\n        (apply (move_node down))\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 to the nearest empty corner of the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O, toward the objects of color O in a vertical direction, if they are neighbors of it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
         }
     ]
 }

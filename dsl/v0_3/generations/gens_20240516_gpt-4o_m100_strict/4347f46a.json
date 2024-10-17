@@ -1,183 +1,103 @@
 {
     "completions": [
         {
-            "nl_description": "Hollow rectangles.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 25)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Make holes in objects of colors C, R, F, and Y by changing the interior pixels (except the boundary) to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (or\n                    (color_equals (color_of this) C)\n                    (color_equals (color_of this) R)\n                )\n                (or\n                    (color_equals (color_of this) F)\n                    (color_equals (color_of this) Y)\n                )\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the internal objects within rectangular objects to create a hollow inside.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Transform the neighboring objects of the background color into hollow rectangles.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the center points of rectangular objects to color 'O'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) max)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the middle of each horizontal and vertical line in the objects to the color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the middle cells of objects that have height greater than or equal to 3 toward outside.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (height_equals (height_of this) min)\n                (height_equals (height_of other) max)\n            )\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the inner parts of all the objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the middle block of each rectangular object differently from its edges with color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the center cells of objects larger than size 1.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the inner objects within larger objects one step toward the center of the larger object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of other) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Introduce a hole within each rectangle of size 5x4 by changing the color of the inner 3x2 cells to 'O'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (width_equals (width_of this) 5)\n                (height_equals (height_of this) 4)\n            )\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects toward the center of their own shapes and leave a trail behind.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n            (extend_node up false)\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Position holes in the middle rows of larger objects, effectively creating openings towards objects or empty spaces in the middle rows.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (shape_equals (shape_of this) square))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the middle cell of each object's square grid to the color 'O'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) 16)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Make the objects with height 7 and 4 hollow by replacing their internal cells with color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (height_equals (height_of this) 7)\n                (height_equals (height_of this) 4)\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Clear columns 3 and 4 of objects in all groups.",
-            "code": "(do\n (rule\n  (vars (this))\n  (filter (or (column_equals (column_of this) 3) (column_equals (column_of this) 4)))\n  (apply (update_color O))\n )\n )"
-        },
-        {
-            "nl_description": "Hollow the object in the 4th column and 3rd row where it saves the border to the original color.",
-            "code": "(do\n  (rule\n    (vars (this))\n    (filter\n      (and\n        (column_equals (column_of this) 4)\n        (and\n          (size_equals (size_of this) max)\n          (shape_equals (shape_of this) enclosed)\n        )\n      )\n    )\n    (apply\n      (hollow_rectangle (color_of this))\n    )\n  )\n)"
-        },
-        {
-            "nl_description": "Remove the center rows of size 3 objects, reducing their height by 2.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (move_node up)\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Make the interior of all enclosed shapes hollow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow the interiors of all the filled rectangles.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Remove central objects cells of size greater than 3.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the internal objects to create a hollow structure for each identified block.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For each object larger than 3x3, remove the 2x2 square connected to the center of the object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (height_equals (height_of this) max)\n                    (width_equals (width_of this) max)\n                )\n                (and\n                    (height_equals (height_of this) 5)\n                    (width_equals (width_of this) 5)\n                )\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the odd-sized objects inside larger objects to form holes inside them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max down)\n            (move_node_max right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Create holes in the center of each large square object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) 16)\n            )\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out all objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the interior pixels on each object's left or right borders (if they exist) to the center of the object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+            "nl_description": "Carve out all size 2 rectangular sub-objects from objects of size 4.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Remove the inner pixels of all 4-sided polygon objects",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 16)\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
         },
         {
+            "nl_description": "Move all the odd-sized objects inside larger objects to form holes inside them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max down)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out all objects of size 15 (excluding the border).",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 15)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow the interiors of all the filled rectangles.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform all enclosed objects to have hollow centers.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (shape_equals (shape_of this) enclosed))\n        (apply (hollow_rectangle O))\n    )\n)"
+        },
+        {
+            "nl_description": "Remove the inner parts of all enclosed shapes.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Make holes in objects of colors C, R, F, and Y by changing the interior pixels (except the boundary) to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (or\n                    (color_equals (color_of this) C)\n                    (color_equals (color_of this) R)\n                )\n                (or\n                    (color_equals (color_of this) F)\n                    (color_equals (color_of this) Y)\n                )\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out the center of all objects that are not on the border.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the internal cells of any group to the center of the group.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (not (color_equals (color_of this) O))\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) (color_of this))\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Clear columns 3 and 4 of objects in all groups.",
+            "code": "(do\n (rule\n  (vars (this))\n  (filter (or (column_equals (column_of this) 3) (column_equals (column_of this) 4)))\n  (apply (update_color O))\n )\n )"
+        },
+        {
+            "nl_description": "Recolor the center cells of all objects to color O",
+            "code": "(do \n    (rule \n        (vars (this)) \n        (filter \n            (and \n                (neighbor_of this this) \n                (size_equals (size_of this) 9) \n            ) \n        ) \n        (apply \n            (update_color O) \n        ) \n    ) \n)"
+        },
+        {
+            "nl_description": "Recolor the center elements of the hollow rectangles in the grid to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow all objects of size 9.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (hollow_rectangle X)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove the central part (2x2 area) of the filled rectangles in the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this this)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color C, G, F, or Y one step inward.",
+            "code": "(do\n    (rule \n        (vars (this))\n        (filter \n            (or\n                (color_equals (color_of this) C)\n                (or \n                    (color_equals (color_of this) G)\n                    (or \n                        (color_equals (color_of this) F)\n                        (color_equals (color_of this) Y)\n                    )\n                )\n            )\n        ) \n        (apply \n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Move the interior objects of color C, G, F, R, or Y, which form hollow rectangles, one step towards the center of the grid.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) C)\n                    (shape_equals (shape_of this) enclosed)\n                )\n                (or\n                    (and\n                        (color_equals (color_of this) G)\n                        (shape_equals (shape_of this) enclosed)\n                    )\n                    (or\n                        (and\n                            (color_equals (color_of this) F)\n                            (shape_equals (shape_of this) enclosed)\n                        )\n                        (or\n                            (and\n                                (color_equals (color_of this) R)\n                                (shape_equals (shape_of this) enclosed)\n                            )\n                            (and\n                                (color_equals (color_of this) Y)\n                                (shape_equals (shape_of this) enclosed)\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node right)\n            (move_node left)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Transform all objects by hollowing rectangles in them.",
+            "nl_description": "Recolor the interior of objects of shape enclosed to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Make an internal 2x2 hole in objects of color C, G, F, and Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) C)\n                (or\n                    (color_equals (color_of this) G)\n                    (or\n                        (color_equals (color_of this) F)\n                        (color_equals (color_of this) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For objects of color different from O, replace their inner columns with O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle block of each rectangular object differently from its edges with color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the central cells of each 2x2 block towards the center.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) (color_of other))\n                    (color_equals (color_of other) (color_of this))\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow all objects that are not of size 2x2.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (and\n                    (height_equals (height_of this) 2)\n                    (width_equals (width_of this) 2)\n                )\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow rectangles in the input grid regardless of their positions",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Hollow out the interior objects with a solid border, keeping their outermost borders intact.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Remove the internal cells of every large object while keeping the object intact.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For all objects in the grid, remove the interior cells such that they form a hollow shape.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Create a hollow rectangle by removing the interior cells of each object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow all objects of color different than O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all objects in columns 3 to n-3 leaving only their border unchanged.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (column_equals (column_of this) center))\n        (apply (hollow_rectangle (color_of this)))\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the objects exactly in the middle row in the middle column.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the center of all the square objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Remove all objects of interior rows and columns while keeping their border intact.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (hollow_rectangle O)\n            )\n    )\n)"
-        },
-        {
-            "nl_description": "Remove the second and fifth columns of each object in the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (mirror (mirror_axis_of this))\n            (move_node left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the interior pixels of objects larger than 9 (excluding the borders), preserving their relative positions within the object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 16)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (extend_node up_left false)\n            (extend_node up_right false)\n            (extend_node down_left false)\n            (extend_node down_right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the central columns of each large rectangle towards their respective sides.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) 30) (column_equals (column_of this) 6)))\n        (apply (move_node left))\n    )\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) 12) (column_equals (column_of this) 2)))\n        (apply (move_node right))\n    )\n)"
-        },
-        {
-            "nl_description": "Move the center rows of each rectangle towards the center while retaining its color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (or\n                    (size_equals (size_of this) even)\n                    (size_equals (size_of this) odd)\n                )\n                (or\n                    (neighbor_of this this)\n                    (color_equals (color_of this) (color_of this))\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the center of all objects that are not on the border.",
+            "nl_description": "Move the internal objects to create a hollow structure for each identified block.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
@@ -185,24 +105,36 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the objects of size greater than 1, except the ones of color G, to break them into two parts.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 16)\n                (not (color_equals (color_of this) G))\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+            "nl_description": "Replace all the internal pixels of all objects with the background color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O) \n        )\n    ) \n)"
         },
         {
-            "nl_description": "Recolor the middle cells in the square objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+            "nl_description": "Create a hollow rectangle by removing the interior cells of each object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the objects of size 9 to color O and move the objects of size 36 to color O if they are neighbors of the object color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 36)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Recolor border cells to the main color of the object if they are different.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) (color_of other)))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Create a vertical hollow rectangle in the middle of solid rectangles.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+            "nl_description": "Recolor center objects of size 9 to empty cells except the borders",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change interior objects to color O inside larger objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+            "nl_description": "Make a hole in the middle of rectangular objects located in the center of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the center objects of each cluster towards the boundaries.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (and\n                    (width_equals (width_of this) 1)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out the center of all the square objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the odd-indexed objects of each group to the top of the object of group.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node (direction_of other))\n        )    \n    )\n)"
         },
         {
             "nl_description": "Remove the middle part of each object of size greater than 9.",
@@ -213,268 +145,260 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color different than O, leaving hollow spaces inside.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the center cells of all objects to color O",
-            "code": "(do \n    (rule \n        (vars (this)) \n        (filter \n            (and \n                (neighbor_of this this) \n                (size_equals (size_of this) 9) \n            ) \n        ) \n        (apply \n            (update_color O) \n        ) \n    ) \n)"
-        },
-        {
-            "nl_description": "Move all central pixels of the square-shaped objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) max))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Clear the top and bottom rows of the interior of each large, rectangular object to match the height of smaller objects inside.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node up)\n            (move_node down)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Cut the columns of each object in the middle.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the inner objects within larger objects upward.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) max))\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Remove the inner parts of all enclosed shapes.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the centers of all colored rectangular objects except for the top and bottom rows.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (or\n                        (color_equals (color_of other) O)\n                        (neighbor_of this other)\n                    )\n                    (not (or\n                        (color_equals (color_of this) X)\n                        (color_equals (color_of this) Y)\n                    ))\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior of objects of shape enclosed to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the central cells of all the large objects to 'O'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the center objects within the larger shapes to the color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects inside a larger same-color object, leaving a hole in the center.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor center objects of size 9 to empty cells except the borders",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the odd-indexed objects of each group to the top of the object of group.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node (direction_of other))\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out all square objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the objects in the middle columns into color O, making a cut in each of them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the center of all objects larger than size 30",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 30)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the central cells of each 2x2 block towards the center.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) (color_of other))\n                    (color_equals (color_of other) (color_of this))\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the middle objects within rectangular groups of width 5 and height 5 to the edges of the group.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 25)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For objects of color different from O, replace their inner columns with O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow all objects of size 9.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (hollow_rectangle X)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the center objects in all three shapes to the boundary.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Remove the inner cells of all square objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Carve out all size 2 rectangular sub-objects from objects of size 4.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the internal cells of any group to the center of the group.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (not (color_equals (color_of this) O))\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) (color_of this))\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects that are surrounded by objects of the same color to the center of each object's row and column.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the interior of all objects of size 25.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 25)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the second column of elements of sizes 2 and 4 to the last column of their respective rows.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or \n                (size_equals (size_of this) 2)\n                (size_equals (size_of this) 4)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the centermost pixels of objects upward while preserving their shapes.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the center objects of each cluster towards the boundaries.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (and\n                    (width_equals (width_of this) 1)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out the center cells of all rectangular objects of size greater than 1.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and (not (size_equals (size_of this) 1)) (shape_equals (shape_of this) enclosed))\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow all objects that are not of size 2x2.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (and\n                    (height_equals (height_of this) 2)\n                    (width_equals (width_of this) 2)\n                )\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For each 'X' filled rectangle, move all internal pieces on the second row, excluding the border, upwards and leave unchanged. Likewise, move all 'R' filled rectangles on the second row internal pieces upwards and leave unchanged.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply\n            (move_node up))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply\n            (move_node up))\n    )\n)"
-        },
-        {
-            "nl_description": "Transform all enclosed objects to have hollow centers.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (shape_equals (shape_of this) enclosed))\n        (apply (hollow_rectangle O))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor border cells to the main color of the object if they are different.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) (color_of other)))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Replace all the internal pixels of all objects with the background color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O) \n        )\n    ) \n)"
-        },
-        {
-            "nl_description": "Hollow out all objects of size 15 (excluding the border).",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 15)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the innermost filled cells within each connected group of cells away from the center of the group.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of other) 1)\n                    (not (color_equals (color_of this) O))\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Delete the second and second last column of each object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node left)\n            (move_node left)\n            (move_node right)\n            (move_node right)\n            (move_node_max left)\n            (update_color O)\n            (move_node_max right)\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow rectangles in the input grid regardless of their positions",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the inner parts of enclosed objects one step inward.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node up)\n            (move_node left)\n            (move_node down)\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Create a hollow square with the same color for each square object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor certain cells within specific objects as if marking a void within them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (or\n                    (color_equals (color_of this) C)\n                    (or\n                        (color_equals (color_of this) F)\n                        (or\n                            (color_equals (color_of this) R)\n                            (color_equals (color_of this) X)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the second row of objects (excluding the first and last columns) inside objects that have neighbors with the same size.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) (size_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Introduce a hole within each rectangle of size 5x4 by changing the color of the inner 3x2 cells to 'O'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (width_equals (width_of this) 5)\n                (height_equals (height_of this) 4)\n            )\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move objects positioned in the second column down and up to open spaces.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 2)\n        )\n        (apply\n            (move_node down)\n            (move_node up)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Remove the central part (2x2 area) of the filled rectangles in the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this this)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Make an internal 2x2 hole in objects of color C, G, F, and Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (color_equals (color_of this) C)\n                (or\n                    (color_equals (color_of this) G)\n                    (or\n                        (color_equals (color_of this) F)\n                        (color_equals (color_of this) Y)\n                    )\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Move all objects towards the object of different color the largest number of times, and then recolor them to their original color.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) (color_of other)))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Remove interior parts of all solid objects in the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+            "nl_description": "Change interior objects to color O inside larger objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Make a hole in the middle of rectangular objects located in the center of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
+            "nl_description": "Move the inner objects within larger objects upward.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) max))\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of the middle segment of each object to match the background color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Make hollow the objects of shape enclosed.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+            "nl_description": "Move all central pixels of the square-shaped objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) max))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Add holes to certain regions of specific colors",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (move_node_max down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node_max right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) A)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 6 to the position one step left to their current position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+            "nl_description": "Delete the second and second last column of each object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node left)\n            (move_node left)\n            (move_node right)\n            (move_node right)\n            (move_node_max left)\n            (update_color O)\n            (move_node_max right)\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the inner objects within larger enclosing objects towards the center.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) max))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
+            "nl_description": "Recolor the center objects within the larger shapes to the color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Create holes in objects of color to match the diagonal elements of their shape",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (hollow_rectangle C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (hollow_rectangle G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (hollow_rectangle F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (hollow_rectangle R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (hollow_rectangle X)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 9 to the top left position maintaining their form.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color C, G, F, or Y one step inward.",
-            "code": "(do\n    (rule \n        (vars (this))\n        (filter \n            (or\n                (color_equals (color_of this) C)\n                (or \n                    (color_equals (color_of this) G)\n                    (or \n                        (color_equals (color_of this) F)\n                        (color_equals (color_of this) Y)\n                    )\n                )\n            )\n        ) \n        (apply \n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Hollow out all squares of size 5.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 5)\n                (shape_equals (shape_of this) square)\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For objects of color different than O, transform its cells in the center to O",
+            "nl_description": "Hollow all objects of color different than O.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the center elements of the hollow rectangles in the grid to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+            "nl_description": "Create holes in the center of each large square object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) 16)\n            )\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the objects of size greater than 9 one cell to the right and recolor them to their own color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (move_node right)\n            (update_color (color_of this))\n        )\n    )\n)"
+            "nl_description": "Hollow out the center of all objects larger than size 30",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 30)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Make a hole inside the enclosed objects.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
         },
         {
+            "nl_description": "Move all objects of color different than O, leaving hollow spaces inside.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the middle segment of each object to match the background color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out all square objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the inner objects within larger enclosing objects towards the center.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (size_equals (size_of this) max))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the internal objects within rectangular objects to create a hollow inside.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor certain cells within specific objects as if marking a void within them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (or\n                    (color_equals (color_of this) C)\n                    (or\n                        (color_equals (color_of this) F)\n                        (or\n                            (color_equals (color_of this) R)\n                            (color_equals (color_of this) X)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For each object larger than 3x3, remove the 2x2 square connected to the center of the object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (height_equals (height_of this) max)\n                    (width_equals (width_of this) max)\n                )\n                (and\n                    (height_equals (height_of this) 5)\n                    (width_equals (width_of this) 5)\n                )\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow rectangles.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 25)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out all objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For objects of color different than O, transform its cells in the center to O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the middle cells of objects that have height greater than or equal to 3 toward outside.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (height_equals (height_of this) min)\n                (height_equals (height_of other) max)\n            )\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For each 'X' filled rectangle, move all internal pieces on the second row, excluding the border, upwards and leave unchanged. Likewise, move all 'R' filled rectangles on the second row internal pieces upwards and leave unchanged.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply\n            (move_node up))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply\n            (move_node up))\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of size greater than 1, except the ones of color G, to break them into two parts.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 16)\n                (not (color_equals (color_of this) G))\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove all objects of interior rows and columns while keeping their border intact.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (hollow_rectangle O)\n            )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle cell of each object's square grid to the color 'O'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (size_equals (size_of this) 16)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Clear the top and bottom rows of the interior of each large, rectangular object to match the height of smaller objects inside.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node up)\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle cells in the square objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow the object in the 4th column and 3rd row where it saves the border to the original color.",
+            "code": "(do\n  (rule\n    (vars (this))\n    (filter\n      (and\n        (column_equals (column_of this) 4)\n        (and\n          (size_equals (size_of this) max)\n          (shape_equals (shape_of this) enclosed)\n        )\n      )\n    )\n    (apply\n      (hollow_rectangle (color_of this))\n    )\n  )\n)"
+        },
+        {
+            "nl_description": "Hollow out the interior objects with a solid border, keeping their outermost borders intact.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the middle of each horizontal and vertical line in the objects to the color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center points of rectangular objects to color 'O'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) max)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central cells of all the large objects to 'O'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Make hollow the objects of shape enclosed.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the inner objects within larger objects one step toward the center of the larger object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of other) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove the inner cells of all square objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the second row of objects (excluding the first and last columns) inside objects that have neighbors with the same size.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) (size_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects of size 9 to color O and move the objects of size 36 to color O if they are neighbors of the object color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 36)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove interior parts of all solid objects in the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the centermost pixels of objects upward while preserving their shapes.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 9 to the top left position maintaining their form.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of size greater than 9 one cell to the right and recolor them to their own color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (move_node right)\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Cut the columns of each object in the middle.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Hollow all objects of size larger than 2.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (not (size_equals (size_of this) 2))\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the inner objects to the external border of the outer objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle X)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 6 to the position one step left to their current position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Create a hole of size 2 in the middle of all objects of size 6x6 or larger.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) max)\n                (width_equals (width_of this) max)\n            )\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
+            "nl_description": "Hollow out the objects exactly in the middle row in the middle column.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects inside a larger same-color object, leaving a hole in the center.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the central columns of each large rectangle towards their respective sides.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) 30) (column_equals (column_of this) 6)))\n        (apply (move_node left))\n    )\n    (rule\n        (vars (this))\n        (filter (and (size_equals (size_of this) 12) (column_equals (column_of this) 2)))\n        (apply (move_node right))\n    )\n)"
+        },
+        {
+            "nl_description": "For all objects in the grid, remove the interior cells such that they form a hollow shape.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out all squares of size 5.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 5)\n                (shape_equals (shape_of this) square)\n            )\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out the inner parts of all the objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the center rows of each rectangle towards the center while retaining its color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (or\n                    (size_equals (size_of this) even)\n                    (size_equals (size_of this) odd)\n                )\n                (or\n                    (neighbor_of this this)\n                    (color_equals (color_of this) (color_of this))\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Create a hollow square with the same color for each square object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all objects in columns 3 to n-3 leaving only their border unchanged.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (column_equals (column_of this) center))\n        (apply (hollow_rectangle (color_of this)))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the centers of all colored rectangular objects except for the top and bottom rows.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (or\n                        (color_equals (color_of other) O)\n                        (neighbor_of this other)\n                    )\n                    (not (or\n                        (color_equals (color_of this) X)\n                        (color_equals (color_of this) Y)\n                    ))\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform the neighboring objects of the background color into hollow rectangles.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (hollow_rectangle (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Create a vertical hollow rectangle in the middle of solid rectangles.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out the center cells of all rectangular objects of size greater than 1.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and (not (size_equals (size_of this) 1)) (shape_equals (shape_of this) enclosed))\n        )\n        (apply\n            (fill_rectangle O false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Hollow out the interior of all objects of size 25.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 25)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the interior pixels of objects larger than 9 (excluding the borders), preserving their relative positions within the object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 16)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (extend_node up_left false)\n            (extend_node up_right false)\n            (extend_node down_left false)\n            (extend_node down_right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Remove the second and fifth columns of each object in the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (mirror (mirror_axis_of this))\n            (move_node left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects toward the center of their own shapes and leave a trail behind.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n            (extend_node up false)\n            (extend_node down false)\n        )\n    )\n)"
         }
     ]
 }

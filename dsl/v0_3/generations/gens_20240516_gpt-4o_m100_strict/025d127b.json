@@ -1,308 +1,108 @@
 {
     "completions": [
         {
-            "nl_description": "Move all objects of color F or C one step to the right if they have no cell in the row before them occupied by another object of the same color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) F)\n                    (not (neighbor_of this other))\n                )\n                (and\n                    (color_equals (color_of this) C)\n                    (not (neighbor_of this other))\n                )\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right except for the objects of color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the top-left squares of the L-shaped objects one step right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Move all objects in the top half of the grid one step right",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (column_equals (column_of this) even) (size_equals (size_of this) odd)))\n        (apply (move_node right))\n    )\n)"
         },
         {
             "nl_description": "Move all objects one step to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move each object to the next adjacent vertical column to the right, while maintaining their positions in rows.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 6 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects made of color F and C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) F) (color_equals (color_of this) C)))\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F or C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects towards the right if they are neighboring empty cells",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the smallest objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step rightward.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects upward by one step.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F and C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects from the first column one cell to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift all objects of more than 1 size to the right by one cell.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 6 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Move objects of color different from O and having degree 2, towards the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (degree_equals (degree_of this) 2)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of size greater than 1 one step to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects with size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects right one step if there is space available.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F or C one step left while maintaining the initial relative positions, and recolor any objects of color R to O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply (move_node left))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) C))\n        (apply (move_node left))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color O))\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F or C one step to the right if possible.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move shapes of color F and C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F and C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects except of size 1 one step right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color F and C one step to the right, without changing their shape.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift all objects of colors F and C to the right by one cell.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) F) (color_equals (color_of this) C)))\n        (apply (move_node right))\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step diagonally up-left.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up_left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects with size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift objects by one cell towards the top edge.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O to the right when they are in an X pattern.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects into one position to the right off all red and cyan objects",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of height 5 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects that are in the first column one step right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects by one step to the right, while keeping their shapes intact.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects with color different than O towards the leftmost position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift all diagonal objects starting from position (1,1) one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and (color_equals (color_of this) F) (size_equals (size_of this) 7))\n                (and (color_equals (color_of this) C) (size_equals (size_of this) 8))\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects at the top, toward the same color objects located at the bottom, if they are vertically adjacent.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) (color_of other))\n                    (column_equals (column_of this) (column_of other))\n                )\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move shapes of size greater than 3 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (move_node right)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Shift all diagonal colored lines right except keeping the bottom line intact.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of the color of vertical stripes one step right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 7 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the objects vertically downward.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of size 5 one step to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of shape 'enclosed' one step to the right",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F and C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O one step to the right",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than two one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move red objects one step to the left.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects in the upper half of the grid one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (height_equals (height_of this) 1)\n                    (column_equals (column_of this) even)\n                )\n                (or\n                    (and\n                        (height_equals (height_of this) 2)\n                        (column_equals (column_of this) odd)\n                    )\n                    (and\n                        (height_equals (height_of this) 3)\n                        (column_equals (column_of this) even)\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color F and C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or (color_equals (color_of this) F) (color_equals (color_of this) C))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects in the top half of the grid one step right",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (column_equals (column_of this) even) (size_equals (size_of this) odd)))\n        (apply (move_node right))\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the first row objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects one step to the left if there is space and they are next to an empty space.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move each connected component that ends on the bottom line one step down.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of size 5 one step to the right.",
-            "code": "(do \n    (rule \n        (vars (this)) \n        (filter (size_equals (size_of this) 5)) \n        (apply \n            (move_node right) \n        ) \n    ) \n)"
-        },
-        {
             "nl_description": "Move all objects of size greater than 5 one step to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color F or C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) F) (color_equals (color_of this) C)))\n        (apply (move_node right))\n    )\n)"
+            "nl_description": "Move all objects of size 6 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Shift each non-diagonal element (while maintaining its size) one row down.",
+            "nl_description": "Move all objects of size greater than 1 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift all diagonal objects one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects except of size 1 one step right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all F or C objects one step to the right.",
+            "code": "(do\n  (rule\n    (vars (this))\n    (filter\n      (or\n        (color_equals (color_of this) F)\n        (color_equals (color_of this) C)\n      )\n    )\n    (apply\n      (move_node right)\n    )\n  )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step down.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move nodes of shape enclosed down one step.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+            "nl_description": "Shift each object one unit to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift objects rightwards if they are not surrounded by identical colors",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects colored other than O to the right by one step.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one cell to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 6 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 7 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For each object, move the pixel farthest to the left to the adjacent left position.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift all diagonal objects starting from position (1,1) one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and (color_equals (color_of this) F) (size_equals (size_of this) 7))\n                (and (color_equals (color_of this) C) (size_equals (size_of this) 8))\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F or C one step left while maintaining the initial relative positions, and recolor any objects of color R to O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply (move_node left))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) C))\n        (apply (move_node left))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) R))\n        (apply (update_color O))\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects right one step if there is space available.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects upward by one step.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of color F and C one step to right.",
@@ -313,203 +113,31 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 one step up if they are adjacent to an object of size greater than 1.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (not (size_equals (size_of other) 1))\n                )\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects composed of exactly seven cells one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color F or C one step to the right to merge into larger objects of the same color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than F, toward the object of color F, if they are neighbors of it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) F))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F and C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 7 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift all objects one column to the right",
+            "nl_description": "Move all objects one step to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all non-X objects that are neighbors of an object of the same color to the right.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Move all objects with size greater than 1 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects one step down.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color F and C one step to the right if they are part of a diagonal",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Move all objects of height 5 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 5 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of shape enclosed one step to the right.",
             "code": "(do\n  (rule\n    (vars (this))\n    (filter\n      (shape_equals (shape_of this) enclosed)\n    )\n    (apply\n      (move_node right)\n    )\n  )\n)"
         },
         {
-            "nl_description": "Move all objects one step to the right, if they are neighbors of an object of the same color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F and C to the right by one cell",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 5 to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects towards the top of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the object with the largest size one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color other than O one step down.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects with color F or C to the right while keeping shape intact.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color different from O and having degree 2, towards the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (degree_equals (degree_of this) 2)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift objects of size greater than 4 by one column to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right and then recolor them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift all diagonal objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F or C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift all objects one step to the right",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects diagonally to the upper left if they are of color F or C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node up_left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right, then update their color to the next one in sequence.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move horizontal segments of color different than O one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects that are neither R nor O one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) O)\n                )\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 5 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F or C one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects except those of color O one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift objects rightwards if they are not surrounded by identical colors",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift all objects made up of the color 'F' or 'C' one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the first cell of the diagonal to the end of the diagonal in each object, in the direction from top-left to bottom-right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down_right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the objects of size 5 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects in the grid one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all foreground objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all fuchsia and cyan colored objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects to the right by one cell.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Shift each object one unit to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right except for those objects with a size of 1.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Move all objects one step right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all single cell objects to the right one step.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 5 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one cell to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
@@ -517,44 +145,260 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
+            "nl_description": "Move all objects of size greater than 1 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the top-left squares of the L-shaped objects one step right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all single cell objects to the right one step.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than 1 one step right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects into one position to the right off all red and cyan objects",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects with color F or C to the right while keeping shape intact.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift all diagonal colored lines right except keeping the bottom line intact.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift each non-diagonal element (while maintaining its size) one row down.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 one step up if they are adjacent to an object of size greater than 1.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (not (size_equals (size_of other) 1))\n                )\n            )\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F or C one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) F) (color_equals (color_of this) C)))\n        (apply (move_node right))\n    )\n)"
+        },
+        {
+            "nl_description": "Shift objects of size greater than 4 by one column to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move shapes of color F and C one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects at the top, toward the same color objects located at the bottom, if they are vertically adjacent.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) (color_of other))\n                    (column_equals (column_of this) (column_of other))\n                )\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step to the right except for those objects with a size of 1.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move each object to the next adjacent vertical column to the right, while maintaining their positions in rows.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step to the right and then recolor them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 7 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects with color different than O towards the leftmost position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step diagonally up-left.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up_left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F or C one step to the right if possible.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects composed of exactly seven cells one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than 1 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the object with the largest size one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift all objects of colors F and C to the right by one cell.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (color_equals (color_of this) F) (color_equals (color_of this) C)))\n        (apply (move_node right))\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than 1 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the rightmost part of diagonally filled objects one step right and move the leftmost part one step left.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of this)))\n            )\n        )\n        (apply\n            (move_node left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of this)))\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift objects by one cell towards the top edge.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of size 5 one step to the right.",
+            "code": "(do \n    (rule \n        (vars (this)) \n        (filter (size_equals (size_of this) 5)) \n        (apply \n            (move_node right) \n        ) \n    ) \n)"
+        },
+        {
+            "nl_description": "Move objects of color F or C one step to the right to merge into larger objects of the same color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects towards the right if they are neighboring empty cells",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Move all objects except color O one step to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move objects colored other than O to the right by one step.",
+            "nl_description": "Move horizontal segments of color different than O one step to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move objects of size 5 one step to the right.",
+            "nl_description": "Move all objects of size greater than 1 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F and C one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O one step to the right",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color F and C one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or (color_equals (color_of this) F) (color_equals (color_of this) C))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 5 to the right.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size greater than 1 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Move all foreground objects one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects that are in the first column one step right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move each connected component that ends on the bottom line one step down.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node down)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of shape 'enclosed' one step to the right",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects diagonally to the upper left if they are of color F or C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node up_left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size greater than two one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color different than O to the right when they are in an X pattern.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift all objects one column to the right",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Shift all objects of more than 1 size to the right by one cell.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move all objects of color other than O initially upward, one row step at a time.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node up)\n        )\n    )\n)"
         },
         {
-            "nl_description": "For each object, move the pixel farthest to the left to the adjacent left position.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node left)\n        )\n    )\n)"
+            "nl_description": "Move all non-X objects that are neighbors of an object of the same color to the right.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
             "nl_description": "Move the entire group of 'F' or 'C' objects upwards while keeping their structure intact.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 4 one step to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Move all objects of color F and C one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all F or C objects one step to the right.",
-            "code": "(do\n  (rule\n    (vars (this))\n    (filter\n      (or\n        (color_equals (color_of this) F)\n        (color_equals (color_of this) C)\n      )\n    )\n    (apply\n      (move_node right)\n    )\n  )\n)"
+            "nl_description": "Move all objects with size greater than 1 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move the rightmost part of diagonally filled objects one step right and move the leftmost part one step left.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of this)))\n            )\n        )\n        (apply\n            (move_node left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (not (color_equals (color_of this) (color_of this)))\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Move all objects one step to the right, then update their color to the next one in sequence.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node right)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects in the upper half of the grid one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (height_equals (height_of this) 1)\n                    (column_equals (column_of this) even)\n                )\n                (or\n                    (and\n                        (height_equals (height_of this) 2)\n                        (column_equals (column_of this) odd)\n                    )\n                    (and\n                        (height_equals (height_of this) 3)\n                        (column_equals (column_of this) even)\n                    )\n                )\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F and C one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move shapes of size greater than 3 one step to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (move_node right)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move all the objects vertically downward.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n        )\n    )\n)"
         }
     ]
 }

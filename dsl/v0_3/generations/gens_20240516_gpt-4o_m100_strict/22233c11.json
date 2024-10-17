@@ -1,248 +1,40 @@
 {
     "completions": [
         {
-            "nl_description": "Recolor cells diagonally adjacent to each object of color G to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (or\n                    (neighbor_of this other)\n                    (or\n                        (neighbor_of this other)\n                        (or\n                            (neighbor_of this other)\n                            (neighbor_of this other)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects to color C, except for objects of color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of shape enclosed one step in a direction in which there is space.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+            "nl_description": "Recolor all objects that are neighbors of other objects to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all G nodes such that if they are at the edges assign C at the relevant positions.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor some objects to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbor cells of green objects to color C",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighboring cells of existing objects to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert an object of color C to the top and bottom of each column that contains any object of color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top source)\n            (insert 0 bottom source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert objects of color C at corners around objects of color G.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top_left source)\n            (insert 0 top_right source)\n            (insert 0 bottom_left source)\n            (insert 0 bottom_right source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all occurrences of the object 'G' vertically without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert an object of color C at specific locations indicated by C in the output grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 1 (img_pts_of this) source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert the object of color C adjacent to all occurrences of color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (insert 1 top_left source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a new node of color C at the edge of the object, and color to C all nodes closer to the top or left sides to it",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of size 1 to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all cells along the border of colored objects to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects towards the first empty cell in their respective rows and columns, and recoloring them to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n            (extend_node down false)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color G one step diagonally toward the corners and recolor them to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node up_left)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert color C at the left or top/bottom of all column-aligned or diagonal G objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not \n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a Cyan object of size 1 below and beside existing objects of color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 bottom source)\n            (insert 0 right source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step in a vertical or horizontal direction and recolor the moved objects to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n            (move_node down)\n            (move_node left)\n            (move_node right)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color G one step to the nearest empty cell, and then recolor them to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node up)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node right)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node down)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Recolor the first and last cells one step away from all objects to C.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (shape_equals (shape_of other) square)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Add the color C to the closest edge to each object of color G.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Recolor all the objects which are located at the boundaries of another object of color G to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the row and column containing a green object with color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node up)\n            (update_color C)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Add cyan colored pixels at specified positions in the images as shown in the output.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are not of color G to color C, if they are on columns with index 1, 2, or 3.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) G))\n                (or\n                    (column_equals (column_of this) 1)\n                    (or\n                        (column_equals (column_of this) 2)\n                        (column_equals (column_of this) 3)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert objects of color C in some positions around the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert a new object of color C at specific positions in the grid that doesn't overlap with any existing objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (insert 0 top_left source)\n            )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the top row and first column of each object to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (column_equals (column_of this) 0) (and (color_equals (color_of this) G) (and (not (column_equals (column_of this) 0)) (not (column_equals (column_of this) 1))))))\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor cells between a green node and another green node to color C and recolor the edges to color C in the middle of the grid",
+            "nl_description": "Add a C color pixel next to certain objects.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Color all empty cells adjacent to any green colored cell to color C",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Move all objects of color G vertically to the nearest empty cell, while changing the color of certain empty cells to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all cells on the same row or column as an object of color G to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of size 1 that are not R to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (color_equals (color_of this) R))\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a border to all green objects with the color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects to color C, if they have another object above or below them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                    (and\n                        (size_equals (size_of this) 1)\n                        (size_equals (size_of other) 1)\n                    )\n                )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
             "nl_description": "Color some of the cells adjacent to objects of color G to color C",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects of color C to random empty positions.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of all objects on the leftmost and rightmost column with even row index to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (column_equals (column_of this) 9)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color the cells immediately surrounding each 'G' with color 'C'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all cells on the same row and column as any green object to color C, excluding the green objects themselves.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 towards neighboring objects if they are green and change their color to C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all edges of the grid to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects one step diagonally up-left and then recolor them to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up_left)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 to column 1 or column 5, and then recolor them to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all blue objects to the closest empty cell and recolor them to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color G to the top of their columns and then color cells adjacent to those columns in color C.",
-            "code": "(do (rule (vars (this)) (filter (color_equals (color_of this) G)) (apply (move_node up))) (rule (vars (this other)) (filter (and (color_equals (color_of other) G) (neighbor_of this other))) (apply (update_color C))))"
-        },
-        {
-            "nl_description": "Recolor all objects to color C, except for objects of color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vacant cells adjacent to objects of size 1 with color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) 1)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the leftmost and rightmost free space of each row in color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color G one step left, and then recolor them to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert a node of color C in the row above and in the column left to any object in the grid of any color except C and O",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (or (color_equals (color_of this) C) (color_equals (color_of this) O)))\n        )\n        (apply\n            (insert 1 top_left source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add an orange 'C' to any empty cell next to the diagonal green 'G' objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add cyan markers at some points around objects of color G.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of other this)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a cyan color object to the next position of each existing object maintaining the respective pattern.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (insert 2 (img_pts_of this) source)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert color C on new cells above, left, and bottom of the existing green objects, if the position is empty.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top source)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 left source)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 bottom source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Transform the three 'G' objects closest to the grid's corners to 'C' objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (or (and (column_equals (column_of this) 2) (degree_equals (degree_of this) 1))\n                    (column_equals (column_of this) 9))\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color G one step left, and then recolor all objects of size 1 to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add one object of color C near objects in column even.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (insert 0 bottom target)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects adjacent to a G object, and not a G object themselves, to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) G)\n                    (not (color_equals (color_of this) G))\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the first cell above and below all objects of color G to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert the color C at positions that are neighbors to an object of color G, except if the position is occupied by another object.",
-            "code": "(do\n  (rule\n    (vars (this other))\n    (filter\n      (and\n        (color_equals (color_of other) G)\n        (not (color_equals (color_of this) G))\n      )\n    )\n    (apply (move_node_max (direction_of other))\n  )\n  )\n)"
         },
         {
             "nl_description": "Insert an object of color C at the leftmost, topmost, and bottommost position.",
@@ -253,67 +45,239 @@
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (insert 0 top_right source)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (insert 0 bottom_left source)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects to color C, if they have another object above or below them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                    (and\n                        (size_equals (size_of this) 1)\n                        (size_equals (size_of other) 1)\n                    )\n                )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Move all blue objects to the closest empty cell and recolor them to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Color all left objects in the columns with a new color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of other objects to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects which are located at the boundaries of another object of color G to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects vertically to form a diagonal pattern and then color certain positions to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n            (move_node right)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects located diagonally adjacent to open space in the grid to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color all grids at the corners of objects of color G with color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a color C to the neighboring cells of any G objects that have two adjacent empty rows.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (or\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 2)\n                )\n            )\n        )\n        (apply\n            (insert 0 top_right source)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color G to color C, then update the objects to the column position of their own color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (insert 1 (img_pts_of this) middle)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add cyan objects in the available spaces contiguous to current objects of color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (insert 50 top source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 2 one step left, and then recolor them to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size 1 to column 1 or column 5, and then recolor them to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n)"
         },
         {
             "nl_description": "Insert a cyan object at the first unoccupied position to the left of each green object.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of other) G)\n        )\n        (apply\n            (insert 1 left source)\n        )\n    )\n)"
         },
         {
+            "nl_description": "Move all objects one step diagonally up-left and then recolor them to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up_left)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color all empty cells adjacent to any green colored cell to color C",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add objects of color C at 3 cells distance north from the top of objects of color G and at 3 cells distance south from the bottom of objects of color G.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 bottom source)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up)\n            (insert 0 top target)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color all grids at the corners of objects of color G with color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 towards neighboring objects if they are green and change their color to C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add cyan color border to all objects of color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (add_border C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects adjacent to a G object, and not a G object themselves, to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) G)\n                    (not (color_equals (color_of this) G))\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert the color C at positions that are neighbors to an object of color G, except if the position is occupied by another object.",
+            "code": "(do\n  (rule\n    (vars (this other))\n    (filter\n      (and\n        (color_equals (color_of other) G)\n        (not (color_equals (color_of this) G))\n      )\n    )\n    (apply (move_node_max (direction_of other))\n  )\n  )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbor cells of 'G' objects to 'C'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects towards the first empty cell in their respective rows and columns, and recoloring them to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n            (extend_node down false)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert an object of color C to the top and bottom of each column that contains any object of color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top source)\n            (insert 0 bottom source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects of size 1 that are not R to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (color_equals (color_of this) R))\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 one step in the direction of the object of color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a color C to the neighboring cells of any G objects that have two adjacent empty rows.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (or\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 2)\n                )\n            )\n        )\n        (apply\n            (insert 0 top_right source)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add an orange 'C' to any empty cell next to the diagonal green 'G' objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighboring cells of existing objects to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert brown color at random positions of the cells surrounding green objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top_left source)\n            (insert 0 top source)\n            (insert 0 top_right source)\n            (insert 0 left source)\n            (insert 0 right source)\n            (insert 0 bottom_left source)\n            (insert 0 bottom source)\n            (insert 0 bottom_right source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add cyan objects in the available spaces contiguous to current objects of color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (insert 50 top source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Recolor the top-left and bottom-right neighbors of each object of color G to color C.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of other this)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Add the color C to positions adjacent to existing objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (neighbor_of this other))\n        (apply (update_color C))\n    )\n)"
+            "nl_description": "Recolor the cells adjacent to a grid boundary and diagonally adjacent to any object to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of other this))\n                (or\n                    (and\n                        (size_equals (size_of other) min)\n                        (color_equals (color_of this) O))\n                    (and\n                        (color_equals (color_of other) G)\n                        (or\n                            (not (color_equals (color_of this) G))\n                            (not (color_equals (color_of other) C)))))\n                )\n        )\n        (apply\n            (update_color C)\n        )    \n    )\n)"
         },
         {
-            "nl_description": "Add a C color pixel next to certain objects.",
+            "nl_description": "Add an object of color C one step down from the center row of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (move_node down)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color G one step left, and then recolor them to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add one object of color C near objects in column even.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (insert 0 bottom target)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add cyan markers at some points around objects of color G.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of other this)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a Cyan object of size 1 below and beside existing objects of color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 bottom source)\n            (insert 0 right source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add the color C to the closest edge to each object of color G.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up)\n            (move_node_max down)\n            (move_node_max left)\n            (move_node_max right)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor any cell adjacent to an object of color G to color C",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color G to the top of their columns and then color cells adjacent to those columns in color C.",
+            "code": "(do (rule (vars (this)) (filter (color_equals (color_of this) G)) (apply (move_node up))) (rule (vars (this other)) (filter (and (color_equals (color_of other) G) (neighbor_of this other))) (apply (update_color C))))"
+        },
+        {
+            "nl_description": "Move all objects of color G one step to the nearest empty cell, and then recolor them to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node up)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node right)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node down)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add objects of color C next to the G-colored objects diagonally.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max down_left)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up_right)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert the object of color C adjacent to all occurrences of color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (insert 1 top_left source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add cyan colored borders on all sides of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects of color C to random empty positions.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are not of color G to color C, if they are on columns with index 1, 2, or 3.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) G))\n                (or\n                    (column_equals (column_of this) 1)\n                    (or\n                        (column_equals (column_of this) 2)\n                        (column_equals (column_of this) 3)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a cyan color object to the next position of each existing object maintaining the respective pattern.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (insert 2 (img_pts_of this) source)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add cyan colored pixels at specified positions in the images as shown in the output.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of all objects on the leftmost and rightmost column with even row index to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (column_equals (column_of this) 9)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert objects of color C at corners around objects of color G.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top_left source)\n            (insert 0 top_right source)\n            (insert 0 bottom_left source)\n            (insert 0 bottom_right source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color the cells immediately surrounding each 'G' with color 'C'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor some objects to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform the three 'G' objects closest to the grid's corners to 'C' objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (or (and (column_equals (column_of this) 2) (degree_equals (degree_of this) 1))\n                    (column_equals (column_of this) 9))\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert color C at the left or top/bottom of all column-aligned or diagonal G objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not \n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects one step in a vertical or horizontal direction and recolor the moved objects to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node up)\n            (move_node down)\n            (move_node left)\n            (move_node right)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all cells along the border of colored objects to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the objects to the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max down)\n            (move_node_max up)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert a node of color C in the row above and in the column left to any object in the grid of any color except C and O",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (or (color_equals (color_of this) C) (color_equals (color_of this) O)))\n        )\n        (apply\n            (insert 1 top_left source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color G one step left, and then recolor all objects of size 1 to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a cyan color at the boundary of connection points of objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (add_border C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color G to color C, then update the objects to the column position of their own color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (insert 1 (img_pts_of this) middle)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects vertically to form a diagonal pattern and then color certain positions to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node down)\n            (move_node right)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the row and column containing a green object with color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node up)\n            (update_color C)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Move the closest object to the edge of grid and change its color to C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max (direction_of this))\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor cells between a green node and another green node to color C and recolor the edges to color C in the middle of the grid",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
@@ -321,84 +285,8 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (add_border C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Color the cells in column 1 of odd rows with color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (and\n                    (column_equals (column_of this) odd)\n                    (size_equals (size_of this) 1)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a cyan color at the boundary of connection points of objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (add_border C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all isolated cells to color C",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (neighbor_of this other))\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add an object of color C one step down from the center row of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (move_node down)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all first cells of each row to color C and middle cells of each row to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 5)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color G vertically to the nearest empty cell, while changing the color of certain empty cells to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a cyan marker close to the top or left to all objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (insert 1 top_left source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert brown color at random positions of the cells surrounding green objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top_left source)\n            (insert 0 top source)\n            (insert 0 top_right source)\n            (insert 0 left source)\n            (insert 0 right source)\n            (insert 0 bottom_left source)\n            (insert 0 bottom source)\n            (insert 0 bottom_right source)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add objects of color C next to the G-colored objects diagonally.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max down_left)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up_right)\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the objects to the edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max down)\n            (move_node_max up)\n            (move_node_max left)\n            (move_node_max right)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects of size 1, 2, or 5 to color C",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 1)\n                (or\n                    (size_equals (size_of this) 2)\n                    (size_equals (size_of this) 5)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the closest object to the edge of grid and change its color to C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max (direction_of this))\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the cells next to each 'G' to color 'C'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor any cell adjacent to an object of color G to color C",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add cyan colored borders on all sides of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border C)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Color all cells that are one step away from any green object to color C.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of size 1 to color C, if they are diagonally adjacent to objects of color G.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbor cells of 'G' objects to 'C'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update color to C of all objects located in second and second-last columns.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 1)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the cells adjacent to a grid boundary and diagonally adjacent to any object to color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of other this))\n                (or\n                    (and\n                        (size_equals (size_of other) min)\n                        (color_equals (color_of this) O))\n                    (and\n                        (color_equals (color_of other) G)\n                        (or\n                            (not (color_equals (color_of this) G))\n                            (not (color_equals (color_of other) C)))))\n                )\n        )\n        (apply\n            (update_color C)\n        )    \n    )\n)"
         },
         {
             "nl_description": "Color objects at random positions in cyan.",
@@ -409,16 +297,108 @@
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Add objects of color C at 3 cells distance north from the top of objects of color G and at 3 cells distance south from the bottom of objects of color G.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 bottom source)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node_max up)\n            (insert 0 top target)\n        )\n    )\n)"
+            "nl_description": "Extend all occurrences of the object 'G' vertically without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Add cyan color border to all objects of color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (add_border C)\n        )\n    )\n)"
+            "nl_description": "Insert an object of color C at specific locations indicated by C in the output grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 1 (img_pts_of this) source)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 one step in the direction of the object of color C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
+            "nl_description": "Color the cells in column 1 of odd rows with color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (and\n                    (column_equals (column_of this) odd)\n                    (size_equals (size_of this) 1)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of shape enclosed one step in a direction in which there is space.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects of size 1 to color C, if they are diagonally adjacent to objects of color G.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert color C on new cells above, left, and bottom of the existing green objects, if the position is empty.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 top source)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 left source)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (insert 0 bottom source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a cyan marker close to the top or left to all objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (insert 1 top_left source)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects located diagonally adjacent to open space in the grid to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add the color C to positions adjacent to existing objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (neighbor_of this other))\n        (apply (update_color C))\n    )\n)"
+        },
+        {
+            "nl_description": "Update color to C of all objects located in second and second-last columns.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 1)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor cells diagonally adjacent to each object of color G to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) G)\n                (or\n                    (neighbor_of this other)\n                    (or\n                        (neighbor_of this other)\n                        (or\n                            (neighbor_of this other)\n                            (neighbor_of this other)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert a new object of color C at specific positions in the grid that doesn't overlap with any existing objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (insert 0 top_left source)\n            )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all cells on the same row or column as an object of color G to color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects of size 1, 2, or 5 to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 1)\n                (or\n                    (size_equals (size_of this) 2)\n                    (size_equals (size_of this) 5)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all edges of the grid to color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects of size 1 to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 2 one step left, and then recolor them to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (move_node left)\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all cells on the same row and column as any green object to color C, excluding the green objects themselves.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color all left objects in the columns with a new color C",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vacant cells adjacent to objects of size 1 with color C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (size_equals (size_of other) 1)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbor cells of green objects to color C",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a border to all green objects with the color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Insert objects of color C in some positions around the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the first cell above and below all objects of color G to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a new node of color C at the edge of the object, and color to C all nodes closer to the top or left sides to it",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the top row and first column of each object to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (column_equals (column_of this) 0) (and (color_equals (color_of this) G) (and (not (column_equals (column_of this) 0)) (not (column_equals (column_of this) 1))))))\n        (apply\n            (update_color C)\n        )\n    )\n)"
         }
     ]
 }

@@ -1,432 +1,404 @@
 {
     "completions": [
         {
-            "nl_description": "Recolor all objects of color X to color B. Then recolor the cell below to R if not at the edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of other this)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, then change the color of the rightmost X objects to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of objects of shape enclosed first to B and then change the color of all objects to R if size is 1.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 9 to color B and color the ones below it to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) B)\n                    (not (color_equals (color_of this) B))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to B, except the last three X objects which should be recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are not color X to color B and then extend them downwards leaving a red trail until the edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) X))\n        )\n        (apply\n            (update_color B)\n            (extend_node down true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical lines of size 9 and color X to color B. Then, recolor the bottom neighbors of these lines to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 9)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of other this)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the vertical stripe consisting of black objects to blue, except the bottom three objects which are recolored to red.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Recolor all objects of width 1 to color B and then recolor the objects of size greater than 2 to color R.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 1)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color X one step to the right, and then recolor them to color B",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of minimum width to color B, then color the last three objects of that set to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) min)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color B and then recolor the last row of the object of size 9 to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except for the bottom-right most ones which are recolored to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B and then move all objects of color B down until they hit another object or the edge of the grid, recoloring them to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) (column_of other))\n                )\n            )\n        )\n        (apply\n            (move_node_max down)\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color X, except the ones in the last column, to the second column from the left, then recolor them to B. Recolor the objects in the last column to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node left)\n            (move_node left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) odd)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that have nine or ten of their neighbors occupied by X to color B. Recolor the last three objects on the bottom right to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (neighbor_of this this)\n                (not (color_equals (color_of this) B))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the objects of color X one step to the right and then recolor them to color B. Recolor the last three objects to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B. Then, recolor all neighboring objects of color B and size 1 to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of other) B)\n                        (size_equals (size_of other) 1)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the leftmost column of Xs to B, and the rightmost column of Xs to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical objects of color X to color B and the bottom three objects to color R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of this) X)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the central vertical column to color B, then change the last three occurrences of color X in that column to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical lines of objects to color B, except the bottom three cells which are colored R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 1)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (width_equals (width_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects in the same column as an object of color X to color B, and then recolor the last row of these objects to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) (column_of other))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the leftmost column of X's to color B, and then the remaining X's to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to B, except for the objects in columns where there are any R objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B. Then, extend the last object of color B downward until the edge of the grid, and change its color to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 1)\n            )\n        )\n        (apply\n            (extend_node down false)\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color all objects that are in the same column as the object of color X that is closest to the top of the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects to color B, then change the color of the bottommost objects in columns containing X to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (and\n                    (column_equals (column_of this) (column_of other))\n                    (size_equals (size_of this) 1)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of shape 'square' to color B, except the last object which should be colored R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the object of size 9 to color B and recolor the adjacent objects to it to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of other) 9)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical lines to color B, and recolor the last three objects of the bottom vertical line to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (and\n                    (size_equals (size_of this) 3)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects with color X to B, and change the last three objects to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and (color_equals (color_of this) B) (height_equals (height_of this) 3))\n                (and (color_equals (color_of this) B) (neighbor_of other this))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the object in the center column down to the bottom and recolor it to B. Then, recolor the last cells in the bottom three rows to R.",
-            "code": "(do     \n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (color_equals (color_of this) X)  \n            )\n        )\n        (apply\n            (move_node down)\n            (update_color B)\n        )\n    )     \n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )    \n    )     \n)"
-        },
-        {
-            "nl_description": "Recolor all the objects of color X to color B, except for the lowermost objects which are recolored to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (column_equals (column_of this) 7)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the chain of X's to the leftmost column and recolor them to B, and recolor the remaining X's at the bottom to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node_max left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the first column after the sequence of X's to color B, and the rest of the column to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and recolor the last three objects to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the sequence of X's in the first column to B, and then change the color of the remaining X's in the last four lines to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (column_equals (column_of this) 1)\n                    (and\n                        (column_equals (column_of this) 8)\n                        (or\n                            (and\n                                (column_equals (column_of this) 8)\n                                (column_equals (column_of this) 7)\n                            )\n                            (column_equals (column_of this) 8)\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical lines of objects to color B, except for the bottom objects which are recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (and\n                    (not (neighbor_of this other))\n                    (height_equals (height_of this) max)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects of sizes different than 2 to color B, and change the objects of size 2 to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 2))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the column of objects to the leftmost column, and recolor them to B, except the last three cells which are recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (not (size_equals (size_of this) max))\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and then recolor the bottom-right corner of the last 3 objects to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (column_equals (column_of other) center)\n                    (not (neighbor_of this other))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and subsequently recolor the bottom three objects to color R.",
-            "code": "\n(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)\n"
-        },
-        {
-            "nl_description": "Recolor all objects of size 9 to color B, and the neighboring objects of color X to color R, without moving them.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects to color B, then recolor the objects in the last three rows to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 9 to color B, and objects of size 3 present in the bottommost rows to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except for the last three rows. Recolor objects in the last three rows with color B to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (and (color_equals (color_of this) B) (or (column_equals (column_of this) (column_of other)) (column_equals (column_of this) (column_of other)))))\n        (apply (update_color R))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects of color X in the first column to color B, and then recolor the objects of color X in the last column to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 0)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and then recolor the last three rows to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects of size 'max' to B, then change the color of all neighbors of B objects to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except for the last X which is recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects of size 9 to color B, then recolor the objects of size 3 to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical objects of color X to color B, and recolor the last 3 cells to color R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) B)\n                    (column_equals (column_of this) (column_of other))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color X to the top of the grid and change their color to B, then set the last three objects in the column to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node up)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (and\n                        (column_equals (column_of this) even)\n                        (size_equals (size_of this) max)\n                    )\n                    (and\n                        (column_equals (column_of this) odd)\n                        (size_equals (size_of this) max)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all 'X' objects to 'B', then recolor the bottom neighbor to 'R'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of other this)\n                (and\n                    (color_equals (color_of other) B)\n                    (color_equals (color_of this) X)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change color to B for all objects of color X, except the neighbors of an object of color X, for which the color should be changed to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except neighbors of objects at the bottom edge, which are recolored to color R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and recolor the rightmost object of each row to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the first column of objects into color B except the last 3 rows, in which objects are recolored into R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (not (height_equals (height_of this) max))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (height_equals (height_of this) max)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical objects to color B and then recolor the bottom three among them to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except for the lowest right-most group of X which is recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not\n                    (and\n                        (color_equals (color_of this) X)\n                        (column_equals (column_of this) center)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except those touching the grid edges, which are recolored to color R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (column_equals (column_of this) 0)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all columns which contain an object of color X to B, then change the color of objects of color X in column 9 to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 9)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color X to the uppermost row, then repaint those objects to colors B and R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node up)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, then recolor the bottommost objects in the last three rows to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) odd)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of other) odd)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of color X to color B, then extend objects of color B downward if they are neighbors of the object of color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color X one step right, then recolor them to B. Finally, recolor the last objects in the column to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this this) ;; Ensure these are the rightmost objects after initial move and recolor stages\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of color X to B. Recolor the last three objects of the grid to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and then move them one step up, except for the bottom-most objects which should be recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B and update the rightmost objects to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (neighbor_of this this)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except for those in the bottom three rows which will be recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (or\n                    (column_equals (column_of this) 1)\n                    (column_equals (column_of this) 2)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the vertical strip of objects in column 3 to color B. Then, recolor the three objects in column 9 to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 3)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 9)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to B, except the bottom-most X objects after which they are recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (not (neighbor_of this other))\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the left-most column of Xs to B, and then recolor the bottom-right three Xs to R.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (or\n                    (or \n                        (neighbor_of this other)\n                        (neighbor_of this other)\n                    )\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor vertical cyan strips in columns until they end and change the last element of each strip to red.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) B)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all columns of objects that contain at least one object of color X, to the leftmost position. Then, recolor these columns to color B except the last three rows which are colored R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to B and extend them downward without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B and then recolor the last three rows of the same object to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (column_equals (column_of this) 1)\n                    (or\n                        (column_equals (column_of this) 2)\n                        (column_equals (column_of this) 3)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except those that have duplicate columns which should be colored R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and Recolor the bottommost R-leaf nodes to color R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, with additional border coloring for specific objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (add_border R)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor the vertical lines of X with color B, and change the color of the bottom right corner to R.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter) ;; No filter to select all objects\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of color X, one step to the right, and then recolor them to color B.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, except those in the bottom three rows, which should be recolored to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not (degree_equals (degree_of this) max))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (degree_equals (degree_of this) max)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the vertical line of X's to color B and add a red pixel at the bottom end.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (and (neighbor_of this this) (not (color_equals (color_of this) B))))\n        (apply (update_color R))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to B, and then update the border of each object of color B to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (add_border R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B. Then, color any neighboring objects of the now-blue columns to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color X down one step, and then recolor them to color B, except for the last three occurrences, which should be recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (or\n                    (column_equals (column_of this) 7)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color X one step left, and then recolor them to color B, with the last 3 on the bottom right being recolored to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this this)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all vertical lines of size 7 to color B, while keeping the rest the same.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 7)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to B, then recolor the last three rows to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) 8)\n                )\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and the bottom-most object of color B to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to B, except for those in the bottom two rows, which should be recolored to R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (and\n                        (size_equals (size_of this) 1)\n                        (size_equals (size_of this) max)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )   \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and recolor the last three objects in the first column from bottom to top to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and then recolor the rightmost objects in the grid to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, then recolor all X objects that are neighbors of R to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B and color the last three rows of the filtered object to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X into a single vertical line of color B, moving only to the left. Also, extend the last object of color X in the grid to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node left)\n            (update_color B)\n            (extend_node left true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color X to color B, and the rightmost X objects to color R",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of color X to color B, except for the last X which is recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of color X to color B and then recolor the bottom neighboring objects of these objects to color R.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
+            "nl_description": "Recolor all objects of color X to B and extend them downward without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Change the color of all objects in the same column as the leftmost X to color B. Change the color of the rightmost X to color R.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) (column_of other))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the leftmost column of X's to B and the rightmost column of X's to R, filling upwards.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 0)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of size 9 to color B, and objects of size 3 present in the bottommost rows to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects of color X to color B, and then recolor all objects at the bottom of the grid to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 8)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Recolor all the objects of size 9 to color B, then recolor the objects of size 3 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor the object of color X to color B, then extend it downward to the nearest object, and update the extended parts to color R.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (not (color_equals (color_of other) O))\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects of size 9 to color B, except their last element which should be recolored to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 9)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of color X to color B. Then, color any neighboring objects of the now-blue columns to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all columns of objects that contain at least one object of color X, to the leftmost position. Then, recolor these columns to color B except the last three rows which are colored R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects of color X to B. Recolor the last three objects of the grid to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical objects of color X to color B and the bottom three objects to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of this) X)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and the rightmost X objects to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except for the last three rows. Recolor objects in the last three rows with color B to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (and (color_equals (color_of this) B) (or (column_equals (column_of this) (column_of other)) (column_equals (column_of this) (column_of other)))))\n        (apply (update_color R))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and recolor the rightmost object of each row to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects with color X to B, and change the last three objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and (color_equals (color_of this) B) (height_equals (height_of this) 3))\n                (and (color_equals (color_of this) B) (neighbor_of other this))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, with additional border coloring for specific objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (add_border R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects in the same column as an object of color X to color B, and then recolor the last row of these objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) (column_of other))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and then recolor all objects at the bottom of the grid to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 8)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the vertical line of X's to color B and add a red pixel at the bottom end.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) X))\n        (apply (update_color B))\n    )\n    (rule\n        (vars (this))\n        (filter (and (neighbor_of this this) (not (color_equals (color_of this) B))))\n        (apply (update_color R))\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X one step left, and then recolor them to color B, with the last 3 on the bottom right being recolored to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this this)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B and then recolor the last three rows of the same object to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (column_equals (column_of this) 1)\n                    (or\n                        (column_equals (column_of this) 2)\n                        (column_equals (column_of this) 3)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to B, except for the objects in columns where there are any R objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) R)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X down one step, and then recolor them to color B, except for the last three occurrences, which should be recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (or\n                    (column_equals (column_of this) 7)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B and then move all objects of color B down until they hit another object or the edge of the grid, recoloring them to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) (column_of other))\n                )\n            )\n        )\n        (apply\n            (move_node_max down)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the first column after the sequence of X's to color B, and the rest of the column to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color B, then change the color of the bottommost objects in columns containing X to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (and\n                    (column_equals (column_of this) (column_of other))\n                    (size_equals (size_of this) 1)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the leftmost column of Xs to B, and the rightmost column of Xs to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 9 to color B, and the neighboring objects of color X to color R, without moving them.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and subsequently recolor the bottom three objects to color R.",
+            "code": "\n(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)\n"
+        },
+        {
+            "nl_description": "Color all objects that are in the same column as the object of color X that is closest to the top of the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and recolor the last three objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and then recolor the bottom-right corner of the last 3 objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (column_equals (column_of other) center)\n                    (not (neighbor_of this other))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except those touching the grid edges, which are recolored to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (column_equals (column_of this) 0)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B. Then recolor the cell below to R if not at the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of other this)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and then recolor the rightmost objects in the grid to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the first column of objects into color B except the last 3 rows, in which objects are recolored into R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (not (height_equals (height_of this) max))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (height_equals (height_of this) max)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects of sizes different than 2 to color B, and change the objects of size 2 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 2))\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except for the lowest right-most group of X which is recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not\n                    (and\n                        (color_equals (color_of this) X)\n                        (column_equals (column_of this) center)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and recolor the last three objects in the first column from bottom to top to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor vertical cyan strips in columns until they end and change the last element of each strip to red.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) B)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X to the top of the grid and change their color to B, then set the last three objects in the column to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node up)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (and\n                        (column_equals (column_of this) even)\n                        (size_equals (size_of this) max)\n                    )\n                    (and\n                        (column_equals (column_of this) odd)\n                        (size_equals (size_of this) max)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B. Then, recolor all neighboring objects of color B and size 1 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of other) B)\n                        (size_equals (size_of other) 1)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except for the bottom-right most ones which are recolored to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to B, and then update the border of each object of color B to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (add_border R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X one step right, then recolor them to B. Finally, recolor the last objects in the column to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this this) ;; Ensure these are the rightmost objects after initial move and recolor stages\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the leftmost column of X's to B and the rightmost column of X's to R, filling upwards.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 0)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except for those in the bottom three rows which will be recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (or\n                    (column_equals (column_of this) 1)\n                    (column_equals (column_of this) 2)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the vertical stripe consisting of black objects to blue, except the bottom three objects which are recolored to red.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B and color the last three rows of the filtered object to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the left-most column of Xs to B, and then recolor the bottom-right three Xs to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (or\n                    (or \n                        (neighbor_of this other)\n                        (neighbor_of this other)\n                    )\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects in column 3 to color B, and recolor an object in column 9 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 3)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 9)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical lines to color B, and recolor the last three objects of the bottom vertical line to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (and\n                    (size_equals (size_of this) 3)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical lines of size 9 and color X to color B. Then, recolor the bottom neighbors of these lines to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 9)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of other this)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor the objects in the leftmost column of X to B, and then recolor the last three objects in the leftmost column to R.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 0)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (and\n                        (neighbor_of this this)\n                        (or\n                            (column_equals (column_of this) 0)\n                            (column_equals (column_of this) 0)\n                        )\n                    )\n                    (column_equals (column_of this) 0)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects in column 3 to color B, and recolor an object in column 9 to color R.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 3)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 9)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+            "nl_description": "Move all objects of color X, except the ones in the last column, to the second column from the left, then recolor them to B. Recolor the objects in the last column to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node left)\n            (move_node left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) odd)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the chain of X's to the leftmost column and recolor them to B, and recolor the remaining X's at the bottom to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node_max left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to B, except for those in the bottom two rows, which should be recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this other)\n                    (and\n                        (size_equals (size_of this) 1)\n                        (size_equals (size_of this) max)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )   \n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B. Then, extend the last object of color B downward until the edge of the grid, and change its color to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 1)\n            )\n        )\n        (apply\n            (extend_node down false)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical objects to color B and then recolor the bottom three among them to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, then change the color of the rightmost X objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects of color X to color B, then extend objects of color B downward if they are neighbors of the object of color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B and update the rightmost objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (neighbor_of this this)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical objects of color X to color B, and recolor the last 3 cells to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) B)\n                    (column_equals (column_of this) (column_of other))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical lines of objects to color B, except for the bottom objects which are recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (and\n                    (not (neighbor_of this other))\n                    (height_equals (height_of this) max)\n                )\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of shape 'square' to color B, except the last object which should be colored R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and the bottom-most object of color B to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the leftmost column of X's to color B, and then the remaining X's to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the objects of color X one step to the right and then recolor them to color B. Recolor the last three objects to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X, one step to the right, and then recolor them to color B.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X to the uppermost row, then repaint those objects to colors B and R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node up)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical lines of objects to color B, except the bottom three cells which are colored R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) 1)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (width_equals (width_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the object in the center column down to the bottom and recolor it to B. Then, recolor the last cells in the bottom three rows to R.",
+            "code": "(do     \n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (color_equals (color_of this) X)  \n            )\n        )\n        (apply\n            (move_node down)\n            (update_color B)\n        )\n    )     \n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )    \n    )     \n)"
+        },
+        {
+            "nl_description": "Change color to B for all objects of color X, except the neighbors of an object of color X, for which the color should be changed to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color B and then recolor the last row of the object of size 9 to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 9 to color B, except their last element which should be recolored to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 9)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to B, except the bottom-most X objects after which they are recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (not (neighbor_of this other))\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and Recolor the bottommost R-leaf nodes to color R",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects of color X to color B, except for the lowermost objects which are recolored to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (column_equals (column_of this) 7)\n                    (column_equals (column_of this) 8)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the column of objects to the leftmost column, and recolor them to B, except the last three cells which are recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (not (size_equals (size_of this) max))\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (size_equals (size_of this) max)\n            )\n        )\n        (apply\n            (move_node left)\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, then recolor the bottommost objects in the last three rows to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) odd)\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of other) odd)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects of color X in the first column to color B, and then recolor the objects of color X in the last column to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 0)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and then move them one step up, except for the bottom-most objects which should be recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) max)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects of size 'max' to B, then change the color of all neighbors of B objects to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) B)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except those in the bottom three rows, which should be recolored to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (not (degree_equals (degree_of this) max))\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (degree_equals (degree_of this) max)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are not color X to color B and then extend them downwards leaving a red trail until the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) X))\n        )\n        (apply\n            (update_color B)\n            (extend_node down true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of objects of shape enclosed first to B and then change the color of all objects to R if size is 1.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all 'X' objects to 'B', then recolor the bottom neighbor to 'R'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of other this)\n                (and\n                    (color_equals (color_of other) B)\n                    (color_equals (color_of this) X)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, and then recolor the last three rows to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color X one step to the right, and then recolor them to color B",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (move_node right)\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except neighbors of objects at the bottom edge, which are recolored to color R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 9 to color B and color the ones below it to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) B)\n                    (not (color_equals (color_of this) B))\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, except those that have duplicate columns which should be colored R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color B, then recolor the objects in the last three rows to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (neighbor_of this other)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all vertical lines of size 7 to color B, while keeping the rest the same.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 7)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (update_color B)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all columns which contain an object of color X to B, then change the color of objects of color X in column 9 to R.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 9)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to color B, then recolor all X objects that are neighbors of R to color R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) R)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to B, then recolor the last three rows to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (or\n                    (neighbor_of this other)\n                    (column_equals (column_of this) 8)\n                )\n                (column_equals (column_of this) 8)\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color X to B, except the last three X objects which should be recolored to R.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color B)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color R)\n        )\n    )\n)"
         }
     ]
 }

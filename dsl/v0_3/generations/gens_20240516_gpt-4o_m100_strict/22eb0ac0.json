@@ -1,220 +1,152 @@
 {
     "completions": [
         {
-            "nl_description": "Extend object of color Y horizontally.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+            "nl_description": "Extend all objects that are neighbors towards the edge of the grid, if overlap it true.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects of size 1 horizontally toward each other, recoloring them to their own color, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 1)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )    \n    )\n)"
+            "nl_description": "Extend all objects in the middle row to the edges, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all horizontally aligned objects to fill their respective rows, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the middle row of the grid to be filled with the letter Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (width_equals (width_of this) max)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (extend_node right true)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the middle row to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the middle row to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill the entire row of any object with color equal to the object's color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle (color_of this) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in the middle row of the grid towards the left and right edges, filling the entire row.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally all the objects of size 1 located at row 6",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) 6)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects in the center row to the left and right edges of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of size 1 horizontally to cover the entire row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects along the horizontal axis until they hit another object or the edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects of color Y horizontally to the left and right edges.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the entire rows that contain objects to their color for all columns",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects of size 1 made of the same color in all nine columns.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects vertically along the y-axis to fill entire row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (height_equals (height_of this) 1))\n        (apply (extend_node down true)(extend_node up true))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are in the same row as another object of the same color to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally the first row that contains a 'Y', coloring all cells in this row to 'Y'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the midline of the grid, replacing all the cells with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend nodes of specific colors horizontally to create a continuous row starting from their current position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects vertically if they match in color with another object in the same column.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the central row to match the colors of the objects in it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color different than O, to the left edge.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (move_node_max left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of height 1 horizontally across the row, with overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the middle row horizontally to cover the entire width of the grid, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (height_equals (height_of this) 5)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the middle row of the grid to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color Y horizontally without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in the 6th row until they reach the edges of the grid, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill the row containing yellow objects with yellow color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects in rows 2, 4, 6, and 8 horizontally to fill the entire row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) center)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of size 1 horizontally from edge to edge.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in row 6 horizontally to cover the entire row without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 1)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the Y colored object horizontally from left to right to fill the entire row where it appears.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in the middle row without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects in the middle row to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the middle horizontal objects in each grid, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (and\n                    (neighbor_of this other)\n                    (column_equals (column_of other) center)\n                )\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (and\n                    (neighbor_of this other)\n                    (column_equals (column_of other) center)\n                )\n            )\n        )\n        (apply\n            (extend_node left true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects in the 6th row horizontally across the entire width of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 1)\n                (column_equals (column_of this) center)\n              )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the middle row of all grids to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects in row 6 to fill the row completely.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of other) center)\n            )\n        )\n        (apply\n            (move_node(direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects that are adjacent to the edges of each grid towards the center.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max down)\n            (move_node_max up)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of vertical size 1 horizontally across the entire row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects that are neighbors to the edge, horizontally to fill the entire row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (neighbor_of this other) (or (column_equals (column_of other) 0) (column_equals (column_of other) 9))))\n        (apply (extend_node right false) (extend_node left false))\n    )\n)"
+            "nl_description": "Extend all the horizontal lines of objects vertically to cover the entire column.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (extend_node up true)\n            (extend_node down true)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend all objects in the center row to the right edge of the grid.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend objects along the rows they are on, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+            "nl_description": "Extend all objects of size 1 horizontally until they reach another object or the grid's edge, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Fill the center row with the color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (width_equals (width_of this) max)\n            )\n        )\n        (apply\n            (fill_rectangle Y true)\n        )\n    )\n)"
+            "nl_description": "Extend all objects of height 1 to the full width of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend objects of color Y across the entire length of the row they are in.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right true)\n            (extend_node left true)\n        )\n    )\n)"
+            "nl_description": "Extend all objects that are located in the left column to the rightmost column, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend the middle horizontal row of cells to fill the entire width of the grid with their respective colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) even)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects that are in the same row as another object of the same color to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the middle row to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Extend all objects in each row to fill the entire row space without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all the middle row of the grid, and recolor it to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Extend all objects of size 1 horizontally to form a row along their respective rows, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend the objects in the 6th and 8th rows to the left or right until the edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 5)\n                (column_equals (column_of this) 7)\n            )\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
+            "nl_description": "Extend the Y colored object horizontally from left to right to fill the entire row where it appears.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the center row of all grids to color Y",
+            "nl_description": "Extend all objects of size 1 horizontally until the left and right grid edges.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all horizontal line segments to fill the grid's width.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all horizontal borders of objects to the edges of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 horizontally toward each other, recoloring them to their own color, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 1)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Extend the rows that contains an object towards the edges.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally the first row that contains a 'Y', coloring all cells in this row to 'Y'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects in the 6th row horizontally across the entire width of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 1)\n                (column_equals (column_of this) center)\n              )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects in the middle row of the grid towards the left and right edges, filling the entire row.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects in the middle row horizontally, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (and\n                    (size_equals (size_of this) 1)\n                    (color_equals (color_of this) Y)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle row of all grids to color Y",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the middle row of the grid to color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Extend objects in rows 2, 4, 6, and 8 horizontally to fill the entire row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) center)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the objects in the middle row to the entire length of the row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (column_equals (column_of this) 4)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the horizontal lines to fill their respective rows.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects in the 6th row to the entire row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) 6)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects located in the odd rows, to the complete length of row, in the outward direction.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill the entire row of any object with color equal to the object's color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle (color_of this) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all horizontal objects to fill their row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend all objects located in even rows to fill the entire row.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects spanning a single column at column 1 to extend horizontally and recolor them to match adjacent row objects color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+            "nl_description": "Extend the objects located in the second and eighth rows horizontally to fill the entire width of the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other) \n                (or\n                    (color_equals (color_of this) W)\n                    (color_equals (color_of this) C)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 horizontally.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally the objects located in the middle row of the grid, until they touch another object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill the row containing yellow objects with yellow color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the horizontal object of size 9 to cover the entire row it resides in, without overlapping existing nodes.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color Y horizontally without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of color at the edge of the grid towards the center, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of size 1 toward the objects on the same row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend all objects as a horizontal line.",
@@ -229,236 +161,244 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend horizontally all objects located at the first and last columns of each row where the middle value is located at the row middle value",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all horizontal objects to the left edge of the grid",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (extend_node left false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in the middle horizontal line to the entire width of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all horizontal objects of size 1 to the length of the grid row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects that are located in the left column to the rightmost column, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the horizontal lines to fill their respective rows.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally all objects of size 1 to fill the row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally, without overlapping, all objects located on both ends of each row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 1)\n                (column_equals (column_of this) 10)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in the center rows to have a size of 1 by filling the row with their color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) (size_of this))\n                (and\n                    (column_equals (column_of this) center)\n                    (height_equals (height_of this) 1)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects downward to form a horizontal line at their original row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n            (move_node_max left)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally the objects in the center row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 10 horizontally.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 10)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects in the rows where there's an object of color Y, to color Y",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend each horizontal line of objects to fill the grid horizontally.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) even)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the horizontal object of size 9 to cover the entire row it resides in, without overlapping existing nodes.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 9)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 horizontally until they reach another object or the grid's edge, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 along the row they are in, filling the row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the horizontal objects of size 1 to the right.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of height 1 to the full width of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects in the middle row horizontally, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (and\n                    (size_equals (size_of this) 1)\n                    (color_equals (color_of this) Y)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all row 5 objects horizontally to the full row width (no overlap).",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+            "nl_description": "Extend the middle row horizontally to cover the entire width of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (height_equals (height_of this) 5)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend vertically all objects found in the bottommost row of the objects.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all horizontal borders of objects to the edges of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Expand all objects on a row to fill the entire row with their color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in the middle row to the edges, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 horizontally.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of size 1 toward the objects on the same row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all rows that contain multiple objects of the same color with that color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in each row to fill the entire row space without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally all the objects located in rows where there are no other objects horizontally aligned.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (not (shape_equals (shape_of this) enclosed))\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the horizontal lines of objects vertically to cover the entire column.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 1))\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (extend_node up true)\n            (extend_node down true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects in the middle row to the entire length of the row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (column_equals (column_of this) 4)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in the 6th row to the entire row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) 6)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects to the rightmost column",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all horizontal lines of objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) min)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects located in the odd rows, to the complete length of row, in the outward direction.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) even)\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the row objects that contain the color Y across the whole row without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects located on rows 2, 4, 6, and 8 horizontally, filling the entire row with the object's color without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 2)\n                (or\n                    (column_equals (column_of this) 4)\n                    (or\n                        (column_equals (column_of this) 6)\n                        (column_equals (column_of this) 8)\n                    )\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of an odd color across the entire grid row they belong to.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) W)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) C)\n                        (or\n                            (color_equals (color_of this) F)\n                            (or\n                                (color_equals (color_of this) B)\n                                (or\n                                    (color_equals (color_of this) Y)\n                                    (color_equals (color_of this) G)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all central objects horizontally.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    ))"
-        },
-        {
-            "nl_description": "Extend horizontally the objects located in the middle row of the grid, until they touch another object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 horizontally until the left and right grid edges.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all horizontal line segments to fill the grid's width.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of this) (column_of other))\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects that are neighbors towards the edge of the grid, if overlap it true.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all horizontal objects to cover the entire row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects located in the second and eighth rows horizontally to fill the entire width of the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other) \n                (or\n                    (color_equals (color_of this) W)\n                    (color_equals (color_of this) C)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally all objects of size 1 to form a continuous line.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the rows that contains an object towards the edges.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend horizontally all objects of color that have duplicates to fill the entire row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) W)\n                (or\n                    (color_equals (color_of this) Y)\n                    (or\n                        (color_equals (color_of this) B)\n                        (color_equals (color_of this) C)\n                    )\n                )\n            )\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend nodes horizontally for each row containing only one object to cover the entire row by objects of the same color, without overlap.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all horizontal objects to fill their row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all horizontal line objects to span the entire grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 1)\n                (color_equals (color_of this) (color_of this))\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+            "nl_description": "Extend horizontally the objects in the center row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )    \n    )\n)"
         },
         {
             "nl_description": "Extend all the objects in the center row horizontally, without overlapping.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (degree_equals (degree_of this) max)\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects in the sixth row horizontally, covering the entire row.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+            "nl_description": "Extend objects of size 1 horizontally to cover the entire row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend nodes of specific colors horizontally to create a continuous row starting from their current position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color Y across the entire length of the row they are in.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right true)\n            (extend_node left true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle row to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects along the horizontal axis until they hit another object or the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle row of the grid to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the row objects that contain the color Y across the whole row without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all horizontal objects to cover the entire row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects in the center rows to have a size of 1 by filling the row with their color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) (size_of this))\n                (and\n                    (column_equals (column_of this) center)\n                    (height_equals (height_of this) 1)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of an odd color across the entire grid row they belong to.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) W)\n                (or\n                    (color_equals (color_of this) R)\n                    (or\n                        (color_equals (color_of this) C)\n                        (or\n                            (color_equals (color_of this) F)\n                            (or\n                                (color_equals (color_of this) B)\n                                (or\n                                    (color_equals (color_of this) Y)\n                                    (color_equals (color_of this) G)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the objects in the center row to the left and right edges of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) center)\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the middle row of the grid, and recolor it to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the middle horizontal row of cells to fill the entire width of the grid with their respective colors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) even)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle row of the grid to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects in the rows where there's an object of color Y, to color Y",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend all objects in the middle row horizontally, overlapping and filling the entire row with the same color.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this this)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend the Y objects to fill their respective rows, without overlapping any other objects.",
+            "nl_description": "Recolor all objects spanning a single column at column 1 to extend horizontally and recolor them to match adjacent row objects color.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 1)\n        )\n        (apply\n            (move_node right)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 along the row they are in, filling the row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all horizontal line objects to span the entire grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (height_equals (height_of this) 1)\n                (color_equals (color_of this) (color_of this))\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects that are adjacent to the edges of each grid towards the center.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max down)\n            (move_node_max up)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects that are neighbors to the edge, horizontally to fill the entire row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (neighbor_of this other) (or (column_equals (column_of other) 0) (column_equals (column_of other) 9))))\n        (apply (extend_node right false) (extend_node left false))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the center row of all grids to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally all the objects of size 1 located at row 6",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) 6)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects vertically if they match in color with another object in the same column.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally all the objects located in rows where there are no other objects horizontally aligned.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (not (shape_equals (shape_of this) enclosed))\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend each horizontal line of objects to fill the grid horizontally.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) even)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all rows that contain multiple objects of the same color with that color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) (color_of other))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally all objects located at the first and last columns of each row where the middle value is located at the row middle value",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects vertically along the y-axis to fill entire row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (height_equals (height_of this) 1))\n        (apply (extend_node down true)(extend_node up true))\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally all objects of size 1 to form a continuous line.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects to the rightmost column",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects downward to form a horizontal line at their original row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n            (move_node_max left)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all central objects horizontally.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    ))"
+        },
+        {
+            "nl_description": "Extend the midline of the grid, replacing all the cells with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of height 1 horizontally across the row, with overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the middle horizontal objects in each grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (and\n                    (neighbor_of this other)\n                    (column_equals (column_of other) center)\n                )\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (and\n                    (neighbor_of this other)\n                    (column_equals (column_of other) center)\n                )\n            )\n        )\n        (apply\n            (extend_node left true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the horizontal objects of size 1 to the right.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the central row to match the colors of the objects in it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects in the 6th row until they reach the edges of the grid, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (height_equals (height_of this) 1)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill the center row with the color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) center)\n                (width_equals (width_of this) max)\n            )\n        )\n        (apply\n            (fill_rectangle Y true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects in the middle horizontal line to the entire width of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (column_equals (column_of this) odd)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of size 1 horizontally from edge to edge.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle row to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the objects of color Y horizontally to the left and right edges.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 10 horizontally.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 10)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the entire rows that contain objects to their color for all columns",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the middle row to color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all horizontal objects of size 1 to the length of the grid row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all row 5 objects horizontally to the full row width (no overlap).",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) even)\n                (neighbor_of this this)\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects in the sixth row horizontally, covering the entire row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of vertical size 1 horizontally across the entire row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (height_equals (height_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend horizontally all objects of size 1 to fill the row.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all horizontal lines of objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (width_equals (width_of this) min)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend object of color Y horizontally.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all the objects of color at the edge of the grid towards the center, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+            "nl_description": "Extend all horizontally aligned objects to fill their respective rows, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects of size 1 horizontally to form a row along their respective rows, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n)"
+            "nl_description": "Move all objects in row 6 to fill the row completely.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (column_equals (column_of other) center)\n            )\n        )\n        (apply\n            (move_node(direction_of other))\n        )\n    )\n)"
         }
     ]
 }

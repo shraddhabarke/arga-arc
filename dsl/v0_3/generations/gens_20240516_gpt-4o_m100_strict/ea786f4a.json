@@ -1,75 +1,59 @@
 {
     "completions": [
         {
-            "nl_description": "Change exterior color of all objects to O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all objects of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For all the neighbors of the central object, move them in the direction away from the central object and then change their color to O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all boundary pixels of all objects to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects to O except those surrounded by other objects of the same color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (not (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) (color_of this))\n                ))\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all corner-most border objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the terminal pixels of the objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the border pixels of all objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change color of all border cells to O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the border pixels of every object to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects adjacent to an object of color O to O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of the corner elements to 'O' in all objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) B)\n                    (or\n                        (and (neighbor_of this this) (neighbor_of this this))\n                        (and (neighbor_of this this) (neighbor_of this this))\n                    )\n                )\n                (or\n                    (and\n                        (color_equals (color_of this) G)\n                        (or\n                            (and (neighbor_of this this) (neighbor_of this this))\n                            (and (neighbor_of this this) (neighbor_of this this))\n                        )\n                    )\n                    (and\n                        (color_equals (color_of this) R)\n                        (or\n                            (and (neighbor_of this this) (neighbor_of this this))\n                            (and (neighbor_of this this) (neighbor_of this this))\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Recolor the corner cells of all objects of size larger than 1 to color O.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (move_node up_left)\n            (update_color O)\n            (move_node down_left)\n            (update_color O)\n            (move_node up_right)\n            (update_color O)\n            (move_node down_right)\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move each object of color O to position (0, 0) relative to its neighbors, creating a pattern.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (mirror (mirror_axis_of this))\n        )\n    )\n)"
+            "nl_description": "Update the color of each object's border pixels to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all outer pixels of objects of color different than O to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
+            "nl_description": "Recolor the border pixels of all objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the exterior pixels of all objects to color O.",
+            "nl_description": "Recolor all non-edge objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (neighbor_of this other))\n                (and\n                    (not (neighbor_of this other))\n                    (size_equals (size_of this) (size_of other))\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of all objects of size 1 to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects located at the center of the grid to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all border cells of the inner squares containing color O to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) O))\n        (apply (update_color O))\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all edge objects to O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color the corner pixels of each object with color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color O, if they are directly neighboring an object with color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all objects at corners of a square of O to B.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the corners adjacent to a given cell with color 'O' without the need of the corners cells to be connected.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 with color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all border pixels of each color to 'O'",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
         },
         {
@@ -77,332 +61,36 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all the border objects to O if they are neighbors of an object with color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all cells of the object in the center to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects of size 1 to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the outer pixels of each square object to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (shape_equals (shape_of this) square))\n        (apply (add_border O))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the edge pixels of objects that enclose another color to O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all corner objects and their adjacent objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                (or\n                    (and\n                        (color_equals (color_of this) O)\n                        (neighbor_of this other)\n                    )\n                    (and\n                        (color_equals (color_of other) O)\n                        (neighbor_of this other)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all exterior pixels of objects to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the boundary pixels of objects with interior pixel of color O to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the corners of each object to color O",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) O))\n        (apply (update_color O))\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the outermost pixel of each object to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the boundary cells to O, keeping the inner cells unchanged.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) G)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the border cells of color different than O to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (shape_equals (shape_of this) square)\n            )\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Replace all objects of size 1 with color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects that are neighbors of black objects to black.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the boundaries of all objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the boundary cells of objects with color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the four corner neighbors of the central object (O) to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all the boundary pixels of the enclosed object to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of the pixels neighboring the black pixel to color O on the black pixel boundary.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the border pixels of all objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color R and B to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects of size 1 to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Change all the border cells of size larger than 1 to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (not (size_equals (size_of this) 1)))\n        (apply (add_border O))\n    )\n)"
+            "nl_description": "Transform any non-O middle object surrounded by identical objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (not (color_equals (color_of this) O)) (neighbor_of this other)))\n        (apply (update_color O))\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of each object's border pixels to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all black cells (O) to match the color of their neighboring cells.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of all perimeter pixels to O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter \n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all corner and edge pixels of each object to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Change the color of all border pixels to O",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Update the color of the outer border and inner object to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Transform all corner cells of any given shape to color O",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (shape_equals (shape_of other) enclosed)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color the corner pixels of each object with color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all objects at corners of a square of O to B.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (hollow_rectangle O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all the border cells of each object to O (black).",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 1 toward the edge, and recolor them to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all cells of size 1 positioned diagonally at the corners of any grid to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of color O in all directions until they touch an edge of the grid or another object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 with color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all non-border objects to color O",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the boundary pixels of objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the boundary pixels of a distinct color.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all border cells of the inner squares containing color O to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) O))\n        (apply (update_color O))\n    )\n)"
+            "nl_description": "Recolor the edge pixels of objects that enclose another color to O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 1 to color O",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all corner colors of objects of size greater than 1 to O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor diagonals of each object to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all the outermost elements of any shape to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of cells that are neighbors to a cell with the color O to O.",
+            "nl_description": "Recolor all cells of the object in the center to color O.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the four neighbors of each cell that is 'O' to color 'O'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+            "nl_description": "Transform all corner cells of any given shape to color O",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (shape_equals (shape_of other) enclosed)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all external pixels of the objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change color of objects adjacent to the central object to color O, forming a pattern like a cross.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all objects in the grid to color O, except for objects that are neighbors of color O. The goal is to create a cross pattern centered on each O object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Replace O with the color O and change its neighbors to O accordingly.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update all objects of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects with edges to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all objects of color B, R, and G to color O at their corners.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of all objects of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all boundary cells of each object to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all corner objects in each object to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (shape_equals (shape_of this) enclosed))\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change all the outer border elements of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the pixels to O that are 1 step away from the center pixel O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Turn the border objects into color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all edge objects to O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Transform all objects that are surrounded by other objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all boundary cells of objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Update the color of all objects of size 1 to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the outermost cells of all objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the outermost border pixels of each object containing an O to color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (shape_equals (shape_of this) enclosed))\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the corner cells of each object to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) min)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects located at the center of the grid to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) center)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the object's adjacent cells with color O",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbors of the object of color O to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the objects that are adjacent to another object to O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the corners adjacent to a given cell with color 'O' without the need of the corners cells to be connected.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the four corners and the four adjacent cells surrounding the central cell of each grid object to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the border pixels of all objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all edge-bound cells of even-sized objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) even)\n                (not (height_equals (height_of this) 1))\n            )\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the corner pixels and border pixels adjacent to them to color O, keeping the selected cells in a symmetrical pattern around the center.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (and\n                    (neighbor_of this other)\n                    (or\n                        (and\n                            (or\n                                (and\n                                    (width_equals (width_of other) min)\n                                    (height_equals (height_of other) min)\n                                )\n                                (and\n                                    (width_equals (width_of other) max)\n                                    (height_equals (height_of other) min)\n                                )\n                            )\n                            (color_equals (color_of other) X)\n                        )\n                        (and\n                            (or\n                                (and\n                                    (width_equals (width_of other) min)\n                                    (height_equals (height_of other) max)\n                                )\n                                (and\n                                    (width_equals (width_of other) max)\n                                    (height_equals (height_of other) max)\n                                )\n                            )\n                            (color_equals (color_of other) X)\n                        )\n                    )\n                )\n                (and\n                    (or\n                        (and\n                            (width_equals (width_of this) min)\n                            (height_equals (height_of this) min)\n                        )\n                        (and\n                            (width_equals (width_of this) max)\n                            (height_equals (height_of this) min)\n                        )\n                    )\n                    (color_equals (color_of this) X)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+            "nl_description": "Recolor the outer pixels of each square object to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (shape_equals (shape_of this) square))\n        (apply (add_border O))\n    )\n)"
         },
         {
             "nl_description": "Recolor all pixels to color O except those that are originally O.",
@@ -413,60 +101,304 @@
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all the corner pixels and adjacent orthogonal pixels in objects where the center pixel is O, to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of other) O)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change objects with color different from the background to color O, excluding the background color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of the object with color O to color O",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the exterior pixels of all objects to color O.",
+            "nl_description": "Recolor all boundary cells of objects to color O.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects to color O, if they are directly neighboring an object with color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all border pixels of each color to 'O'",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color different than O to O, if they are neighbors of an object of color O.",
+            "nl_description": "Change all objects in the grid to color O, except for objects that are neighbors of color O. The goal is to create a cross pattern centered on each O object.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the corner pixels to color O if they are neighbors of the central pixel O.",
+            "nl_description": "Move all objects of size 1 toward the edge, and recolor them to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of all objects of size 1 to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of the pixels neighboring the black pixel to color O on the black pixel boundary.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Turn the border objects into color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects with edges to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 1 to color O",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Transform any non-O middle object surrounded by identical objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (and (not (color_equals (color_of this) O)) (neighbor_of this other)))\n        (apply (update_color O))\n    )\n)"
+            "nl_description": "Change the corner pixels to color O if they are neighbors of the central pixel O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all corner colors of objects of size greater than 1 to O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all exterior pixels of objects to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the four corner neighbors of the central object (O) to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace all objects of size 1 with color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects of size 1 to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors of the object with color O to color O",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the border pixels of every object to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change objects with color different from the background to color O, excluding the background color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all non-border objects to color O",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all the border objects to O if they are neighbors of an object with color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all edge-bound cells of even-sized objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) even)\n                (not (height_equals (height_of this) 1))\n            )\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all objects of color B, R, and G to color O at their corners.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) B)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all cells of size 1 positioned diagonally at the corners of any grid to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all corner and edge pixels of each object to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of the corner elements to 'O' in all objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (and\n                    (color_equals (color_of this) B)\n                    (or\n                        (and (neighbor_of this this) (neighbor_of this this))\n                        (and (neighbor_of this this) (neighbor_of this this))\n                    )\n                )\n                (or\n                    (and\n                        (color_equals (color_of this) G)\n                        (or\n                            (and (neighbor_of this this) (neighbor_of this this))\n                            (and (neighbor_of this this) (neighbor_of this this))\n                        )\n                    )\n                    (and\n                        (color_equals (color_of this) R)\n                        (or\n                            (and (neighbor_of this this) (neighbor_of this this))\n                            (and (neighbor_of this this) (neighbor_of this this))\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects to O except those surrounded by other objects of the same color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (not (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) (color_of this))\n                ))\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the four corners and the four adjacent cells surrounding the central cell of each grid object to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the object's adjacent cells with color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all the outer border elements of size 1 to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all the border cells of size larger than 1 to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (not (size_equals (size_of this) 1)))\n        (apply (add_border O))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all outer pixels of objects of color different than O to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) O))\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the corners of each object to color O",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of other) O))\n        (apply (update_color O))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects that are neighbors of black objects to black.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all the border cells of each object to O (black).",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the boundaries of all objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change color of objects adjacent to the central object to color O, forming a pattern like a cross.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the outermost cells of all objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the outermost border pixels of each object containing an O to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (shape_equals (shape_of this) enclosed))\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects of size 1 to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the boundary cells to O, keeping the inner cells unchanged.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) G)\n                (or\n                    (color_equals (color_of this) R)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform all objects that are surrounded by other objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the border pixels of all objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the corner cells of each object to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) min)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change exterior color of all objects to O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of cells that are neighbors to a cell with the color O to O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 1 with color O.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change all objects' corners to color O.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (neighbor_of this this) (neighbor_of this this)))\n        (apply\n            (update_color O)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of size 1 to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects adjacent to an object of color O to O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all the outermost elements of any shape to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the objects that are adjacent to another object to O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace O with the color O and change its neighbors to O accordingly.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) O)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the border pixels of all objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color R and B to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) R)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the border cells of color different than O to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (shape_equals (shape_of this) square)\n            )\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all corner objects and their adjacent objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (or\n                (neighbor_of this other)\n                (or\n                    (and\n                        (color_equals (color_of this) O)\n                        (neighbor_of this other)\n                    )\n                    (and\n                        (color_equals (color_of other) O)\n                        (neighbor_of this other)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all corner-most border objects to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color different than O to O, if they are neighbors of an object of color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor diagonals of each object to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all the boundary pixels of the enclosed object to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
         },
         {
             "nl_description": "Update the color of the corner and the directly adjacent cells around a single O to color O.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter (color_equals (color_of this) O))\n        (apply\n            (update_color O)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all non-edge objects to color O.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (neighbor_of this other))\n                (and\n                    (not (neighbor_of this other))\n                    (size_equals (size_of this) (size_of other))\n                )\n            )\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+            "nl_description": "Recolor all the corner pixels and adjacent orthogonal pixels in objects where the center pixel is O, to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of other) O)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all boundary cells of each object to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update all objects of size 1 to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color O in all directions until they touch an edge of the grid or another object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) O)\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Update the color of all perimeter pixels to O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter \n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For all the neighbors of the central object, move them in the direction away from the central object and then change their color to O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all objects of size 1 to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbors of the object of color O to color O.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change all objects' corners to color O.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (or (neighbor_of this this) (neighbor_of this this)))\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the boundary pixels of objects with interior pixel of color O to color O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color O)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change color of all border cells to O",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border O)\n        )\n    )\n)"
         }
     ]
 }

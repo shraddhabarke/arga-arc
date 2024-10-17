@@ -1,288 +1,248 @@
 {
     "completions": [
         {
-            "nl_description": "Recolor the borders to color G and the interiors to color Y for the objects with color different than C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+            "nl_description": "Extend all objects of color F towards the nearest border of color G or Y, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of other) G)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Connect any two neighbor objects of the same color with a row of Gs and change their interior colors to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (extend_node right false)\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color F to color Y, move all objects to the nearest edge, and add a green border.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of color F, to form a border of color G and fill the interior of objects by color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n            (extend_node up true)\n            (extend_node down true)\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Convert color of all objects to G, except objects of color F which should be resized and bordered by color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) F))\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the edges and the core rectangle of objects to color G, and recolor the inner rectangle of objects to color Y if present.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter) \n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter) \n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor enclosed objects of color F to color Y. Then add a green border to them. Finally, add a green border around all objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Expand the objects of color F by adding a border with color G and then recolor the inside of objects of color F with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the largest object to G, then change enclosed yellow areas within smaller objects to Y, and finally add a border of G to the largest object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of this) min)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Replace object borders with color G, and then recolor inner sections of objects with color Y",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all 'F' objects to color 'G', add border with color 'G' to objects of color 'C', and change the color of all interior pixels of objects of color 'F' to 'Y'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add borders to all groups of F objects with color G. Then recolor all inner isolated cells of F with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Enclose objects of color F with color G and fill the center with color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color F toward the object of color G, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a border around the objects of color F and recolor the interior of these objects to Y, then recolor the objects' borders of color G,",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color F one step up and recolor them to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node up)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects to color G. Recolor all enclosed interior cells to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 8 one step up, recolor them to color G, and then recolor the center four pixels of all objects of size 8 to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 8)\n        )\n        (apply\n            (move_node up)\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 8)\n                (or\n                    (column_equals (column_of this) even)\n                    (column_equals (column_of this) odd)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor some objects to color G and some regions inside them to color Y, then move all these objects to the border while recoloring them",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) max))\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Increase the size of some objects with color F to include cells with colors Y and G, then add a border around all objects in color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of other) Y)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the border color of all objects to G, and recolor the inner parts of them to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the green object, fill the yellow object to encapsulate the F objects, and fill all F object with yellow",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (extend_node up true)\n            (extend_node down true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor enclosed objects of shape square with new color and extend their boundaries to neighbor segment.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) enclosed)\n                )\n            )\n        )\n        (apply\n            (update_color G)\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all F objects, and their neighbors with the same color, to include an object of color G at borders and recolor adjacent F objects to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Expand and hollow all the objects, then recolor the borders to G and interior to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n            (hollow_rectangle G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Transform objects of size 4, changing their color to Y and adding a border of color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Expand red objects and fill the interior with yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of size 4 to form clusters of G and recolor the parts that touch to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of other) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the borders of all objects to color G, and the interior of objects of color F, to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the connecting lines horizontally and enclose the central pattern. Then recolor parts of the pattern and add a border around it.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a green border around all objects and change the color of their interior to yellow.",
-            "code": "(do (rule (vars (this)) (filter) (apply (add_border G) (hollow_rectangle Y))))"
-        },
-        {
-            "nl_description": "Change the color of objects on the boundary to G, change the color of some internal cells to Y, and change the boundary color of the internal object to G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Resize all objects, extend borders, and recolor the interior pixels of the objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down true)\n            (extend_node up true)\n            (extend_node left true)\n            (extend_node right true)\n            (update_color G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a G border around objects, change F to Y in the center, and keep Fs on the edges.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the object of color F inside the largest list of Gs to make a hollow rectangle of color Y. Recolor the border of the hollow rectangle to G.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor boundary of all objects of color F to color G and fill their interior with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all the formations of F involved in the diagonal structure towards the G columns, and then fill the yellow color inside them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the edges of all objects of color F without changing their inner parts, and extend horizontally all objects of color G without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects towards the object of color G. Then, recolor the Y shape in all objects with color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Expand and recolor objects of size greater than 5.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (extend_node down true)\n            (update_color G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Encapsulate all objects with color G and recolor interior objects with color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all surrounds of objects colored F to G, and change to Y the color of each neighbor of the middle column of F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (column_equals (column_of other) center)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the border of the largest object to G. For the inner parts of the object, recolor the inner border to G and fill the inner region with Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Create a green border around all objects of color F, then recolor the central pixels of the second-largest (Y instead of C) object containing F to create the inner pattern.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Grow all objects of color F, creating a border of color G and filling the centers with the color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects to color G and Y respectively, adding a border around the objects and filling interior cells with color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Insert a border around each object, and recolor all objects to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a green border around all objects of color F, and then recolor the inner cells of those objects to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "First move all objects of color G up, then recolor objects of color F on the diagonal to color Y, and change the color of their surrounding area to color G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n            (add_border G)\n        )\n    )\n)"
+            "nl_description": "Extend all objects of color F in all directions until they hit another object, and change their color to Y. Then, add a border of color G around all the objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend all objects of color F towards objects of color C, fill overlapping areas with color Y and add a border of color G.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n            (update_color Y)\n            (add_border G)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Expand all blue-colored objects horizontally with yellow interior and add a border color G and move towards the center.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (hollow_rectangle Y)\n            (add_border G)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of color F to Y, add a green border around each object, and fill the interior with Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects to color G, and then recolor all F objects to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Change the color of all surrounds of objects colored F to G, and change to Y the color of each neighbor of the middle column of F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (column_equals (column_of other) center)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Paint a green border around the objects of color F and change the interior color to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color F, without overlapping. Then recolor objects neighboring to G to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color F and size at least 2 into the direction of the neighbor of color G, overlap is allowed.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of objects that neighbor object F to Y and border all objects with G.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend and recolor some objects, ensuring some parts of them do not overlap while recoloring their neighbors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node down_right false)\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the green object, move the blue object, and color the yellow object, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the borders of the cluster containing instances of color F to G and the color of the instances of color C surrounded by instances of color F to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (color_equals (color_of this) C) (shape_equals (shape_of this) enclosed)))\n        (apply (update_color Y))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply (add_border G))\n    )\n)"
-        },
-        {
-            "nl_description": "Extend and recolor specific objects in the grid to form a solid colored border around smaller objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the border of all objects to G and recolor the central pixels of all objects to Y, if the object has an enclosed shape.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a green border around the objects and fill their interiors with yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all green objects towards the yellow object without overlap.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of size 4 one step outwardly and recolor them to color G, then recolor objects of color F to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Change the color of the outermost boundary of black objects to green and the innermost boundary to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor objects of size 4 to color Y and change the boundary color of the remaining objects to G",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects of color F towards the nearest border of color G or Y, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of other) G)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+            "nl_description": "Extend the green border around all blue filled objects. Recolor all cyan objects to green and recolor the objects adjacent to those cyan objects with a yellow center.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the border and central square to color G, and update some inner F objects to color Y in a pattern.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Change the color of the largest object to G, then change enclosed yellow areas within smaller objects to Y, and finally add a border of G to the largest object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of this) min)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the edges of all objects of color F without changing their inner parts, and extend horizontally all objects of color G without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Expand and recolor objects of size greater than 5.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (extend_node down true)\n            (update_color G)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Grow all objects of color F, creating a border of color G and filling the centers with the color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move the central clusters of 'F' objects into a larger hollow rectangle of 'G'. Recolor the inner objects of the hollow rectangle to 'Y'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle G false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a green border around the existing shapes and update the central color of the vertical lines of adjacent blocks to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a G border around objects, change F to Y in the center, and keep Fs on the edges.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Expand red objects and fill the interior with yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a green border around all objects of color F, and then recolor the inner cells of those objects to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color F, without overlapping. Then recolor objects neighboring to G to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the borders to color G and the interiors to color Y for the objects with color different than C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the border color of all objects to G, and recolor the inner parts of them to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color F one step up and recolor them to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node up)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects towards the object of color G. Then, recolor the Y shape in all objects with color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the border of the objects to color G and fill the interior of larger objects with color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the connecting lines horizontally and enclose the central pattern. Then recolor parts of the pattern and add a border around it.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (extend_node left false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Surround the objects with size greater than or equal to 4 with color G and fill the inner area of hollow objects of size 1 with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "First move all objects of color G up, then recolor objects of color F on the diagonal to color Y, and change the color of their surrounding area to color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (move_node up)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend and recolor specific objects in the grid to form a solid colored border around smaller objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend and recolor some objects, ensuring some parts of them do not overlap while recoloring their neighbors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node down_right false)\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) Y)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color G, and then recolor all F objects to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the borders of all objects to color G, and the interior of objects of color F, to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the borders of the cluster containing instances of color F to G and the color of the instances of color C surrounded by instances of color F to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (and (color_equals (color_of this) C) (shape_equals (shape_of this) enclosed)))\n        (apply (update_color Y))\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply (add_border G))\n    )\n)"
+        },
+        {
+            "nl_description": "Replace object borders with color G, and then recolor inner sections of objects with color Y",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Enclose objects with color G, and within the enclosed regions, color some specific cells to color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (insert 1 (img_pts_of this) source)\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Enclose objects of color F with color G and fill the center with color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a green border around the objects and fill their interiors with yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Increase the size of some objects with color F to include cells with colors Y and G, then add a border around all objects in color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (or\n                    (color_equals (color_of other) Y)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Expand the objects of color F by adding a border with color G and then recolor the inside of objects of color F with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color F with a hollow rectangle of color G, then recolor the central part to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor enclosed objects of shape square with new color and extend their boundaries to neighbor segment.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (and\n                    (neighbor_of this other)\n                    (shape_equals (shape_of other) enclosed)\n                )\n            )\n        )\n        (apply\n            (update_color G)\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Convert color of all objects to G, except objects of color F which should be resized and bordered by color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) F))\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add borders to all groups of F objects with color G. Then recolor all inner isolated cells of F with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor boundary of all objects of color F to color G and fill their interior with color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 4 one step outwardly and recolor them to color G, then recolor objects of color F to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (move_node_max (direction_of this))\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the top border of the objects colored F with color G and recolor the inner objects to yellow",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node up false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a green border around all the F objects, and then recolor the middle part of the F objects to yellow.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a border of color 'G' around each object, and recolor cells immediately adjacent to the center line of each object to 'Y'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all 'F' objects to color 'G', add border with color 'G' to objects of color 'C', and change the color of all interior pixels of objects of color 'F' to 'Y'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Add a green border around the objects of color F, and change the inner diagonal neighbors color to yellow.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of shape 'square' towards the center and then recolor them with a border color 'G' and the center color 'Y'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (extend_node down false)\n            (extend_node right false)\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor the border of the largest object to G. For the inner parts of the object, recolor the inner border to G and fill the inner region with Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all the objects that appear in the upper corners of the grid to color G. Then recolor the interior pixels of the objects containing color F to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
+            "nl_description": "Encapsulate all objects with color G and recolor interior objects with color Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (color_equals (color_of other) G)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of the outermost boundary of black objects to green and the innermost boundary to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) G))\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+            "nl_description": "Recolor the perimeter of all the objects to color G, and then recolor the interior to color Y if the object's size is greater than 4.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a border of color G around all objects and change the color of square objects from F to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the edges of all objects to color G and their centers to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor some objects to color G and some regions inside them to color Y, then move all these objects to the border while recoloring them",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter (size_equals (size_of this) max))\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all the formations of F involved in the diagonal structure towards the G columns, and then fill the yellow color inside them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a green border around all objects and change the color of their interior to yellow.",
+            "code": "(do (rule (vars (this)) (filter) (apply (add_border G) (hollow_rectangle Y))))"
+        },
+        {
+            "nl_description": "Recolor the object of color F inside the largest list of Gs to make a hollow rectangle of color Y. Recolor the border of the hollow rectangle to G.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a border of color G around all objects, then change the color of some interior objects that had color F to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of size 4 to form clusters of G and recolor the parts that touch to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (color_equals (color_of other) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of objects that neighbor object F to Y and border all objects with G.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color G. Recolor all enclosed interior cells to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
         },
         {
             "nl_description": "Enclose each group of color F objects with color G border and change the middle 2x2 part of them to color Y.",
@@ -293,120 +253,152 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
         },
         {
-            "nl_description": "First, move all the objects of color F one step left. Then, recolor all objects of color C to color G and all objects of color F to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a border of color G to the groups of neighboring objects and change the color of the middle objects to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border G)\n            )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) G))\n                (or\n                    (and\n                        (color_equals (color_of this) F)\n                        (neighbor_of this this)\n                    )\n                    (and\n                        (color_equals (color_of this) F)\n                        (not (neighbor_of this this))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a green border around the objects, and recolor adjacent cells next to objects to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of other) C))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the perimeter of all the objects to color G, and then recolor the interior to color Y if the object's size is greater than 4.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move the central clusters of 'F' objects into a larger hollow rectangle of 'G'. Recolor the inner objects of the hollow rectangle to 'Y'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle G false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Convert F objects to Y if surrounded by F and surrounded by Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Extend the top border of the objects colored F with color G and recolor the inner objects to yellow",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node up false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color F with a hollow rectangle of color G, then recolor the central part to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a green border around all the F objects, and then recolor the middle part of the F objects to yellow.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Expand the objects with diagonal symmetry, coloring their interior with Y and their border with G.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color G)\n            (fill_rectangle Y false)\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend rectangles towards each other to form a frame and recolor the enclosed area to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (shape_equals (shape_of other) enclosed)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a border of color 'G' around each object, and recolor cells immediately adjacent to the center line of each object to 'Y'.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a green border around the existing shapes and update the central color of the vertical lines of adjacent blocks to yellow.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move objects of color F of size 2 closer to each other. Enclose them with objects of color G, then recolor inner objects of color F to Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (size_equals (size_of this) 2)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the green border around all blue filled objects. Recolor all cyan objects to green and recolor the objects adjacent to those cyan objects with a yellow center.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Add a border of color G around the central structure, and change its interior objects to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Enclose objects with color G, and within the enclosed regions, color some specific cells to color Y.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (size_equals (size_of other) max)\n            )\n        )\n        (apply\n            (insert 1 (img_pts_of this) source)\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) max)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the border of the objects to color G and fill the interior of larger objects with color Y",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+            "nl_description": "Recolor the edge pixels of clusters of F to G, and the internal pixels of F to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Add a green border around the largest object, and change the middle part of it to yellow color.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (degree_equals (degree_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the border of all objects to color G, and recolor the center of objects of color F to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+            "nl_description": "Extend all objects of color F toward the object of color G, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Add a border of color G around all objects, then change the color of some interior objects that had color F to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Add a border of color G around the central structure, and change its interior objects to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) C))\n        )\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Surround the objects with size greater than or equal to 4 with color G and fill the inner area of hollow objects of size 1 with color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+            "nl_description": "Expand all blue-colored objects horizontally with yellow interior and add a border color G and move towards the center.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (hollow_rectangle Y)\n            (add_border G)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Add a border of color G around all objects and change the color of square objects from F to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) square)\n                (color_equals (color_of this) F)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Paint a green border around the objects of color F and change the interior color to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) F))\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects of color F in all directions until they hit another object, and change their color to Y. Then, add a border of color G around all the objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
+            "nl_description": "Recolor all the objects that appear in the upper corners of the grid to color G. Then recolor the interior pixels of the objects containing color F to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) R)\n                (color_equals (color_of this) G)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (hollow_rectangle Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the edge pixels of clusters of F to G, and the internal pixels of F to Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+            "nl_description": "Recolor the border of all objects to G and recolor the central pixels of all objects to Y, if the object has an enclosed shape.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Expand all objects, add a green border around the expanded objects, and change their color to yellow",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n            (extend_node down false)\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Expand the objects with diagonal symmetry, coloring their interior with Y and their border with G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color G)\n            (fill_rectangle Y false)\n            (add_border G)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects of color F to Y, add a green border around each object, and fill the interior with Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+            "nl_description": "Add a border around the objects of color F and recolor the interior of these objects to Y, then recolor the objects' borders of color G,",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the green object, move the blue object, and color the yellow object, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node down)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Convert F objects to Y if surrounded by F and surrounded by Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Insert a border around each object, and recolor all objects to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all green objects towards the yellow object without overlap.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) G)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) Y)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of objects on the boundary to G, change the color of some internal cells to Y, and change the boundary color of the internal object to G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Resize all objects, extend borders, and recolor the interior pixels of the objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down true)\n            (extend_node up true)\n            (extend_node left true)\n            (extend_node right true)\n            (update_color G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Transform objects of size 4, changing their color to Y and adding a border of color G.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend rectangles towards each other to form a frame and recolor the enclosed area to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (shape_equals (shape_of other) enclosed)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Create a green border around all objects of color F, then recolor the central pixels of the second-largest (Y instead of C) object containing F to create the inner pattern.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) odd)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all F objects, and their neighbors with the same color, to include an object of color G at borders and recolor adjacent F objects to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of color F, to form a border of color G and fill the interior of objects by color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (extend_node left true)\n            (extend_node right true)\n            (extend_node up true)\n            (extend_node down true)\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a border of color G to the groups of neighboring objects and change the color of the middle objects to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n            (apply\n                (add_border G)\n            )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (color_equals (color_of this) G))\n                (or\n                    (and\n                        (color_equals (color_of this) F)\n                        (neighbor_of this this)\n                    )\n                    (and\n                        (color_equals (color_of this) F)\n                        (not (neighbor_of this this))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of shape 'square' towards the center and then recolor them with a border color 'G' and the center color 'Y'.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) square)\n        )\n        (apply\n            (extend_node down false)\n            (extend_node right false)\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move objects of color F of size 2 closer to each other. Enclose them with objects of color G, then recolor inner objects of color F to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (size_equals (size_of this) 2)\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color F and size at least 2 into the direction of the neighbor of color G, overlap is allowed.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) F)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) G)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Expand and hollow all the objects, then recolor the borders to G and interior to Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node up false)\n            (extend_node down false)\n            (extend_node left false)\n            (extend_node right false)\n            (hollow_rectangle G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Connect any two neighbor objects of the same color with a row of Gs and change their interior colors to Y.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (extend_node right false)\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n            (hollow_rectangle Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color G and Y respectively, adding a border around the objects and filling interior cells with color Y",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Add a G border around each object and recolor the cells adjacent to the border to Y.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (extend_node (direction_of this) false)\n            (update_color Y)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the edges of all objects to color G and their centers to color Y.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n            (fill_rectangle Y false)\n        )\n    )\n)"
+            "nl_description": "Recolor the border and central square to color G, and update some inner F objects to color Y in a pattern.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (color_equals (color_of this) F)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "First, move all the objects of color F one step left. Then, recolor all objects of color C to color G and all objects of color F to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (move_node left)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Add a green border around the objects, and recolor adjacent cells next to objects to yellow.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (not (color_equals (color_of other) C))\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the green object, fill the yellow object to encapsulate the F objects, and fill all F object with yellow",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) G)\n        )\n        (apply\n            (extend_node up true)\n            (extend_node down true)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the edges and the core rectangle of objects to color G, and recolor the inner rectangle of objects to color Y if present.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter) \n        (apply\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter) \n        (apply\n            (fill_rectangle Y false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor enclosed objects of color F to color Y. Then add a green border to them. Finally, add a green border around all objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) Y)\n        )\n        (apply\n            (add_border G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 8 one step up, recolor them to color G, and then recolor the center four pixels of all objects of size 8 to color Y.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 8)\n        )\n        (apply\n            (move_node up)\n            (update_color G)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 8)\n                (or\n                    (column_equals (column_of this) even)\n                    (column_equals (column_of this) odd)\n                )\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color F to color Y, move all objects to the nearest edge, and add a green border.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (move_node_max (direction_of this))\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border G)\n        )\n    )\n)"
         }
     ]
 }

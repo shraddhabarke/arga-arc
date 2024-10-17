@@ -1,12 +1,184 @@
 {
     "completions": [
         {
-            "nl_description": "Recolor all objects on the second row from column 6 to column 11 to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) B)\n                    (column_equals (column_of this) 6)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Move all objects of size larger than 2 (excluding their size) one step to the right and then recolor them to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 2))\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (move_node right)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 3 and greater to color F",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 3)\n                (or\n                    (size_equals (size_of this) 4)\n                    (or\n                        (size_equals (size_of this) 5)\n                        (or\n                            (size_equals (size_of this) 6)\n                            (or\n                                (size_equals (size_of this) 7)\n                                (or\n                                    (size_equals (size_of this) 8)\n                                    (size_equals (size_of this) 9)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B toward the right, without overlapping, and recolor them to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 6 to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the size 5 objects towards the right without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all 'B' objects along the horizontal axis toward the nearest non-'B' object without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the blue regions of size 1 or 2 using color F and without overlapping",
+            "code": "(do (rule (vars (this other)) (filter (and (color_equals (color_of this) B) (or (size_equals (size_of this) 1) (size_equals (size_of this) 2)))) (apply (extend_node right false))) (rule (vars (this other)) (filter (and (color_equals (color_of this) B) (or (size_equals (size_of this) 1) (size_equals (size_of this) 2)))) (apply (extend_node down false))))"
+        },
+        {
+            "nl_description": "Move all B objects of size 1 to the right towards X objects, leaving a trail behind.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (size_equals (size_of this) 1)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (move_node right)\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the first object found that contains at least one color B and is neighbor to an object with color O, F for all occurrences.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) B)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Expand and recolor all straight-line segments of color B to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects of size 6 to color F, except if they are of color X.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 6)\n                (not (color_equals (color_of this) X))\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects of size 1 to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 2 by 3 steps to the right, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B towards the rightmost non-background object, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other) \n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of size 1 towards the nearest object of size 3 and color them F, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 3)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color F)\n        )    \n    )\n)"
         },
         {
             "nl_description": "Extend all objects of size 5 with color F",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color B towards bottom right, overlapping other objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down_right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of size 4 toward the boundary in the direction of their neighbor's axis, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of size 1 that are neighbors to another object until they hit another object in the given direction, then recolor them to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the small objects located in bottom-right corner of the grid to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B horizontally to the right by two cells, and then recolor them to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node right)\n            (move_node right)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B towards the rightmost column, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of the smallest objects to F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the objects of minimum size to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all smallest objects to color F",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B toward the first encountered object of color F, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B towards the right side, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color B horizontally to the right with color F",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (extend_node right false))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the group of six adjacent squares to the rightmost column as color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 6)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B to the right, overlapping other objects if necessary, then recolor the extended parts to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects with size greater than 1 and not encompassing another object to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B towards the right direction without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects of color 'O' that have 'B' to their left to 'F'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all vertical objects at the bottom edge of the grid towards the top edge without overlapping, and recolor them to F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (extend_node up false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of minimum size to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 in the direction 'right', without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the rightmost smaller objects that neighbor larger objects to the right toward the right, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of this) odd)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects of color B that are at the left edge of the grid, extend them once towards right, and recolor the extended part to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 0)\n            )\n        )\n        (apply\n            (extend_node right true)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all cells in the bottom right 3x3 subgrid of all grids to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply (fill_rectangle F false))\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the bottom row of all objects that are larger than size 1 to F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of size 3 downward and then color them F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (extend_node down false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all border pixels of each grid to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects on the second row from column 6 to column 11 to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) B)\n                    (column_equals (column_of this) 6)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors of the object with color F to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the bottom-most objects of color B to the right, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend all the objects of size 1 one step to the right, without overlapping.",
@@ -17,332 +189,16 @@
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the last four cells of any row which has the color B from column 2.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "For all groups of contiguous B's, if they are at least 6 in size, extend them by filling adjacent cells to the rightmost to F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (size_equals (size_of this) 6)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend blue objects that are neighboring an object of color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 6 to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the blue regions of size 1 or 2 using color F and without overlapping",
-            "code": "(do (rule (vars (this other)) (filter (and (color_equals (color_of this) B) (or (size_equals (size_of this) 1) (size_equals (size_of this) 2)))) (apply (extend_node right false))) (rule (vars (this other)) (filter (and (color_equals (color_of this) B) (or (size_equals (size_of this) 1) (size_equals (size_of this) 2)))) (apply (extend_node down false))))"
-        },
-        {
-            "nl_description": "Extend all the B-colored objects to the right with a grey trail until the edge of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects of color 'O' that have 'B' to their left to 'F'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of size 4 toward the boundary in the direction of their neighbor's axis, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of all objects of size 6 to color F, except if they are of color X.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 6)\n                (not (color_equals (color_of this) X))\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the small objects located in bottom-right corner of the grid to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 4)\n                (column_equals (column_of this) even)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B towards the rightmost column, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects of size 6 to color F",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill color F in all objects that are on the border of the grid.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (column_equals (column_of this) 29)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the group of six adjacent squares to the rightmost column as color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 6)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 6 to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of the object colored 'X' to 'F'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n       )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects partially or completely adjacent to an existing object of color B, from column 3 to column 6, to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) B)\n                    (and (column_equals (column_of this) 3) (column_equals (column_of this) 6))\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the objects of size 1 towards the right without overlapping and change their color to F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor parts of objects of color B that are adjacent to the right edge with color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Change the color of all objects touching the right border to color F.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 14)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of the smallest objects to F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) min)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B horizontally to the right by two cells, and then recolor them to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (move_node right)\n            (move_node right)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the last three columns of any row with more than one object of color B in the row to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the rightmost smaller objects that neighbor larger objects to the right toward the right, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (size_equals (size_of this) odd)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all blue objects towards the nearest blue objects in their row, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 2 by 3 steps to the right, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the bottom 3 pixels of the rightmost group of pixels to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all smallest objects to color F",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 in the direction 'right', without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of minimum size to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B towards the right direction without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend the size 5 objects towards the right without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 5)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of size 1 towards the nearest object of size 3 and color them F, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) 3)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color F)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all cells in the bottom right 3x3 subgrid of all grids to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply (fill_rectangle F false))\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects with color B downwards, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of size 1 towards the right, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill all objects of size greater than 3 with color F, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 3))\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend blue objects of size 6 toward the object filled pixel, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 6)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 3 towards the closest neighbor.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all horizontal chains of B's to F if their length is 4 or more.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of other) B)\n                        (size_equals (size_of other) 4)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B towards the right side, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B towards the right edge with overlap.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of color B toward the object of color F, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B to the right, changing the extended parts to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of size 3 downward and then color them F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (extend_node down false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects in direction opposite to their current position (toward the bottom) while leaving a trail, until they hit another object when overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
         },
         {
             "nl_description": "Change the color of all objects of size 3 on the second and third row to color F.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (or\n                    (column_equals (column_of this) 18)\n                    (or\n                        (column_equals (column_of this) 19)\n                        (column_equals (column_of this) 20)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects of color B toward the first encountered object of color F, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Expand and recolor all straight-line segments of color B to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the bottom rows of all blue objects to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B towards the rightmost non-background object, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other) \n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor parts of the objects of size 1 to color F if they are neighbors of other objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all 'B' objects along the horizontal axis toward the nearest non-'B' object without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the bottommost group of B-colored objects to color F",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B that are neighbors to color F, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects to form a horizontal line, and recolor to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) F))\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of other this)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 2 towards the south until hitting another object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all vertical objects at the bottom edge of the grid towards the top edge without overlapping, and recolor them to F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) (column_of other))\n                (color_equals (color_of this) B)\n            )\n        )\n        (apply\n            (extend_node up false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the bottom of rectangles formed by B, excluding the entire bottom row to F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 3 and greater to color F",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 3)\n                (or\n                    (size_equals (size_of this) 4)\n                    (or\n                        (size_equals (size_of this) 5)\n                        (or\n                            (size_equals (size_of this) 6)\n                            (or\n                                (size_equals (size_of this) 7)\n                                (or\n                                    (size_equals (size_of this) 8)\n                                    (size_equals (size_of this) 9)\n                                )\n                            )\n                        )\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change color of every occurrence of objects colored O (Orange) that are neighbors to objects colored F (Fuchsia) to the Fuchsia color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects that are horizontal sequences of color B of size 2 or greater toward the object of color F that has been inserted at the end of sequences, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the first five cells of the horizontal lines of each input image to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 2)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 4)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Replace the bottom-most cells of each object with the color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the bottom-most objects of color B to the right, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of color B to the right, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all B objects of size 1 to the right towards X objects, leaving a trail behind.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (size_equals (size_of this) 1)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (move_node right)\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects to color F starting from the bottom right corner.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all blue objects to fuchsia if they have at least one neighboring fuchsia object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the rows containing B cells to the right until they hit another object or the grid boundary. Recolor the newly added cells to F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (degree_equals (degree_of this) max)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of color B towards bottom right, overlapping other objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down_right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of size 4 and 5 to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 4)\n                (size_equals (size_of this) 5)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the vertical lines from the bottom with black color",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B to the right, overlapping other objects if necessary, then recolor the extended parts to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of color B horizontally to the right with color F",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply (extend_node right false))\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects of color B that are at the left edge of the grid, extend them once towards right, and recolor the extended part to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 0)\n            )\n        )\n        (apply\n            (extend_node right true)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the bottom row of each object of color B, excluding those at the grid edge, with color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (and\n                        (not (color_equals (color_of other) O))\n                        (neighbor_of this other)\n                    )\n                    (size_equals (size_of other) 1)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects toward the right by filling them with color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B to the right, filling the empty cells until they hit another object.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of color B, towards the right direction, with overlap.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 2 to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all the objects of size 1 towards the closest object of color F, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) F)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of size 6 to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects to color F, skipping some connecting lines.",
@@ -353,64 +209,196 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node up false)\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all the objects of size 1 to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Change color of every occurrence of objects colored O (Orange) that are neighbors to objects colored F (Fuchsia) to the Fuchsia color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size 1 that are neighbors to another object until they hit another object in the given direction, then recolor them to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Extend all the objects toward the right by filling them with color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of all border pixels of each grid to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (add_border F)\n        )\n    )\n)"
+            "nl_description": "Extend all the objects of size 1 towards the right, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Move all objects of size larger than 2 (excluding their size) one step to the right and then recolor them to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (not (size_equals (size_of this) 2))\n                (not (size_equals (size_of this) 1))\n            )\n        )\n        (apply\n            (move_node right)\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Recolor all horizontal chains of B's to F if their length is 4 or more.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (and\n                        (color_equals (color_of other) B)\n                        (size_equals (size_of other) 4)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the bottom row of all objects that are larger than size 1 to F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 1))\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the leftmost column of B objects to F",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (column_equals (column_of this) 0)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of the object with color F to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of color B on the second-to-last row to the right by 2 cells.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this this)\n                    (size_equals (size_of this) 3)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects touching the top edge, and recolor these expanded objects to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down true)\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Recolor the bottommost group of B-colored objects to color F",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects of size 6 to color F.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects with size greater than 1 and not encompassing another object to color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (not (neighbor_of this other))\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Recolor the last four cells of any row which has the color B from column 2.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all the objects of minimum size to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) min)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Extend all objects of color B, towards the right direction, with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the first object found that contains at least one color B and is neighbor to an object with color O, F for all occurrences.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of this) B)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Extend all the objects of size 1 towards the closest object of color F, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) F)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend all objects of color B toward the right, without overlapping, and recolor them to color F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Recolor parts of the objects of size 1 to color F if they are neighbors of other objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects partially or completely adjacent to an existing object of color B, from column 3 to column 6, to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) B)\n                    (and (column_equals (column_of this) 3) (column_equals (column_of this) 6))\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the bottom of rectangles formed by B, excluding the entire bottom row to F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects touching the top edge, and recolor these expanded objects to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (extend_node down true)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color B to the right, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the rows containing B cells to the right until they hit another object or the grid boundary. Recolor the newly added cells to F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (degree_equals (degree_of this) max)\n            )\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
         },
         {
             "nl_description": "Extend all the objects of color B toward the rightmost column without overlapping, and recolor the extended parts to color F.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor parts of objects of color B that are adjacent to the right edge with color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) O)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects with color B downwards, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B to the right, changing the extended parts to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend blue objects of size 6 toward the object filled pixel, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 6)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of this) B)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 2 towards the south until hitting another object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (extend_node down false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B towards the right edge with overlap.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 2 to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the bottom rows of all blue objects to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the objects of color B toward the object of color F, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Replace the bottom-most cells of each object with the color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the bottom 3 pixels of the rightmost group of pixels to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all blue objects to fuchsia if they have at least one neighboring fuchsia object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the vertical lines from the bottom with black color",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node down true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors of the object colored 'X' to 'F'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of other) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n       )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B to the right, filling the empty cells until they hit another object.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter (color_equals (color_of this) B))\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the first five cells of the horizontal lines of each input image to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (column_equals (column_of this) 0)\n                (size_equals (size_of this) 1)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 1)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 2)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (column_equals (column_of this) 4)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of color B on the second-to-last row to the right by 2 cells.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (or\n                    (neighbor_of this this)\n                    (size_equals (size_of this) 3)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of color B that are neighbors to color F, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects to color F starting from the bottom right corner.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) max)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "For all groups of contiguous B's, if they are at least 6 in size, extend them by filling adjacent cells to the rightmost to F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (size_equals (size_of this) 6)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend the objects of size 1 towards the right without overlapping and change their color to F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the last three columns of any row with more than one object of color B in the row to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects of size 4 and 5 to color F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (size_equals (size_of this) 4)\n                (size_equals (size_of this) 5)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects that are horizontal sequences of color B of size 2 or greater toward the object of color F that has been inserted at the end of sequences, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) F)\n                )\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all the B-colored objects to the right with a grey trail until the edge of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) B)\n        )\n        (apply\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects to form a horizontal line, and recolor to color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) F))\n                (or\n                    (neighbor_of this other)\n                    (neighbor_of other this)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n            (update_color F)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 3 towards the closest neighbor.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill all objects of size greater than 3 with color F, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (not (size_equals (size_of this) 3))\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the bottom row of each object of color B, excluding those at the grid edge, with color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (and\n                        (not (color_equals (color_of other) O))\n                        (neighbor_of this other)\n                    )\n                    (size_equals (size_of other) 1)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend all blue objects towards the nearest blue objects in their row, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) B)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) B)\n                )\n            )\n        )\n        (apply\n            (extend_node right false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill color F in all objects that are on the border of the grid.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (or\n                (column_equals (column_of this) 0)\n                (column_equals (column_of this) 29)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects of size 6 to color F",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         }
     ]
 }

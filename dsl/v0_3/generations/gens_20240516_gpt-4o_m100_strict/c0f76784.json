@@ -1,259 +1,99 @@
 {
     "completions": [
         {
-            "nl_description": "Recolor all the open cells inside or adjacent to an object of color X with color A, C, or F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects adjacent to 'X' objects to colors as observed in the examples: those in the middle colored to 'C', those on the left of the middle to 'F', and those on the right of the middle to 'A'.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all 3x3 blocks to color C, F, and A, depending on their unique identifier.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (column_equals (column_of this) 3)\n                    (column_equals (column_of this) 5)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 4)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of objects of color X to a specific color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects neighboring and different from X to color C, F, or A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill the inner area of objects of size 7 with color C, inner area of objects of size 4 with color A, and the inner area of objects of size 1 with color F without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects adjacent to X to color their pairs of 3 as C, then the next pair adjacent to C as A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects of size 3 that are neighbors of an object of color X to color C, and the objects of size 2 that are neighbors of an object of color X to color A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color F, objects of size 4 to color A, and objects of size 6 to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color the interior of hollow squares of color X with the same character as adjacent objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle (color_of this) false)\n        )\n    )\n)"
-        },
-        {
             "nl_description": "Extend all the other objects of size 1 and color different than X toward the purple objects, without overlapping.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (not (color_equals (color_of this) X))\n                    (and\n                        (neighbor_of this other)\n                        (color_equals (color_of other) X)\n                    )\n                )\n            )          \n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Fill hollow objects surrounded by color X with new colors in the holes.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (fill_rectangle (color_of this) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects that are completely inside the biggest object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are enclosed by objects of color X or neighbor to said objects. Objects recolor differently based on the pair.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects next to the X objects with colors C, F and A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects inside the existing squares to distinguish regions.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects connected to X in color C and F to color A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and \n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 1 to color C and all objects of size 2 to color A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all non-X objects that are neighbors to an X object to match the color of the X object they are next to.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects which are neighbors to an object of color X. Use color C for the first object and color A for the second object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of size 3 to color A and all objects of size 4 to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor ",
-            "code": "(do\n  (rule\n    (vars (this other))\n    (filter\n      (and\n        (neighbor_of this other)\n        (color_equals (color_of other) X)\n      )\n    )\n    (apply\n      (move_node_max (direction_of other))\n      (update_color X)\n    )\n  )\n)"
-        },
-        {
-            "nl_description": "Recolor objects of size 3 to color C and of size 2 to color A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill the inner pixels of all hollow rectangles with color C if they are neighbors of the object of color X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects adjacent to the grey objects in the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects adjacent to X with a different color, and fill the interiors of X's neighbors with another color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill objects inside the larger object with specific colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of objects of color X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects neighboring objects of color X to different colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color the interior pixels of each object of color X with other colors",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle C false)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle A false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle F false)\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color different than X, that are neighbors of color X objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the enclosed objects adjacent to X cells in the grids. Replace color O with C and F, and replace color O with A and C based on the blocks.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects internal to objects of color X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Fill all objects of color different than X, which are inside the hollow rectangle, with the color C and A respectively.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n            (fill_rectangle A false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend objects of color O and size 1 towards the nearby cyan objects",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) C)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects adjacent to and outside of the X-shaped objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )    \n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the bottom-left neighbors of X objects to color C for size 1, F for size 2, and A for size 3.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 1)\n                        (column_equals (column_of this) (column_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 2)\n                        (column_equals (column_of this) (column_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 3)\n                        (column_equals (column_of this) (column_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects neighboring X to C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects within X to either color C or color A or color F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects that are neighbors of objects with color X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the cells adjacent to objects of color X to specific colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color\n                (color_of this)\n            )\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of the object of color X if their color is different from X, such that object color becomes C for all non-X objects in the same row with X, and color becomes A for all non-X objects in the same column with X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects that are neighbors of objects of color X while preserving those positions to C if they were neighbors or A otherwise.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) X))\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+            "nl_description": "Color the objects inside the objects of color X differently.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (shape_equals (shape_of other) enclosed)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all enclosed grey objects to specified colors",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n             )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (neighbor_of this other)\n             )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor objects that are adjacent to color X to colors C, A, and F based on their positions.",
+            "nl_description": "Update the color of objects that are adjacent to objects of color X. Each new color is unique for each pair of adjacent objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects adjacent to X to color their pairs of 3 as C, then the next pair adjacent to C as A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill the inner area of objects of size 7 with color C, inner area of objects of size 4 with color A, and the inner area of objects of size 1 with color F without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 7)\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill all objects of color different than X, which are inside the hollow rectangle, with the color C and A respectively.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n            (fill_rectangle A false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects neighboring objects of color X to different colors.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of objects neighboring color X from Y to Z.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects that are neighbors of objects of color X while preserving those positions to C if they were neighbors or A otherwise.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (not (color_equals (color_of this) X))\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects centered inside objects of color X in the top half of the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color\n                (color_of this)\n            )\n        )\n    )\n)"
         },
         {
             "nl_description": "Update objects of size 1 to color F, objects of size 2 to color A, and objects of size 3 to color C.",
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the neighbors of an object with color X to different colors based on their positions.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)\n"
-        },
-        {
-            "nl_description": "Recolor all objects adjacent to the color X to either C, A, or F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects of size 1 toward neighboring objects of color X, without overlapping, then recolor neighbors to color C or A based on their position.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor neighboring objects to X based on their proximity and current color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor to color C all objects of color O that are neighbors of objects of color X and of size 1, and recolor to color A all the other objects of color O that are neighbors of objects of color X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (and\n                    (color_equals (color_of this) O)\n                    (neighbor_of this other)\n                )\n                (and\n                    (color_equals (color_of other) X)\n                    (size_equals (size_of other) 1)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (and\n                    (color_equals (color_of this) O)\n                    (neighbor_of this other)\n                )\n                (and\n                    (color_equals (color_of other) X)\n                    (not (size_equals (size_of other) 1))\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the objects neighboring object of color X to different colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all neighboring objects to X with color C or A based on their original color. Objects initially colored O should be recolored to A while objects initially colored O should be recolored to C.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+            "nl_description": "Recolor objects adjacent to 'X' objects to colors as observed in the examples: those in the middle colored to 'C', those on the left of the middle to 'F', and those on the right of the middle to 'A'.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects that are neighbors of objects of color X.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Transform all objects of size 1 that are neighbors of an object with color X by extending toward the object of color X, then recolor to a new color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Recolor all non-X objects that are neighbors to an X object to match the color of the X object they are next to.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the objects that are adjacent to color X to a new color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Fill the inner pixels of all hollow rectangles with color C if they are neighbors of the object of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the internal pixels of all objects of color X to color C, and the border pixels of those objects to color A.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle C false)\n            (add_border A)\n        )\n    )\n)"
+            "nl_description": "Recolor all the open cells inside or adjacent to an object of color X with color A, C, or F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects enclosed by objects of color X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)\n"
+            "nl_description": "Change the color of neighboring objects to X to C if they are in the top half and A if they are in the bottom half.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Change the color of all objects that are neighbors to the color X and are not of color X themselves.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (not (color_equals (color_of this) X))\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+            "nl_description": "Recolor all 3x3 blocks to color C, F, and A, depending on their unique identifier.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (column_equals (column_of this) 3)\n                    (column_equals (column_of this) 5)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 4)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (column_equals (column_of this) 2)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the interior of hollow shapes to color A and the sides of hollow shapes to color C, for the hollow shapes that have color X",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (hollow_rectangle A)\n            (add_border C)\n        )\n    )\n)"
+            "nl_description": "Color the interior of hollow squares of color X with the same character as adjacent objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle (color_of this) false)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend objects adjacent to objects of color X, recoloring them based on the neighbor pairs.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color (color_of other))\n        )\n    )\n)"
+            "nl_description": "Recolor to color C all objects of color O that are neighbors of objects of color X and of size 1, and recolor to color A all the other objects of color O that are neighbors of objects of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (and\n                    (color_equals (color_of this) O)\n                    (neighbor_of this other)\n                )\n                (and\n                    (color_equals (color_of other) X)\n                    (size_equals (size_of other) 1)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (and\n                    (color_equals (color_of this) O)\n                    (neighbor_of this other)\n                )\n                (and\n                    (color_equals (color_of other) X)\n                    (not (size_equals (size_of other) 1))\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor objects that are entirely surrounded by X, using a different color for each object.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+            "nl_description": "Recolor the objects at the edges connected to the left side to C, the ones connected to the right side to A, and the ones connected to the top to F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all objects that are neighbors to the X objects.",
+            "nl_description": "Extend all objects that are neighbors of a color X object to cover them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects within X to either color C or color A or color F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are enclosed by objects of color X or neighbor to said objects. Objects recolor differently based on the pair.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
@@ -261,80 +101,200 @@
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Color objects neighboring X to colors corresponding to their distance from X, using colors C, A, and F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Color the objects inside the objects of color X differently.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (shape_equals (shape_of other) enclosed)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Move all objects neighboring another object of color X toward them and recolor them to color C, A, or F based on their initial position.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects neighboring objects of color X to their respective colors.",
-            "code": "(do\n    (rule\n        (vars (this other)) \n        (filter \n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        ) \n        (apply \n            (update_color (color_of this))\n        ) \n    )\n)"
-        },
-        {
-            "nl_description": "Extend all objects that are neighbors of a color X object to cover them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (extend_node (direction_of other) true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all objects of color O and which are neighbors of objects of color X to C, except when they are initially at the same row. If they are at the same row, recolor them to A.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the regions inside objects of color X to different colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbors of the object with color X in different colors (C, A, F) based on their position.",
+            "nl_description": "Recolor the objects neighboring object of color X to different colors.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor cells that are neighbors of X cells, avoid overlapping objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all X objects completely enclosed in other objects.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor neighboring cells of color X to different colors based on a pattern.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects that are neighbors of objects in the X color.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Change the color of neighboring objects to X to C if they are in the top half and A if they are in the bottom half.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the enclosed objects by filling them with C or A, based on their position.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects adjacent to objects of color X, ensuring the adjacent objects get colors based on their positions: C, F, and A respectively.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
+            "nl_description": "Recolor the interior of all hollow rectangles to color A, and then recolor all objects touching the color X to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill objects inside the larger object with specific colors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (fill_rectangle F false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of all objects that are neighbors to the color X and are not of color X themselves.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (not (color_equals (color_of this) X))\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the bottom-left neighbors of X objects to color C for size 1, F for size 2, and A for size 3.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 1)\n                        (column_equals (column_of this) (column_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 2)\n                        (column_equals (column_of this) (column_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 3)\n                        (column_equals (column_of this) (column_of other))\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects enclosed by objects of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)\n"
+        },
+        {
+            "nl_description": "Recolor all objects adjacent to X with a different color, and fill the interiors of X's neighbors with another color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects at the positions surrounded by objects of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior of hollow shapes to color A and the sides of hollow shapes to color C, for the hollow shapes that have color X",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (color_equals (color_of this) X)\n            )\n        )\n        (apply\n            (hollow_rectangle A)\n            (add_border C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the regions inside objects of color X to different colors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors of objects of color X to a specific color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of color O and which are neighbors of objects of color X to C, except when they are initially at the same row. If they are at the same row, recolor them to A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects next to the X objects with colors C, F and A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color the interior pixels of each object of color X with other colors",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle C false)\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle A false)\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle F false)\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Extend objects of size 1 to create a row and column of 'C' or 'A', depending on the row or column they are in, without overlapping.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (extend_node down true)\n            (extend_node right true)\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Extend all objects that are neighbors towards the color X without overlapping. Then, recolor the affected objects based on a specific pattern (A, C, or F).",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor objects that border the objects of color X toward them.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+            "nl_description": "Recolor the enclosed objects adjacent to X cells in the grids. Replace color O with C and F, and replace color O with A and C based on the blocks.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects which are neighbors to an object of color X. Use color C for the first object and color A for the second object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects that are completely inside the biggest object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (neighbor_of this other)\n                    (size_equals (size_of other) max)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor neighboring objects to X based on their proximity and current color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects neighboring objects of color X to their respective colors.",
+            "code": "(do\n    (rule\n        (vars (this other)) \n        (filter \n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        ) \n        (apply \n            (update_color (color_of this))\n        ) \n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all inner objects inside the objects of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors of the object of color X if their color is different from X, such that object color becomes C for all non-X objects in the same row with X, and color becomes A for all non-X objects in the same column with X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the internal blocks of the squares of color X to colors C, A, and F.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors to the X objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbors of the object with color X in different colors (C, A, F) based on their position.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects inside the existing squares to distinguish regions.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) O))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects that are neighbors of objects of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects that are adjacent to color X to colors C, A, and F based on their positions.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Move all objects neighboring another object of color X toward them and recolor them to color C, A, or F based on their initial position.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (move_node_max (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 3 to color A and all objects of size 4 to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Change the color of objects neighboring color X from Y to Z.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color Y)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Fill hollow objects surrounded by color X with new colors in the holes.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (fill_rectangle (color_of this) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects that are adjacent to color X to a new color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor objects that are neighbors of objects in the X color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects connected to X in color C and F to color A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and \n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects that are neighbors of an object colored 'X' to either 'C', 'A', or 'F', respectively.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the interior of the hollow squares of color X with different specific colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (color_equals (color_of other) O)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
+            "nl_description": "Recolor objects that border the objects of color X toward them.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (move_node (direction_of other))\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects adjacent to the grey objects in the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all the enclosed objects by filling them with C or A, based on their position.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all interior pixels of objects of color X either to C, F, or A based on specific clear patterns",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior cells of objects formed by the letter 'X' with different colors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (hollow_rectangle C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects neighboring and different from X to color C, F, or A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the objects of size 3 that are neighbors of an object of color X to color C, and the objects of size 2 that are neighbors of an object of color X to color A.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 3)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 2)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor ",
+            "code": "(do\n  (rule\n    (vars (this other))\n    (filter\n      (and\n        (neighbor_of this other)\n        (color_equals (color_of other) X)\n      )\n    )\n    (apply\n      (move_node_max (direction_of other))\n      (update_color X)\n    )\n  )\n)"
+        },
+        {
+            "nl_description": "Extend all objects of size 1 toward neighboring objects of color X, without overlapping, then recolor neighbors to color C or A based on their position.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) C)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Color objects neighboring X to colors corresponding to their distance from X, using colors C, A, and F.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the internal pixels of all objects of color X to color C, and the border pixels of those objects to color A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle C false)\n            (add_border A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Fill all objects neighbored by objects of color X toward those neighbor objects, without overlapping.",
@@ -345,72 +305,56 @@
             "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Extend objects of size 1 to create a row and column of 'C' or 'A', depending on the row or column they are in, without overlapping.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (extend_node down true)\n            (extend_node right true)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all the objects enclosed in an object of color X to specific colors C, A, and F based on their positions in the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter \n            (and \n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter \n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior cells of objects formed by the letter 'X' with different colors.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (shape_equals (shape_of this) enclosed)\n            )\n        )\n        (apply\n            (hollow_rectangle C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the interior of all hollow rectangles to color A, and then recolor all objects touching the color X to color C.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (fill_rectangle A false)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the internal blocks of the squares of color X to colors C, A, and F.",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects enclosed within white objects to color 'C' and 'A' depending on their original position.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) C)\n                (and\n                    (column_equals (column_of other) even)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor objects not containing X either as neighbors or lower rows.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (not (color_equals (color_of this) X))\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor all interior pixels of objects of color X either to C, F, or A based on specific clear patterns",
-            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (color_equals (color_of this) X)\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor the neighbors of all objects colored X to C and A and F based on adjacency.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
-        },
-        {
-            "nl_description": "Recolor neighbors of the X objects to color C, F, or A based on their positions in the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+            "nl_description": "Recolor objects that are entirely surrounded by X, using a different color for each object.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor objects enclosed by color X to C if they are at the top, A if they are at the middle, and F if they are at the bottom.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (color_equals (color_of other) X)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 3)\n                        (neighbor_of this other)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (shape_equals (shape_of this) enclosed)\n                (and\n                    (color_equals (color_of other) X)\n                    (and\n                        (size_equals (size_of this) 1)\n                        (neighbor_of this other)\n                    )\n                )\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
         },
         {
+            "nl_description": "Recolor all the objects enclosed in an object of color X to specific colors C, A, and F based on their positions in the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter \n            (and \n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter \n            (color_equals (color_of this) F)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor neighbors of the X objects to color C, F, or A based on their positions in the grid.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor neighboring cells of color X to different colors based on a pattern.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+        },
+        {
             "nl_description": "Recolor all objects that are neighbors to the color X.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Update the color of objects that are adjacent to objects of color X. Each new color is unique for each pair of adjacent objects.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Recolor all objects of size 1 to color C and all objects of size 2 to color A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the objects centered inside objects of color X in the top half of the grid.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of other) X)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color\n                (color_of this)\n            )\n        )\n    )\n)"
+            "nl_description": "Recolor objects of size 3 to color C and of size 2 to color A.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 3)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 2)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects enclosed by objects of color X. The recoloring uses different colors: C for the central portions and A for the corners.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the objects at the positions surrounded by objects of color X.",
+            "nl_description": "Recolor objects neighboring X to C.",
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Convert all enclosed regions to color C, regions adjacent to it to color A, and the objects with color F",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Recolor the neighbors of an object with color X to different colors based on their positions.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)\n"
+        },
+        {
+            "nl_description": "Recolor the cells adjacent to objects of color X to specific colors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color\n                (color_of this)\n            )\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects internal to objects of color X.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         },
         {
             "nl_description": "Recolor all objects that are neighbors of object X to color C, other neighbors to color A, and any remaining neighbors to color F.",
@@ -421,12 +365,40 @@
             "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color (color_of this))\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor the objects at the edges connected to the left side to C, the ones connected to the right side to A, and the ones connected to the top to F.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+            "nl_description": "Transform all objects of size 1 that are neighbors of an object with color X by extending toward the object of color X, then recolor to a new color.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (size_equals (size_of this) 1)\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (extend_node (direction_of other) false)\n            (update_color C)\n        )\n    )\n)"
         },
         {
-            "nl_description": "Recolor all inner objects inside the objects of color X.",
-            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (not (color_equals (color_of this) X))\n                (and\n                    (neighbor_of this other)\n                    (color_equals (color_of other) X)\n                )\n            )\n        )\n        (apply\n            (update_color (color_of other))\n        )\n    )\n)"
+            "nl_description": "Recolor the objects adjacent to and outside of the X-shaped objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )    \n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all objects of size 1 to color F, objects of size 4 to color A, and objects of size 6 to color C.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 1)\n        )\n        (apply\n            (update_color F)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 4)\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter\n            (size_equals (size_of this) 6)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the neighbors of all objects colored X to C and A and F based on adjacency.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) X)\n            )\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of this) A)\n            )\n        )\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Convert all enclosed regions to color C, regions adjacent to it to color A, and the objects with color F",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (neighbor_of this other)\n                (color_equals (color_of other) C)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n    (rule\n        (vars (this))\n        (filter)\n        (apply\n            (update_color F)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor cells that are neighbors of X cells, avoid overlapping objects.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (extend_node (direction_of other) false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all neighboring objects to X with color C or A based on their original color. Objects initially colored O should be recolored to A while objects initially colored O should be recolored to C.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (neighbor_of this other)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) O)\n                (neighbor_of this other)\n            )\n        )\n        (apply\n            (update_color A)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor the interior of the hollow squares of color X with different specific colors.",
+            "code": "(do\n    (rule\n        (vars (this other))\n        (filter\n            (and\n                (color_equals (color_of this) X)\n                (and\n                    (color_equals (color_of other) O)\n                    (neighbor_of this other)\n                )\n            )\n        )\n        (apply\n            (fill_rectangle C false)\n        )\n    )\n)"
+        },
+        {
+            "nl_description": "Recolor all X objects completely enclosed in other objects.",
+            "code": "(do\n    (rule\n        (vars (this))\n        (filter\n            (shape_equals (shape_of this) enclosed)\n        )\n        (apply\n            (update_color C)\n        )\n    )\n)"
         }
     ]
 }
